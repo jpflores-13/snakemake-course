@@ -1,0 +1,12 @@
+[submodule "pipelines/microcpipe"]
+	path = pipelines/microcpipe
+	url = https://github.com/jpflores-13/microcpipe
+	shallow = true
+[submodule "pipelines/ttpipe"]
+	path = pipelines/ttpipe
+	url = https://github.com/jpflores-13/ttpipe
+	shallow = true
+[submodule "pipelines/chromsimpipe"]
+	path = pipelines/chromsimpipe
+	url = https://github.com/jpflores-13/chromsimpipe
+	shallow = true
