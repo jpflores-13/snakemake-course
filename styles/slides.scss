@@ -1,0 +1,61 @@
+/*-- scss:defaults --*/
+// Same palette as the website (styles/theme.scss)
+$lab-blue:   #2c7bb6;
+$lab-teal:   #1a9850;
+$lab-orange: #d7301f;
+
+$body-bg: #ffffff;
+$body-color: #222222;
+$link-color: $lab-blue;
+$presentation-heading-color: #1d3557;
+$presentation-heading-font-weight: 600;
+$presentation-font-size-root: 34px;
+$presentation-h2-font-size: 1.5em;
+$font-family-sans-serif: "Source Sans 3", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+$font-family-monospace: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+$code-block-font-size: 0.62em;
+$code-block-bg: #f6f8fa;
+$code-block-border-color: #d0d7de;
+$code-color: #8a1538;
+$code-bg: #f2f4f7;
+
+/*-- scss:rules --*/
+@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Source+Sans+3:wght@400;600;700&display=swap");
+
+.reveal .slide-number { color: #6c757d; }
+.reveal .footer { color: #6c757d; font-size: 0.45em; }
+.reveal .slides section h2 {
+  border-bottom: 3px solid $lab-blue;
+  padding-bottom: 0.15em;
+}
+
+// readable code on a projector: dark text on a light block, larger line height
+.reveal div.sourceCode {
+  border-left: 5px solid $lab-blue;
+  border-radius: 4px;
+}
+.reveal pre code {
+  line-height: 1.35;
+  max-height: 560px;
+}
+.reveal .code-with-filename .code-with-filename-file {
+  background: #e8eef5;
+  font-size: 0.5em;
+  padding: 0.25em 0.6em;
+}
+
+.reveal .callout.exercise { border-left-color: $lab-teal !important; }
+.reveal .callout.stopping-point { border-left-color: $lab-orange !important; }
+.reveal .exercise a[href*="answers/"], .reveal a.answer-link {
+  border: 2px solid $lab-teal;
+  border-radius: 999px;
+  padding: 0 0.5em;
+  color: $lab-teal;
+  font-weight: 600;
+}
+
+.reveal .snippet-source { font-size: 0.4em; text-align: right; color: #6c757d; }
+.reveal .snippet-source .snippet-where { margin-right: 0.5em; }
+.reveal .generated-graph-wrap { text-align: center; }
+.reveal .generated-graph-wrap img { max-height: 560px; }
+.reveal .generated-output pre code { max-height: 520px; font-size: 0.85em; }

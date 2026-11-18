@@ -1,0 +1,34 @@
+# Settings for the snakemakeify solutions. Every number that was a variable
+# at the top of a legacy script lives here now.
+
+# Course data folder, relative to where you run snakemake
+data: "data"
+
+# Sample name = these samplesheet columns joined with "_"
+fileNamesFrom: ["Cell_Type", "Target", "Bio_Rep"]
+
+filter:
+  mapq: 30
+
+bigwig:
+  binsize: 10
+  extend: 200
+
+macs3:
+  gsize: "hs"
+  qvalue: "0.01"
+  # extra options for samples with and without a control
+  with_control: ""
+  no_control: "--nomodel --shift -100 --extsize 200"
+
+# q-value sweep (05_qvalue_sweep.sh). Quote the values: YAML would turn
+# 0.0001 into a float and Python would print it as 1e-04.
+sweep:
+  target: "CTCF"
+  qvalues: ["0.05", "0.01", "0.001", "0.0001"]
+
+# MYC locus figure (08_locus_plot.R)
+locus:
+  chrom: "chr8"
+  start: 127300000
+  end: 127800000

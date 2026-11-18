@@ -1,0 +1,300 @@
+---
+title: "MicroCPipe"
+subtitle: "Field guide"
+description: "An annotated tour of the lab's Micro-C pipeline: from FASTQ to contact maps, and where each course idea shows up."
+---
+
+MicroCPipe is the smallest of the three pipelines and the one closest to what you build in the
+course. If you only read one field guide page, read this one.
+
+Code on this page is pulled from the repository at the pinned commit (253a6cc). Every block has a
+link to the same lines on GitHub.
+
+## What the pipeline does {#mc-biology}
+
+Micro-C is a chromosome conformation capture assay. Cells are crosslinked, chromatin is digested
+to single nucleosomes with micrococcal nuclease (MNase), and DNA ends that sat close together in
+the nucleus are ligated to each other. After paired-end sequencing, each read pair is two pieces
+of the genome that were near each other in 3D. Because MNase cuts between nucleosomes instead of
+at restriction sites, the maps resolve structure down to the nucleosome scale.
+
+The pipeline aligns both mates with `bwa mem -5SP -T0`, turns alignments into *pairs* with
+`pairtools parse` (each pair gets a type: `UU` for two unique alignments, `UR`/`RU` for rescued
+ones, and so on), sorts them, merges the sequencing runs of one library, marks duplicates, and
+keeps only the unique pairs. Those pairs are binned into contact matrices in three formats: `.cool`,
+a multi-resolution `.mcool`, and Juicebox `.hic`. Along the way it writes QC tables (pairtools stats,
+cis/trans fractions, a preseq library-complexity curve) and one static HTML dashboard.
+
+## The rule graph {#mc-rulegraph}
+
+{{< generated name="microcpipe-rulegraph" >}}
+
+<!-- GENERATE: microcpipe-rulegraph | pipelines/microcpipe | snakemake -s workflows/MicroCPipe.snakefile --configfile config/MicroCConfig.yaml tests/dryrun/config.yaml --cores 1 --rulegraph -->
+
+Read it top to bottom. `align` feeds `dedup`; `dedup` feeds `split` and `qc_summary`; `split` feeds
+`cool`, `hic` and `sort_bam`; `cool` feeds `mcool`; `sort_bam` feeds `library_complexity`. The maps
+and QC tables feed `benchmark_summary` and `qc_report`. The optional `analysis_*` rules (on in the
+test config, off by default) read the `.mcool` and feed nothing but `all`, so a failing analysis can
+never block the dashboard. That last point is a design decision, not an accident: see
+[Targets as functions](#mc-targets).
+
+On the test fixture (three samplesheet rows, two libraries) a dry run plans 26 jobs: 3 `align`,
+2 of each per-library rule, and one each of `benchmark_summary`, `qc_report` and `all`.
+
+## A walk from inputs to outputs {#mc-walk}
+
+1. **`MicroCSamplesheet.txt`** has one row per *sequencing run*. A library sequenced twice is two
+   rows that differ only in `Seq_Rep`.
+2. **`config/MicroCConfig.yaml`** says which columns identify a library (`mergeBy`), where the
+   reference is, which map formats to make, and the QC thresholds.
+3. **`MicroCPipe.sh`** picks a profile, makes a Python venv with Snakemake in it, and runs
+   `snakemake -s workflows/MicroCPipe.snakefile --profile profiles/<site> ...`.
+4. **`align`** runs once per row and writes a temporary `aligned/{run}.pairsam.gz`.
+5. **`dedup`** runs once per library (`{group}`): it merges that library's runs and marks duplicates.
+6. **`split`** writes `{group}.pairs.gz` (unique pairs only) and a BAM for preseq.
+7. **`cool` → `mcool`** and **`hic`** build the maps from the pairs.
+8. **`qc_summary`**, **`library_complexity`**, **`benchmark_summary`** and **`qc_report`** write the
+   QC tables and `qc/MicroC_qc_report.html`.
+
+Everything lands under `{outputDir}/{group}/`, including that library's `logs/` and `benchmarks/`.
+
+## Concepts in the wild
+
+### Runs and groups: two IDs from one samplesheet {#mc-run-group}
+
+Module 3 builds sample names from samplesheet columns. MicroCPipe needs two names per row: one
+for the alignment job (a sequencing run) and one for the library the run belongs to.
+
+{{< snippet repo="microcpipe" file="workflows/MicroCPipe.snakefile" lines="15-35" >}}
+
+- Lines 16-21 read the sheet with every column as a string (`dtype=str`; otherwise a `Bio_Rep` of
+  `1` becomes the integer `1` and `"_".join` fails) and stop at parse time if a required column is
+  missing. The required set includes whatever `mergeBy` names, so the check follows the config.
+- Line 25 builds the library ID, `group`, by joining the `mergeBy` columns. Leave a column out of
+  `mergeBy` and rows that differ only in that column become one group. The default leaves out
+  `Seq_Rep`, which is how sequencing runs of one library end up merged.
+- Line 27 builds the run ID from the group plus a counter (`cumcount`), so it is unique even when two
+  rows have identical metadata. `align` needs that: one job per row, one output file per job.
+- Lines 29-31 build three lookups the rules use: the ordered list of groups, the table indexed by run,
+  and the runs of each group.
+- Lines 33-35 are the part to copy. `wildcard_constraints` restricts `{group}` and `{run}` to the
+  *actual* names from the samplesheet, joined with `|`. `re.escape` matters because sample names
+  can contain regex characters: a `.` in `GM12878.ctrl` would otherwise match any character. With
+  these constraints a typo in a target name fails right away with "no rule to produce", and
+  Snakemake never has to guess where `{group}` ends and the rest of a filename begins.
+
+### Input functions, and `{{group}}` inside `expand` {#mc-input-functions}
+
+{{< snippet repo="microcpipe" file="workflows/MicroCPipe.snakefile" rule="dedup" >}}
+
+The input of `dedup` is every run of this group. The list differs per group, so it has to be a
+function of the wildcards (module 3). The interesting part is the double braces:
+
+- `expand()` fills in `{run}` from `RUNS_BY_GROUP[w.group]`.
+- `{{group}}` is an escaped brace. `expand()` turns it into a literal `{group}` instead of
+  complaining that you did not give it a `group` list.
+- Snakemake then fills `{group}` in the returned paths from the job's own wildcards. (Wildcards in
+  strings returned by an input function are filled in, exactly like plain input strings.)
+
+You could write `OUT + "/" + w.group + "/aligned/{run}.pairsam.gz"` instead and get the same paths.
+The `{{group}}` form keeps the path looking like the `align` output it has to match, which makes
+the connection easy to see. The `align` rule above it uses the simpler form of input function, one
+lambda per file:
+
+{{< snippet repo="microcpipe" file="workflows/MicroCPipe.snakefile" rule="align" >}}
+
+Also look at the shell block: `: > {log}` empties the log once, then every command appends with
+`2>> {log}`, so one log holds the whole pipe. Snakemake runs shell commands in bash strict mode
+(`set -euo pipefail`), so if `bwa` dies in the middle of the pipe the job fails instead of writing a
+truncated file. The `tmpdir` lives inside the group's output folder and is removed at the end.
+
+### `rules.X.output` instead of retyping paths {#mc-rules-output}
+
+{{< snippet repo="microcpipe" file="workflows/MicroCPipe.snakefile" rule="split" >}}
+
+`split` takes its input from `rules.dedup.output.pairsam` (module 7). If someone renames the dedup
+output, `split` follows. The rule also shows a pattern you will see again: an intermediate file
+that is not an output (`{group}_all.pairs.gz`, passed as a `param`) is written and deleted inside
+one job, so Snakemake never tracks it.
+
+### A tool failure that is not a pipeline failure {#mc-preseq}
+
+{{< snippet repo="microcpipe" file="workflows/MicroCPipe.snakefile" rule="library_complexity" >}}
+
+preseq refuses to extrapolate a library that is too shallow or has too few duplicates. That says
+something about the data, not about the pipeline, and the author did not want it to block the maps,
+the dashboard or the Merge workflow. So:
+
+- `preseq ... || { ...; }` runs the block in braces only if preseq fails. In bash, `{ ... }` groups
+  commands without starting a subshell.
+- In a Snakemake shell string, single braces are placeholders. A literal brace is written twice:
+  `{{` and `}}` (module 4).
+- The fallback warns on stderr and writes a header-only table, so the output exists, downstream
+  rules run, and the dashboard shows "no data" for that library.
+- Because of the `||`, strict mode does not stop the job when preseq fails. Without it, the job
+  would fail and `--keep-going` would skip everything that depends on it.
+
+The comment above the command explains *why*. That is the habit to copy: an `||` that swallows an
+error needs a sentence saying which error and why it is safe.
+
+### Resources live only in profiles {#mc-resources}
+
+{{< snippet repo="microcpipe" file="workflows/rules/common.smk" lines="1-3" >}}
+
+Rules in MicroCPipe declare `threads:` and nothing else. Memory, runtime and partition come from
+the site profile:
+
+{{< snippet repo="microcpipe" file="profiles/slurm-template/config.yaml" lines="1-27" >}}
+
+- `default-resources` covers any rule without its own entry; `set-threads` and `set-resources`
+  (further down the file) give every rule by name.
+- `cores: 100` is there for a reason the comment spells out: without it, Snakemake capped a rule's
+  `threads` at the CPUs of the small launcher job, and `align` ran with 3 threads instead of 16.
+- `latency-wait: 500` is how long Snakemake waits for an output file to appear after a job ends.
+  On a shared cluster file system, a file written on a compute node can take a while to be visible
+  from the node where Snakemake runs; without enough wait, a job that succeeded is reported as
+  "missing output". The local profile uses 60 seconds.
+- The `<account>` placeholders are checked by the launcher (next section) so an unedited template
+  stops with a clear message instead of a SLURM error.
+
+The benefit: moving to a new cluster means copying one folder, not editing rules. The cost: every
+rule name appears in five profiles, so adding a rule means five edits. See
+[conventions](conventions.qmd#resources) for a way to keep the per-rule numbers in one place.
+
+One rule reads its resources back. `hic` sizes the Java heap from the memory the profile gave it:
+
+{{< snippet repo="microcpipe" file="workflows/rules/formats.smk" rule="hic" >}}
+
+`params.mem` is a function of `wildcards` and `resources`. It takes 85% of `mem_mb` (Java needs
+room outside the heap), unless the config sets `javaMem`. Raising `hic: mem_mb` in a profile is
+enough; nobody has to remember to change a second number.
+
+### The launcher, and why it does not activate the venv {#mc-launcher}
+
+{{< snippet repo="microcpipe" file="MicroCPipe.sh" lines="32-85" >}}
+
+- Lines 36-45: `--configfile` and `--profile` are read by the script; every other argument goes to
+  Snakemake unchanged, so `bash MicroCPipe.sh -n` is a dry run.
+- Lines 48-50: the profile is `--profile`, else `$MICROC_PROFILE`, else `hpcProfile` from the
+  config. The environment variable lets each person set their cluster once in `~/.bashrc` and keep
+  the repository cluster-neutral.
+- Lines 59-63 stop early on an unedited `<placeholder>`.
+- Lines 73-74 create `env/` and install Snakemake into it, but **never run `source env/bin/activate`**.
+  The comment explains why: conda rewrites a tool's first line to `#!/usr/bin/env python3` when the
+  environment path is longer than Linux's 127-character limit (common on scratch file systems).
+  If a venv's `bin/` were first on `PATH` inside jobs, that line would find the venv's Python, which
+  does not have the tool's packages, and the job would fail with `No module named ...`. Calling
+  `env/bin/python3 -m snakemake` directly keeps the venv off `PATH`.
+- Line 78-82 add SLURM log and rate-limit flags only when the profile uses the SLURM executor.
+- Line 85: `--rerun-incomplete --keep-going -p` are always on. After a crash, half-written files are
+  redone; one failed library does not stop the others; and the log shows each shell command.
+
+The same idea shows up inside the rules. Scripts are run with `$CONDA_PREFIX/bin/python`, the
+interpreter of the rule's own conda environment, not whatever `python` comes first on `PATH`:
+
+{{< snippet repo="microcpipe" file="workflows/MicroCPipe.snakefile" lines="180-195" >}}
+
+`{workflow.basedir}/../scripts/` finds the script relative to the Snakefile, not to the directory you
+launched from.
+
+### Targets as functions {#mc-targets}
+
+{{< snippet repo="microcpipe" file="workflows/MicroCPipe.snakefile" lines="51-68" >}}
+
+`rule all` asks for whatever the config switches turn on. `qc_targets()` adds the preseq table only
+when both `library_complexity` and `make_bam` are true, because preseq reads the BAM. The map
+targets come from `format_targets()` in `common.smk`, which adds one `.done` file per requested
+analysis. Those markers are made with Snakemake's `touch()` output flag next to the real result
+(see `analysis_expected` in `formats.smk`). Note that `qc_report` asks for `map_targets()`, not
+`format_targets()`: the dashboard waits for the maps but not for the optional analyses.
+
+### Config checked at parse time {#mc-validation}
+
+{{< snippet repo="microcpipe" file="workflows/rules/common.smk" lines="8-18" >}}
+
+These lines run when the Snakefile is read, before any job exists. A typo in `outputs:` or a
+resolution that is not a multiple of the base stops the run with one readable line. The dry-run
+test `test_bad_output_format_is_rejected` checks the first of these.
+
+### One rule file, two workflows {#mc-include}
+
+`rules/formats.smk` holds the map rules (`cool`, `mcool`, `hic`, `analysis_*`) and is included by
+both the core workflow and `MicroCMerge.snakefile`. It needs to know where the pairs file is, and
+that differs between the two. The answer is a hook function that each Snakefile defines before the
+include:
+
+{{< snippet repo="microcpipe" file="workflows/MicroCPipe.snakefile" lines="263-267" >}}
+
+{{< snippet repo="microcpipe" file="workflows/MicroCMerge.snakefile" lines="67-72" >}}
+
+`formats.smk` uses `pairs = get_pairs` as an input function. The `merged_` prefix on merge groups
+keeps their files from colliding with core groups in the same output folder:
+
+{{< snippet repo="microcpipe" file="workflows/MicroCMerge.snakefile" lines="21-27" >}}
+
+This is a hand-made version of what Snakemake's `module`/`use rule ... with:` system does. It works
+with plain `include:`, which is easier to read at this size.
+
+### Notifications from `onstart`/`onsuccess`/`onerror` {#mc-hooks}
+
+{{< snippet repo="microcpipe" file="workflows/MicroCPipe.snakefile" lines="37-49" >}}
+
+These hooks run once, in the main Snakemake process, and not on a dry run. `notify()` (in
+`common.smk`) sends one email per event if an address is set, and wraps the send in `try`/`except`
+so a broken mail setup can never fail a finished run. In `onerror`, `log` is the path of
+Snakemake's own log, and `log_tail()` puts its last 40 lines in the message.
+
+### Dry-run tests that count jobs {#mc-tests}
+
+{{< snippet repo="microcpipe" file="tests/test_dryrun.py" lines="19-39" >}}
+
+`tests/dryrun/` holds a tiny fixture: three samplesheet rows (two runs of one library, one run of a
+second), empty FASTQs, and a config that overlays the main one. The test runs `snakemake -n` and
+reads the job table. Three rows must give three `align` jobs and two `dedup` jobs. If someone
+breaks the run/group logic, the counts change and CI fails. CI (`.github/workflows/ci.yml`) also
+runs `bash -n` on the launchers so a syntax error in a shell script is caught before it reaches a
+cluster.
+
+## What you would change {#mc-change}
+
+- **Put `Condition` in `mergeBy`.** The samplesheet has a `Condition` column, but the default
+  `mergeBy` is `Project`, `Cell_Type`, `Bio_Rep`, `Tech_Rep`. A control and a treated library with the
+  same replicate numbers would become one group and be merged. Either add `Condition` or make the
+  parse-time check refuse a group whose rows disagree on `Condition`.
+- **Pass all config files to the dashboard.** `qc_report` gives the script
+  `workflow.configfiles[0]`, so a threshold changed in a second `--configfile` is not seen by the
+  dashboard. TTpipe passes them all (`QC_CONFIGFILES` in `report.smk`).
+- **Use f-strings for paths.** `OUT + "/{group}/..."` is the source of most of the lint output (see
+  [conventions](conventions.qmd#lint)). `f"{OUT}/{{group}}/..."` reads the same and lints clean.
+- **Keep per-rule numbers in one file.** See [conventions](conventions.qmd#resources).
+
+## Exercises for the curious {#mc-exercises}
+
+1. You want one map per biological replicate *and* one map that pools both biological replicates.
+   What would you change, and do you need to rerun alignment?
+2. Why does `dedup` merge the runs of a library first and mark duplicates after, instead of
+   deduplicating each run on its own?
+3. You need `hic` to get 200 GB on one cluster only. Which file do you edit, and why does the Java
+   heap follow without a second edit?
+4. Remove `re.escape` from the constraints and name a library `K562.ctrl`. What could go wrong?
+
+::: {.callout-note collapse="true"}
+## Short answers
+
+1. No realignment. Write a merge samplesheet that lists each library's `{group}.pairs.gz` and set
+   `merge.mergeBy` to the columns that stay fixed when you pool, for example `['Project',
+   'Cell_Type', 'Condition']` (no `Bio_Rep`, no `Tech_Rep`). Run `MicroCMerge.sh`. It only runs
+   `merge_pairs` and the format rules.
+2. A PCR duplicate is a copy of the same ligation product, and copies of one library can be read
+   in different sequencing runs. Deduplicating per run would miss duplicates that span runs.
+   Libraries are not deduplicated against each other (Merge does not dedup), because two
+   libraries cannot share PCR copies.
+3. `set-resources: hic: mem_mb:` in that site's `profiles/<site>/config.yaml`. `params.mem` in
+   `hic` is computed from `resources.mem_mb` (85% of it) unless `javaMem` is set in the config.
+4. The `.` becomes a regex "any character", so the constraint also accepts `K562Xctrl` or
+   `K562_ctrl`. With similar library names, a pattern could match a name you did not mean, and the
+   constraint no longer guarantees that a target names a real library. `re.escape` makes each name
+   match only itself.
+:::
+
+[Next: TTpipe](ttpipe.qmd)

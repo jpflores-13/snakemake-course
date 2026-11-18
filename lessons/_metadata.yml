@@ -1,0 +1,34 @@
+# Shared settings for every lesson page (INFRA). Each lesson renders twice from
+# one source: a web page (html) and reveal.js slides. The lesson's own front
+# matter names the slides file, e.g.
+#   format:
+#     html: default
+#     revealjs:
+#       output-file: 01-rules-slides.html
+# Each `##` heading is one slide.
+format:
+  revealjs:
+    theme: [default, ../styles/slides.scss]
+    width: 1280
+    height: 720
+    margin: 0.06
+    slide-number: c/t
+    show-slide-number: all
+    chalkboard: false
+    transition: none
+    background-transition: none
+    hash-type: number
+    controls-layout: bottom-right
+    menu:
+      side: left
+      numbers: true
+    preview-links: auto
+    scrollable: true
+    code-overflow: scroll
+    code-block-height: 540px
+    code-copy: true
+    code-line-numbers: false
+    highlight-style: a11y
+    footer: "Snakemake for genomics"
+    toc: false
+    link-external-newwindow: true

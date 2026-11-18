@@ -1,0 +1,403 @@
+# Course data preparation (maintainer only; learners never run this).
+#
+# Builds the files in data/ from public ENCODE, UCSC and GEO files:
+#   ENCODE unfiltered BAMs -> reads in the course window -> single-end FASTQ
+#   UCSC hg38 chr8         -> hard-masked to N outside the window
+#   ENCODE/GEO peaks, annotations, bigWigs -> cut to the window
+#
+# Run from the course root:
+#   snakemake -s data/prepare/Snakefile --cores 4 --use-conda
+# The workflow switches to data/ itself, so every path below is relative
+# to data/. See data/README.md for what each output is.
+
+import sys
+from pathlib import Path
+
+sys.dont_write_bytecode = True
+sys.path.insert(0, str(Path(workflow.basedir) / "scripts"))
+import encode  # noqa: E402
+
+configfile: str(Path(workflow.basedir) / "config.yaml")
+
+workdir: str(Path(workflow.basedir).parent)
+
+SCRIPTS = Path(workflow.basedir) / "scripts"
+SCRATCH = config["scratch"]
+META = f"{SCRATCH}/metadata"
+PORTAL = config["portal"]
+
+W = config["window"]
+REGION = f"{W['chrom']}:{W['start']}-{W['end']}"
+
+# Limit concurrent large downloads unless --resources download=N was given.
+# (workflow.global_resources is internal to Snakemake 8; fine for a maintainer script.)
+if "download" not in workflow.global_resources:
+    workflow.global_resources["download"] = config["max_parallel_downloads"]
+
+# ---------------------------------------------------------------------------
+# Resolve everything from the ENCODE REST API (cached in work/metadata/)
+# ---------------------------------------------------------------------------
+ROWS = encode.pair_controls(encode.resolve_samples(config, META))
+SAMPLES = {r["sample"]: r for r in ROWS}
+BAMS = {r["file"]: r for r in ROWS}
+
+BLACKLIST = encode.single_file(PORTAL, config["blacklist"], META)
+RAD21 = encode.single_file(PORTAL, config["rad21_peaks"], META)
+CTCF_IDR = encode.analysis_file(
+    config, config["ctcf_idr"]["experiment"], config["ctcf_idr"]["output_type"], "bed", META
+)
+ENCODE_SMALL = {r["file"]: r for r in (BLACKLIST, RAD21, CTCF_IDR)}
+
+TRACKS = config["geo"]["tracks"]
+ANNOTATIONS = config["geo"]["annotations"]
+
+FASTQS = expand("fastq/{sample}.fastq.gz", sample=SAMPLES)
+OTHER = [
+    "reference/chr8_course.fa.gz",
+    "reference/blacklist.bed.gz",
+    f"peaks/RAD21_{RAD21['file']}.bed.gz",
+    "peaks/CTCF_ENCODE_IDR.bed.gz",
+    *expand("geo/{track}.bw", track=TRACKS),
+    *expand("geo/{name}.gtf.gz", name=ANNOTATIONS),
+]
+
+wildcard_constraints:
+    file=r"ENCFF[0-9A-Z]+",
+    sample="|".join(SAMPLES),
+
+
+rule all:
+    input:
+        FASTQS,
+        OTHER,
+        "samplesheet.txt",
+        "manifest.tsv",
+
+
+# ---------------------------------------------------------------------------
+# Reads: download BAM -> index -> window -> FASTQ
+# ---------------------------------------------------------------------------
+rule download_bam:
+    output:
+        bam=temp(f"{SCRATCH}/bam/{{file}}.bam"),
+    params:
+        url=lambda wc: BAMS[wc.file]["url"],
+        md5=lambda wc: BAMS[wc.file]["md5"],
+    resources:
+        download=1,
+    log:
+        f"{SCRATCH}/logs/download_{{file}}.log",
+    conda:
+        "envs/prepare.yml"
+    shell:
+        """
+        curl -fsSL --retry 5 --retry-delay 10 -o {output.bam}.part '{params.url}' 2> {log}
+        echo "{params.md5}  {output.bam}.part" | md5sum -c - >> {log} 2>&1
+        mv {output.bam}.part {output.bam}
+        """
+
+
+rule index_bam:
+    input:
+        f"{SCRATCH}/bam/{{file}}.bam",
+    output:
+        temp(f"{SCRATCH}/bam/{{file}}.bam.bai"),
+    priority: 10
+    conda:
+        "envs/prepare.yml"
+    shell:
+        "samtools index {input}"
+
+
+# -F 0x980 drops read 2 (0x80), secondary (0x100) and supplementary (0x800)
+# records. Single-end reads carry none of these flags, so they all pass; for a
+# paired BAM only read 1 would be kept. samtools fastq reverse-complements
+# reads that aligned to the minus strand, so the FASTQ holds the reads as
+# sequenced.
+rule bam_to_fastq:
+    input:
+        bam=lambda wc: f"{SCRATCH}/bam/{SAMPLES[wc.sample]['file']}.bam",
+        bai=lambda wc: f"{SCRATCH}/bam/{SAMPLES[wc.sample]['file']}.bam.bai",
+    output:
+        "fastq/{sample}.fastq.gz",
+    params:
+        region=REGION,
+    threads: 2
+    priority: 10
+    log:
+        f"{SCRATCH}/logs/fastq_{{sample}}.log",
+    conda:
+        "envs/prepare.yml"
+    shell:
+        """
+        samtools view -u -F 0x980 {input.bam} {params.region} \
+          | samtools fastq -n - 2> {log} \
+          | bgzip -@ {threads} -c > {output}
+        """
+
+
+# ---------------------------------------------------------------------------
+# Reference
+# ---------------------------------------------------------------------------
+rule download_reference:
+    output:
+        fa=temp(f"{SCRATCH}/reference/chr8.fa.gz"),
+        md5=f"{SCRATCH}/reference/chr8.fa.gz.md5",
+    params:
+        url=config["reference"]["url"],
+        md5_url=config["reference"]["md5_url"],
+        name=Path(config["reference"]["url"]).name,
+    resources:
+        download=1,
+    conda:
+        "envs/prepare.yml"
+    shell:
+        """
+        curl -fsSL --retry 5 -o {output.fa} '{params.url}'
+        curl -fsSL --retry 5 '{params.md5_url}' | awk '$2 == "{params.name}" {{print $1}}' > {output.md5}
+        test -s {output.md5}
+        echo "$(cat {output.md5})  {output.fa}" | md5sum -c -
+        """
+
+
+rule mask_reference:
+    input:
+        f"{SCRATCH}/reference/chr8.fa.gz",
+    output:
+        "reference/chr8_course.fa.gz",
+    params:
+        chrom=W["chrom"],
+        start=W["start"],
+        end=W["end"],
+    conda:
+        "envs/prepare.yml"
+    shell:
+        """
+        python {SCRIPTS}/mask_reference.py {input} {params.chrom} {params.start} {params.end} \
+          | bgzip -c > {output}
+        """
+
+
+# ---------------------------------------------------------------------------
+# Small ENCODE files: blacklist and peaks
+# ---------------------------------------------------------------------------
+rule download_encode_file:
+    output:
+        f"{SCRATCH}/encode/{{file}}.bed.gz",
+    params:
+        url=lambda wc: ENCODE_SMALL[wc.file]["url"],
+        md5=lambda wc: ENCODE_SMALL[wc.file]["md5"],
+    conda:
+        "envs/prepare.yml"
+    shell:
+        """
+        curl -fsSL --retry 5 -o {output}.part '{params.url}'
+        echo "{params.md5}  {output}.part" | md5sum -c -
+        mv {output}.part {output}
+        """
+
+
+rule blacklist:
+    input:
+        f"{SCRATCH}/encode/{BLACKLIST['file']}.bed.gz",
+    output:
+        "reference/blacklist.bed.gz",
+    shell:
+        "cp {input} {output}"
+
+
+rule window_peaks:
+    input:
+        lambda wc: f"{SCRATCH}/encode/{RAD21['file'] if wc.name.startswith('RAD21') else CTCF_IDR['file']}.bed.gz",
+    output:
+        "peaks/{name}.bed.gz",
+    params:
+        chrom=W["chrom"],
+        start=W["start"],
+        end=W["end"],
+    wildcard_constraints:
+        name=f"RAD21_{RAD21['file']}|CTCF_ENCODE_IDR",
+    conda:
+        "envs/prepare.yml"
+    shell:
+        """
+        python {SCRIPTS}/window_features.py bed {input} {params.chrom} {params.start} {params.end} \
+          | gzip -n > {output}
+        """
+
+
+# ---------------------------------------------------------------------------
+# GEO extras (GSE152291 TT-seq, HCT116 only)
+# ---------------------------------------------------------------------------
+rule download_geo_track:
+    output:
+        bw=temp(f"{SCRATCH}/geo/{{track}}.bw"),
+        md5=f"{SCRATCH}/geo/{{track}}.bw.md5",
+    params:
+        url=lambda wc: TRACKS[wc.track]["url"],
+    resources:
+        download=1,
+    conda:
+        "envs/prepare.yml"
+    shell:
+        """
+        curl -fsSL --retry 5 -o {output.bw} '{params.url}'
+        md5sum {output.bw} | cut -d ' ' -f 1 > {output.md5}
+        """
+
+
+rule slice_geo_track:
+    input:
+        f"{SCRATCH}/geo/{{track}}.bw",
+    output:
+        "geo/{track}.bw",
+    params:
+        chrom=W["chrom"],
+        start=W["start"],
+        end=W["end"],
+    priority: 10
+    conda:
+        "envs/prepare.yml"
+    shell:
+        "python {SCRIPTS}/slice_bigwig.py {input} {output} {params.chrom} {params.start} {params.end}"
+
+
+rule download_geo_archive:
+    output:
+        tar=f"{SCRATCH}/geo/{{name}}.tar.gz",
+        md5=f"{SCRATCH}/geo/{{name}}.tar.gz.md5",
+    params:
+        url=lambda wc: ANNOTATIONS[wc.name]["url"],
+    conda:
+        "envs/prepare.yml"
+    shell:
+        """
+        curl -fsSL --retry 5 -o {output.tar} '{params.url}'
+        md5sum {output.tar} | cut -d ' ' -f 1 > {output.md5}
+        """
+
+
+rule window_geo_annotation:
+    input:
+        f"{SCRATCH}/geo/{{name}}.tar.gz",
+    output:
+        "geo/{name}.gtf.gz",
+    params:
+        member=lambda wc: ANNOTATIONS[wc.name]["member"],
+        tmp=lambda wc: f"{SCRATCH}/geo/{wc.name}.gtf",
+        chrom=W["chrom"],
+        start=W["start"],
+        end=W["end"],
+    conda:
+        "envs/prepare.yml"
+    shell:
+        """
+        tar -xzOf {input} {params.member} > {params.tmp}
+        python {SCRIPTS}/window_features.py gtf {params.tmp} {params.chrom} {params.start} {params.end} \
+          | gzip -n > {output}
+        rm {params.tmp}
+        """
+
+
+# ---------------------------------------------------------------------------
+# Samplesheet and manifest
+# ---------------------------------------------------------------------------
+SHEET_COLUMNS = ["Project", "Cell_Type", "Assay", "Target", "Bio_Rep",
+                 "Control", "Read1", "Sequencing_Directory"]
+
+
+rule samplesheet:
+    input:
+        FASTQS,
+    output:
+        "samplesheet.txt",
+    run:
+        # Course samples: ChIP first, then their controls, then DNase.
+        order = {"ChIP-seq": 0, "DNase-seq": 1}
+        rows = sorted(
+            ROWS,
+            key=lambda r: (order[r["Assay"]], bool(r["control_of"]), r["Target"], r["Bio_Rep"]),
+        )
+        with open(output[0], "w") as out:
+            out.write("\t".join(SHEET_COLUMNS) + "\n")
+            for r in rows:
+                vals = [config["project"], r["Cell_Type"], r["Assay"], r["Target"],
+                        str(r["Bio_Rep"]), r["Control"], f"{r['sample']}.fastq.gz",
+                        "data/fastq/"]
+                out.write("\t".join(vals) + "\n")
+
+
+def manifest_entries():
+    """Provenance for every output; paths relative to the course root."""
+    entries = []
+    for s, r in SAMPLES.items():
+        entries.append({
+            "path": f"data/fastq/{s}.fastq.gz",
+            "local": f"fastq/{s}.fastq.gz",
+            "source_accessions": f"{r['experiment']};{r['analysis']}",
+            "encode_file": r["file"],
+            "url": r["url"],
+            "source_md5": r["md5"],
+            "source_md5_from": "ENCODE metadata",
+            "fastq": True,
+        })
+    entries.append({
+        "path": "data/reference/chr8_course.fa.gz",
+        "local": "reference/chr8_course.fa.gz",
+        "source_accessions": "UCSC hg38 chr8",
+        "encode_file": "NA",
+        "url": config["reference"]["url"],
+        "source_md5": f"file:{SCRATCH}/reference/chr8.fa.gz.md5",
+        "source_md5_from": "UCSC md5sum.txt",
+    })
+    for path, rec in [
+        ("reference/blacklist.bed.gz", BLACKLIST),
+        (f"peaks/RAD21_{RAD21['file']}.bed.gz", RAD21),
+        ("peaks/CTCF_ENCODE_IDR.bed.gz", CTCF_IDR),
+    ]:
+        acc = rec["dataset"] + (f";{rec['analysis']}" if "analysis" in rec else "")
+        entries.append({
+            "path": f"data/{path}", "local": path, "source_accessions": acc,
+            "encode_file": rec["file"], "url": rec["url"],
+            "source_md5": rec["md5"], "source_md5_from": "ENCODE metadata",
+        })
+    for t, rec in TRACKS.items():
+        entries.append({
+            "path": f"data/geo/{t}.bw", "local": f"geo/{t}.bw",
+            "source_accessions": f"{rec['series']};{rec['sample']}",
+            "encode_file": "NA", "url": rec["url"],
+            "source_md5": f"file:{SCRATCH}/geo/{t}.bw.md5",
+            "source_md5_from": "computed on download (GEO lists none)",
+        })
+    for n, rec in ANNOTATIONS.items():
+        entries.append({
+            "path": f"data/geo/{n}.gtf.gz", "local": f"geo/{n}.gtf.gz",
+            "source_accessions": f"{rec['series']};{rec['member']}",
+            "encode_file": "NA", "url": rec["url"],
+            "source_md5": f"file:{SCRATCH}/geo/{n}.tar.gz.md5",
+            "source_md5_from": "computed on download (GEO lists none)",
+        })
+    entries.append({
+        "path": "data/samplesheet.txt", "local": "samplesheet.txt",
+        "source_accessions": "derived from ENCODE metadata", "encode_file": "NA",
+        "url": "NA", "source_md5": "NA", "source_md5_from": "NA",
+    })
+    return entries
+
+
+rule manifest:
+    input:
+        FASTQS,
+        OTHER,
+        "samplesheet.txt",
+        f"{SCRATCH}/reference/chr8.fa.gz.md5",
+        expand(f"{SCRATCH}/geo/{{track}}.bw.md5", track=TRACKS),
+        expand(f"{SCRATCH}/geo/{{name}}.tar.gz.md5", name=ANNOTATIONS),
+    output:
+        "manifest.tsv",
+    params:
+        entries=manifest_entries(),
+    conda:
+        "envs/prepare.yml"
+    script:
+        "scripts/write_manifest.py"

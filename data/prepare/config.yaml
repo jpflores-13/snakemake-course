@@ -1,0 +1,87 @@
+# Configuration for the course data preparation workflow (maintainer only).
+# Learners never run this. Paths are relative to data/ (the workflow sets
+# workdir to data/ no matter where you launch it from).
+
+portal: "https://www.encodeproject.org"
+assembly: "GRCh38"
+
+# Course window, 1-based and inclusive, as samtools writes regions.
+# In BED (0-based, half-open) this is chr8 124999999 130000000.
+window:
+  chrom: "chr8"
+  start: 125000000
+  end: 130000000
+
+# ENCODE experiments. Everything else (default analysis, the unfiltered BAM of
+# each biological replicate, controls and their BAMs) is looked up in the
+# ENCODE REST API. Optional keys per experiment:
+#   target:   label to use instead of the ENCODE target label (needed for DNase)
+#   analysis: an analysis accession (ENCAN...) to use instead of default_analysis
+experiments:
+  - accession: "ENCSR000BSE"
+    assay: "ChIP-seq"
+  - accession: "ENCSR661KMA"
+    assay: "ChIP-seq"
+  - accession: "ENCSR000ENM"
+    assay: "DNase-seq"
+    target: "DNase"
+
+# Which ENCODE output type to slice. "unfiltered alignments" keeps duplicates,
+# multimappers and low MAPQ reads so learners can filter them themselves.
+bam_output_type: "unfiltered alignments"
+
+# Control samples are named "<control_prefix><ChIP target>", e.g. input-CTCF.
+control_prefix: "input-"
+
+project: "CourseData"
+
+# ENCODE files that are not tied to the experiments above.
+blacklist: "ENCFF356LFX"
+rad21_peaks: "ENCFF391AAM"
+
+# ENCODE's own CTCF peaks: taken from the default analysis of this experiment.
+ctcf_idr:
+  experiment: "ENCSR000BSE"
+  output_type: "conservative IDR thresholded peaks"
+
+reference:
+  url: "https://hgdownload.soe.ucsc.edu/goldenPath/hg38/chromosomes/chr8.fa.gz"
+  md5_url: "https://hgdownload.soe.ucsc.edu/goldenPath/hg38/chromosomes/md5sum.txt"
+
+# Processed GEO files (optional extras). GEO publishes no checksums, so the
+# manifest records the md5 computed on the downloaded file.
+# GSE121355 (MED26 ChIP-seq) is not used: its HCT116 tracks are hg19.
+geo:
+  tracks:
+    TTseq_HCT116_1_plus:
+      series: "GSE152291"
+      sample: "GSM4610670"
+      url: "https://ftp.ncbi.nlm.nih.gov/geo/samples/GSM4610nnn/GSM4610670/suppl/GSM4610670_L_HCT116_Rep1.coverage.track.plus.bw"
+    TTseq_HCT116_1_minus:
+      series: "GSE152291"
+      sample: "GSM4610670"
+      url: "https://ftp.ncbi.nlm.nih.gov/geo/samples/GSM4610nnn/GSM4610670/suppl/GSM4610670_L_HCT116_Rep1.coverage.track.minus.bw"
+    TTseq_HCT116_2_plus:
+      series: "GSE152291"
+      sample: "GSM4610671"
+      url: "https://ftp.ncbi.nlm.nih.gov/geo/samples/GSM4610nnn/GSM4610671/suppl/GSM4610671_L_HCT116_Rep2.coverage.track.plus.bw"
+    TTseq_HCT116_2_minus:
+      series: "GSE152291"
+      sample: "GSM4610671"
+      url: "https://ftp.ncbi.nlm.nih.gov/geo/samples/GSM4610nnn/GSM4610671/suppl/GSM4610671_L_HCT116_Rep2.coverage.track.minus.bw"
+  annotations:
+    TTseq_HCT116_enhancers:
+      series: "GSE152291"
+      url: "https://ftp.ncbi.nlm.nih.gov/geo/series/GSE152nnn/GSE152291/suppl/GSE152291_enhancer.gtf.tar.gz"
+      member: "HCT116_enhancer.gtf"
+    TTseq_HCT116_eRNAs:
+      series: "GSE152291"
+      url: "https://ftp.ncbi.nlm.nih.gov/geo/series/GSE152nnn/GSE152291/suppl/GSE152291_eRNAs.gtf.tar.gz"
+      member: "HCT116_eRNAs.gtf"
+
+# How many large downloads may run at once (keeps disk use down).
+# Used only when you do not pass --resources download=N yourself.
+max_parallel_downloads: 2
+
+# Scratch space for downloads (gitignored).
+scratch: "prepare/work"

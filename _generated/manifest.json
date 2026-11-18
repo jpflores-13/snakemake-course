@@ -1,0 +1,150 @@
+{
+  "chromsimpipe-list-rules": {
+    "command": "snakemake --list-rules -s workflows/ChromSimPipe.snakefile --cores 1 --configfile config/ChromSimConfig.test.yaml",
+    "cwd": "pipelines/chromsimpipe",
+    "source": "_scripts/generate.py",
+    "returncode": 0,
+    "kind": "txt",
+    "files": [
+      "chromsimpipe-list-rules.txt"
+    ],
+    "hash": "402aedca2d22a7705f7ca2f1c15daa1165779636a0ba4025c0d493f9c62abddd"
+  },
+  "chromsimpipe-missing-input": {
+    "command": "snakemake -n -s workflows/ChromSimPipe.snakefile --cores 1 --configfile config/ChromSimConfig.test.yaml",
+    "cwd": "pipelines/chromsimpipe",
+    "source": "_scripts/generate.py",
+    "returncode": 1,
+    "kind": "txt",
+    "files": [
+      "chromsimpipe-missing-input.txt"
+    ],
+    "hash": "dcb833a0b9dc78cacb654c06bc7e133287dc3dcc00fb76b3d965efc897e12434"
+  },
+  "chromsimpipe-rulegraph": {
+    "command": "snakemake -s workflows/ChromSimPipe.snakefile --cores 1 --rulegraph",
+    "cwd": "pipelines/chromsimpipe",
+    "source": "field-guide/chromsimpipe.qmd",
+    "returncode": 1,
+    "kind": "txt",
+    "files": [
+      "chromsimpipe-rulegraph.txt"
+    ],
+    "hash": "e67d7a2062bbd01e098dce5f905da0bf068c16d381d02810a4a6c5c31b35670d"
+  },
+  "microcpipe-dag": {
+    "command": "snakemake --dag -s workflows/MicroCPipe.snakefile --cores 1 --configfile config/MicroCConfig.yaml tests/dryrun/config.yaml",
+    "cwd": "pipelines/microcpipe",
+    "source": "_scripts/generate.py",
+    "returncode": 0,
+    "kind": "dot",
+    "files": [
+      "microcpipe-dag.dot",
+      "microcpipe-dag.svg"
+    ],
+    "hash": "f911a23c93e73b8e2dd21e15e8e0832bab0217c144de4b79968f7e625166db98"
+  },
+  "microcpipe-dryrun": {
+    "command": "snakemake -n -s workflows/MicroCPipe.snakefile --cores 1 --configfile config/MicroCConfig.yaml tests/dryrun/config.yaml",
+    "cwd": "pipelines/microcpipe",
+    "source": "_scripts/generate.py",
+    "returncode": 0,
+    "kind": "txt",
+    "files": [
+      "microcpipe-dryrun.txt"
+    ],
+    "hash": "71d8d1da274fedf7bdb666a46c0aa7e1b9f665b15b2b1d1d944a51b0d806a47d"
+  },
+  "microcpipe-list-rules": {
+    "command": "snakemake --list-rules -s workflows/MicroCPipe.snakefile --cores 1 --configfile config/MicroCConfig.yaml tests/dryrun/config.yaml",
+    "cwd": "pipelines/microcpipe",
+    "source": "_scripts/generate.py",
+    "returncode": 0,
+    "kind": "txt",
+    "files": [
+      "microcpipe-list-rules.txt"
+    ],
+    "hash": "da428a61aa7f7ce0ee5b0f29dda66a76cf47919ed16a8d91b9180ed15e4b5700"
+  },
+  "microcpipe-merge-dryrun": {
+    "command": "snakemake -n -s workflows/MicroCMerge.snakefile --cores 1 --configfile config/MicroCConfig.yaml tests/dryrun/config.yaml",
+    "cwd": "pipelines/microcpipe",
+    "source": "_scripts/generate.py",
+    "returncode": 0,
+    "kind": "txt",
+    "files": [
+      "microcpipe-merge-dryrun.txt"
+    ],
+    "hash": "cde497d74e036ee114f0399bf8b90165dabda38de9be032290ae0372aaefe23a"
+  },
+  "microcpipe-merge-rulegraph": {
+    "command": "snakemake --rulegraph -s workflows/MicroCMerge.snakefile --cores 1 --configfile config/MicroCConfig.yaml tests/dryrun/config.yaml",
+    "cwd": "pipelines/microcpipe",
+    "source": "_scripts/generate.py",
+    "returncode": 0,
+    "kind": "dot",
+    "files": [
+      "microcpipe-merge-rulegraph.dot",
+      "microcpipe-merge-rulegraph.svg"
+    ],
+    "hash": "a83ba58e77a5e5baf3dc46dd7d3519e9abd08b103353d4c427b00a7ae6ff79b6"
+  },
+  "microcpipe-rulegraph": {
+    "command": "snakemake --rulegraph -s workflows/MicroCPipe.snakefile --cores 1 --configfile config/MicroCConfig.yaml tests/dryrun/config.yaml",
+    "cwd": "pipelines/microcpipe",
+    "source": "_scripts/generate.py",
+    "returncode": 0,
+    "kind": "dot",
+    "files": [
+      "microcpipe-rulegraph.dot",
+      "microcpipe-rulegraph.svg"
+    ],
+    "hash": "7d21f0af5ef4b596ba66eb0c3362f8fd324340ae7dab1a3545350c26b12e86af"
+  },
+  "ttpipe-dag": {
+    "command": "snakemake --dag -s workflows/TTpipe.snakefile --cores 1 --configfile config/TTpipeConfig.yaml tests/dryrun/config.yaml",
+    "cwd": "pipelines/ttpipe",
+    "source": "_scripts/generate.py",
+    "returncode": 0,
+    "kind": "dot",
+    "files": [
+      "ttpipe-dag.dot",
+      "ttpipe-dag.svg"
+    ],
+    "hash": "17e71dc1f8826a9fce8d2f7f84b13e693972a7cab0a482edfde4beb02a4ac9e1"
+  },
+  "ttpipe-dryrun": {
+    "command": "snakemake -n -s workflows/TTpipe.snakefile --cores 1 --configfile config/TTpipeConfig.yaml tests/dryrun/config.yaml",
+    "cwd": "pipelines/ttpipe",
+    "source": "_scripts/generate.py",
+    "returncode": 0,
+    "kind": "txt",
+    "files": [
+      "ttpipe-dryrun.txt"
+    ],
+    "hash": "efd69cdbdb9efa59808a4c530c0a302474468331834b572f1fc2f2cedd5c57e4"
+  },
+  "ttpipe-list-rules": {
+    "command": "snakemake --list-rules -s workflows/TTpipe.snakefile --cores 1 --configfile config/TTpipeConfig.yaml tests/dryrun/config.yaml",
+    "cwd": "pipelines/ttpipe",
+    "source": "_scripts/generate.py",
+    "returncode": 0,
+    "kind": "txt",
+    "files": [
+      "ttpipe-list-rules.txt"
+    ],
+    "hash": "7ea0f4da0c26dabea57100e7679c34657c7ee5b2fa470128f01f911ee80b22d9"
+  },
+  "ttpipe-rulegraph": {
+    "command": "snakemake --rulegraph -s workflows/TTpipe.snakefile --cores 1 --configfile config/TTpipeConfig.yaml tests/dryrun/config.yaml",
+    "cwd": "pipelines/ttpipe",
+    "source": "_scripts/generate.py",
+    "returncode": 0,
+    "kind": "dot",
+    "files": [
+      "ttpipe-rulegraph.dot",
+      "ttpipe-rulegraph.svg"
+    ],
+    "hash": "8173507e1e1ad0e95d1165a4edc340f760c22de28d59f1467015ddcdf478b4ad"
+  }
+}

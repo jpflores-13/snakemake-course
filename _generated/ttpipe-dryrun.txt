@@ -1,0 +1,770 @@
+Config file config/TTpipeConfig.yaml is extended by additional config specified via the command line.
+Building DAG of jobs...
+Job stats:
+job                 count
+----------------  -------
+all                     1
+bigwig                  6
+count_matrix            1
+deseq2                  1
+fastqc                  8
+gene_info               1
+htseq_count             8
+mapq_filter             4
+mark_duplicates         4
+merge_bams              6
+multiqc                 1
+qc_report               1
+qc_summary              1
+results_explorer        1
+sample_table            1
+sankey                  1
+scale_factors           1
+split_strands           8
+star_align              4
+stranded_signal         1
+total                  60
+
+
+[Wed Nov 18 00:03:15 2026]
+rule star_align:
+    input: tests/dryrun/R1.fastq.gz, tests/dryrun/R2.fastq.gz, tests/dryrun/star_index/SA
+    output: output_ci/CI_DMSO_rep1/star/CI_DMSO_rep1_Aligned.sortedByCoord.out.bam, output_ci/CI_DMSO_rep1/stats/CI_DMSO_rep1_Log.final.out, output_ci/CI_DMSO_rep1/stats/CI_DMSO_rep1_ReadsPerGene.out.tab
+    log: output_ci/CI_DMSO_rep1/logs/star_align.log
+    jobid: 11
+    benchmark: output_ci/CI_DMSO_rep1/benchmarks/star_align.tsv
+    reason: Missing output files: output_ci/CI_DMSO_rep1/star/CI_DMSO_rep1_Aligned.sortedByCoord.out.bam, output_ci/CI_DMSO_rep1/stats/CI_DMSO_rep1_Log.final.out, output_ci/CI_DMSO_rep1/stats/CI_DMSO_rep1_ReadsPerGene.out.tab
+    wildcards: sample=CI_DMSO_rep1
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:03:15 2026]
+rule fastqc:
+    input: tests/dryrun/R2.fastq.gz
+    output: output_ci/qc/fastqc/CI_DMSO_rep1_R2_fastqc.zip
+    log: output_ci/CI_DMSO_rep1/logs/fastqc_R2.log
+    jobid: 2
+    benchmark: output_ci/CI_DMSO_rep1/benchmarks/fastqc_R2.tsv
+    reason: Missing output files: output_ci/qc/fastqc/CI_DMSO_rep1_R2_fastqc.zip
+    wildcards: sample=CI_DMSO_rep1, mate=2
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:03:15 2026]
+rule star_align:
+    input: tests/dryrun/R1.fastq.gz, tests/dryrun/R2.fastq.gz, tests/dryrun/star_index/SA
+    output: output_ci/CI_DMSO_rep2/star/CI_DMSO_rep2_Aligned.sortedByCoord.out.bam, output_ci/CI_DMSO_rep2/stats/CI_DMSO_rep2_Log.final.out, output_ci/CI_DMSO_rep2/stats/CI_DMSO_rep2_ReadsPerGene.out.tab
+    log: output_ci/CI_DMSO_rep2/logs/star_align.log
+    jobid: 14
+    benchmark: output_ci/CI_DMSO_rep2/benchmarks/star_align.tsv
+    reason: Missing output files: output_ci/CI_DMSO_rep2/stats/CI_DMSO_rep2_ReadsPerGene.out.tab, output_ci/CI_DMSO_rep2/stats/CI_DMSO_rep2_Log.final.out, output_ci/CI_DMSO_rep2/star/CI_DMSO_rep2_Aligned.sortedByCoord.out.bam
+    wildcards: sample=CI_DMSO_rep2
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:03:15 2026]
+rule fastqc:
+    input: tests/dryrun/R1.fastq.gz
+    output: output_ci/qc/fastqc/CI_DMSO_rep1_R1_fastqc.zip
+    log: output_ci/CI_DMSO_rep1/logs/fastqc_R1.log
+    jobid: 1
+    benchmark: output_ci/CI_DMSO_rep1/benchmarks/fastqc_R1.tsv
+    reason: Missing output files: output_ci/qc/fastqc/CI_DMSO_rep1_R1_fastqc.zip
+    wildcards: sample=CI_DMSO_rep1, mate=1
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:03:15 2026]
+rule star_align:
+    input: tests/dryrun/R1.fastq.gz, tests/dryrun/R2.fastq.gz, tests/dryrun/star_index/SA
+    output: output_ci/CI_2H_rep1/star/CI_2H_rep1_Aligned.sortedByCoord.out.bam, output_ci/CI_2H_rep1/stats/CI_2H_rep1_Log.final.out, output_ci/CI_2H_rep1/stats/CI_2H_rep1_ReadsPerGene.out.tab
+    log: output_ci/CI_2H_rep1/logs/star_align.log
+    jobid: 17
+    benchmark: output_ci/CI_2H_rep1/benchmarks/star_align.tsv
+    reason: Missing output files: output_ci/CI_2H_rep1/stats/CI_2H_rep1_Log.final.out, output_ci/CI_2H_rep1/stats/CI_2H_rep1_ReadsPerGene.out.tab, output_ci/CI_2H_rep1/star/CI_2H_rep1_Aligned.sortedByCoord.out.bam
+    wildcards: sample=CI_2H_rep1
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:03:15 2026]
+rule star_align:
+    input: tests/dryrun/R1.fastq.gz, tests/dryrun/R2.fastq.gz, tests/dryrun/star_index/SA
+    output: output_ci/CI_2H_rep2/star/CI_2H_rep2_Aligned.sortedByCoord.out.bam, output_ci/CI_2H_rep2/stats/CI_2H_rep2_Log.final.out, output_ci/CI_2H_rep2/stats/CI_2H_rep2_ReadsPerGene.out.tab
+    log: output_ci/CI_2H_rep2/logs/star_align.log
+    jobid: 20
+    benchmark: output_ci/CI_2H_rep2/benchmarks/star_align.tsv
+    reason: Missing output files: output_ci/CI_2H_rep2/stats/CI_2H_rep2_ReadsPerGene.out.tab, output_ci/CI_2H_rep2/star/CI_2H_rep2_Aligned.sortedByCoord.out.bam, output_ci/CI_2H_rep2/stats/CI_2H_rep2_Log.final.out
+    wildcards: sample=CI_2H_rep2
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:03:15 2026]
+rule fastqc:
+    input: tests/dryrun/R2.fastq.gz
+    output: output_ci/qc/fastqc/CI_DMSO_rep2_R2_fastqc.zip
+    log: output_ci/CI_DMSO_rep2/logs/fastqc_R2.log
+    jobid: 4
+    benchmark: output_ci/CI_DMSO_rep2/benchmarks/fastqc_R2.tsv
+    reason: Missing output files: output_ci/qc/fastqc/CI_DMSO_rep2_R2_fastqc.zip
+    wildcards: sample=CI_DMSO_rep2, mate=2
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:03:15 2026]
+rule fastqc:
+    input: tests/dryrun/R2.fastq.gz
+    output: output_ci/qc/fastqc/CI_2H_rep1_R2_fastqc.zip
+    log: output_ci/CI_2H_rep1/logs/fastqc_R2.log
+    jobid: 6
+    benchmark: output_ci/CI_2H_rep1/benchmarks/fastqc_R2.tsv
+    reason: Missing output files: output_ci/qc/fastqc/CI_2H_rep1_R2_fastqc.zip
+    wildcards: sample=CI_2H_rep1, mate=2
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:03:15 2026]
+rule fastqc:
+    input: tests/dryrun/R2.fastq.gz
+    output: output_ci/qc/fastqc/CI_2H_rep2_R2_fastqc.zip
+    log: output_ci/CI_2H_rep2/logs/fastqc_R2.log
+    jobid: 8
+    benchmark: output_ci/CI_2H_rep2/benchmarks/fastqc_R2.tsv
+    reason: Missing output files: output_ci/qc/fastqc/CI_2H_rep2_R2_fastqc.zip
+    wildcards: sample=CI_2H_rep2, mate=2
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:03:15 2026]
+rule fastqc:
+    input: tests/dryrun/R1.fastq.gz
+    output: output_ci/qc/fastqc/CI_DMSO_rep2_R1_fastqc.zip
+    log: output_ci/CI_DMSO_rep2/logs/fastqc_R1.log
+    jobid: 3
+    benchmark: output_ci/CI_DMSO_rep2/benchmarks/fastqc_R1.tsv
+    reason: Missing output files: output_ci/qc/fastqc/CI_DMSO_rep2_R1_fastqc.zip
+    wildcards: sample=CI_DMSO_rep2, mate=1
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:03:15 2026]
+rule gene_info:
+    input: tests/dryrun/genes.gtf
+    output: output_ci/counts/gene_info.tsv
+    log: output_ci/logs/gene_info.log
+    jobid: 51
+    benchmark: output_ci/benchmarks/gene_info.tsv
+    reason: Missing output files: output_ci/counts/gene_info.tsv
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:03:15 2026]
+rule fastqc:
+    input: tests/dryrun/R1.fastq.gz
+    output: output_ci/qc/fastqc/CI_2H_rep1_R1_fastqc.zip
+    log: output_ci/CI_2H_rep1/logs/fastqc_R1.log
+    jobid: 5
+    benchmark: output_ci/CI_2H_rep1/benchmarks/fastqc_R1.tsv
+    reason: Missing output files: output_ci/qc/fastqc/CI_2H_rep1_R1_fastqc.zip
+    wildcards: sample=CI_2H_rep1, mate=1
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:03:15 2026]
+rule sample_table:
+    input: tests/dryrun/samplesheet.txt
+    output: output_ci/counts/samples_deseq2.txt
+    jobid: 52
+    reason: Missing output files: output_ci/counts/samples_deseq2.txt
+    resources: tmpdir=<TBD>
+
+[Wed Nov 18 00:03:15 2026]
+rule fastqc:
+    input: tests/dryrun/R1.fastq.gz
+    output: output_ci/qc/fastqc/CI_2H_rep2_R1_fastqc.zip
+    log: output_ci/CI_2H_rep2/logs/fastqc_R1.log
+    jobid: 7
+    benchmark: output_ci/CI_2H_rep2/benchmarks/fastqc_R1.tsv
+    reason: Missing output files: output_ci/qc/fastqc/CI_2H_rep2_R1_fastqc.zip
+    wildcards: sample=CI_2H_rep2, mate=1
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:03:15 2026]
+rule mapq_filter:
+    input: output_ci/CI_2H_rep1/star/CI_2H_rep1_Aligned.sortedByCoord.out.bam
+    output: output_ci/CI_2H_rep1/CI_2H_rep1_mapq.bam, output_ci/CI_2H_rep1/stats/CI_2H_rep1_mapq.txt
+    log: output_ci/CI_2H_rep1/logs/mapq_filter.log
+    jobid: 16
+    benchmark: output_ci/CI_2H_rep1/benchmarks/mapq_filter.tsv
+    reason: Missing output files: output_ci/CI_2H_rep1/stats/CI_2H_rep1_mapq.txt, output_ci/CI_2H_rep1/CI_2H_rep1_mapq.bam; Input files updated by another job: output_ci/CI_2H_rep1/star/CI_2H_rep1_Aligned.sortedByCoord.out.bam
+    wildcards: sample=CI_2H_rep1
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:03:15 2026]
+rule mapq_filter:
+    input: output_ci/CI_2H_rep2/star/CI_2H_rep2_Aligned.sortedByCoord.out.bam
+    output: output_ci/CI_2H_rep2/CI_2H_rep2_mapq.bam, output_ci/CI_2H_rep2/stats/CI_2H_rep2_mapq.txt
+    log: output_ci/CI_2H_rep2/logs/mapq_filter.log
+    jobid: 19
+    benchmark: output_ci/CI_2H_rep2/benchmarks/mapq_filter.tsv
+    reason: Missing output files: output_ci/CI_2H_rep2/stats/CI_2H_rep2_mapq.txt, output_ci/CI_2H_rep2/CI_2H_rep2_mapq.bam; Input files updated by another job: output_ci/CI_2H_rep2/star/CI_2H_rep2_Aligned.sortedByCoord.out.bam
+    wildcards: sample=CI_2H_rep2
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:03:15 2026]
+rule mapq_filter:
+    input: output_ci/CI_DMSO_rep1/star/CI_DMSO_rep1_Aligned.sortedByCoord.out.bam
+    output: output_ci/CI_DMSO_rep1/CI_DMSO_rep1_mapq.bam, output_ci/CI_DMSO_rep1/stats/CI_DMSO_rep1_mapq.txt
+    log: output_ci/CI_DMSO_rep1/logs/mapq_filter.log
+    jobid: 10
+    benchmark: output_ci/CI_DMSO_rep1/benchmarks/mapq_filter.tsv
+    reason: Missing output files: output_ci/CI_DMSO_rep1/stats/CI_DMSO_rep1_mapq.txt, output_ci/CI_DMSO_rep1/CI_DMSO_rep1_mapq.bam; Input files updated by another job: output_ci/CI_DMSO_rep1/star/CI_DMSO_rep1_Aligned.sortedByCoord.out.bam
+    wildcards: sample=CI_DMSO_rep1
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:03:15 2026]
+rule mapq_filter:
+    input: output_ci/CI_DMSO_rep2/star/CI_DMSO_rep2_Aligned.sortedByCoord.out.bam
+    output: output_ci/CI_DMSO_rep2/CI_DMSO_rep2_mapq.bam, output_ci/CI_DMSO_rep2/stats/CI_DMSO_rep2_mapq.txt
+    log: output_ci/CI_DMSO_rep2/logs/mapq_filter.log
+    jobid: 13
+    benchmark: output_ci/CI_DMSO_rep2/benchmarks/mapq_filter.tsv
+    reason: Missing output files: output_ci/CI_DMSO_rep2/CI_DMSO_rep2_mapq.bam, output_ci/CI_DMSO_rep2/stats/CI_DMSO_rep2_mapq.txt; Input files updated by another job: output_ci/CI_DMSO_rep2/star/CI_DMSO_rep2_Aligned.sortedByCoord.out.bam
+    wildcards: sample=CI_DMSO_rep2
+    resources: tmpdir=<TBD>
+
+Would remove temporary output output_ci/CI_2H_rep1/star/CI_2H_rep1_Aligned.sortedByCoord.out.bam
+Would remove temporary output output_ci/CI_2H_rep2/star/CI_2H_rep2_Aligned.sortedByCoord.out.bam
+Would remove temporary output output_ci/CI_DMSO_rep1/star/CI_DMSO_rep1_Aligned.sortedByCoord.out.bam
+Would remove temporary output output_ci/CI_DMSO_rep2/star/CI_DMSO_rep2_Aligned.sortedByCoord.out.bam
+
+[Wed Nov 18 00:03:15 2026]
+rule mark_duplicates:
+    input: output_ci/CI_DMSO_rep1/CI_DMSO_rep1_mapq.bam
+    output: output_ci/CI_DMSO_rep1/CI_DMSO_rep1.bam, output_ci/CI_DMSO_rep1/CI_DMSO_rep1.bam.bai, output_ci/CI_DMSO_rep1/stats/CI_DMSO_rep1_dedupMetrics.txt, output_ci/CI_DMSO_rep1/stats/CI_DMSO_rep1_final_pairs.txt
+    log: output_ci/CI_DMSO_rep1/logs/mark_duplicates.log
+    jobid: 9
+    benchmark: output_ci/CI_DMSO_rep1/benchmarks/mark_duplicates.tsv
+    reason: Missing output files: output_ci/CI_DMSO_rep1/stats/CI_DMSO_rep1_dedupMetrics.txt, output_ci/CI_DMSO_rep1/CI_DMSO_rep1.bam, output_ci/CI_DMSO_rep1/CI_DMSO_rep1.bam.bai, output_ci/CI_DMSO_rep1/stats/CI_DMSO_rep1_final_pairs.txt; Input files updated by another job: output_ci/CI_DMSO_rep1/CI_DMSO_rep1_mapq.bam
+    wildcards: sample=CI_DMSO_rep1
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:03:15 2026]
+rule mark_duplicates:
+    input: output_ci/CI_DMSO_rep2/CI_DMSO_rep2_mapq.bam
+    output: output_ci/CI_DMSO_rep2/CI_DMSO_rep2.bam, output_ci/CI_DMSO_rep2/CI_DMSO_rep2.bam.bai, output_ci/CI_DMSO_rep2/stats/CI_DMSO_rep2_dedupMetrics.txt, output_ci/CI_DMSO_rep2/stats/CI_DMSO_rep2_final_pairs.txt
+    log: output_ci/CI_DMSO_rep2/logs/mark_duplicates.log
+    jobid: 12
+    benchmark: output_ci/CI_DMSO_rep2/benchmarks/mark_duplicates.tsv
+    reason: Missing output files: output_ci/CI_DMSO_rep2/CI_DMSO_rep2.bam.bai, output_ci/CI_DMSO_rep2/stats/CI_DMSO_rep2_final_pairs.txt, output_ci/CI_DMSO_rep2/stats/CI_DMSO_rep2_dedupMetrics.txt, output_ci/CI_DMSO_rep2/CI_DMSO_rep2.bam; Input files updated by another job: output_ci/CI_DMSO_rep2/CI_DMSO_rep2_mapq.bam
+    wildcards: sample=CI_DMSO_rep2
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:03:15 2026]
+rule mark_duplicates:
+    input: output_ci/CI_2H_rep1/CI_2H_rep1_mapq.bam
+    output: output_ci/CI_2H_rep1/CI_2H_rep1.bam, output_ci/CI_2H_rep1/CI_2H_rep1.bam.bai, output_ci/CI_2H_rep1/stats/CI_2H_rep1_dedupMetrics.txt, output_ci/CI_2H_rep1/stats/CI_2H_rep1_final_pairs.txt
+    log: output_ci/CI_2H_rep1/logs/mark_duplicates.log
+    jobid: 15
+    benchmark: output_ci/CI_2H_rep1/benchmarks/mark_duplicates.tsv
+    reason: Missing output files: output_ci/CI_2H_rep1/CI_2H_rep1.bam, output_ci/CI_2H_rep1/stats/CI_2H_rep1_dedupMetrics.txt, output_ci/CI_2H_rep1/CI_2H_rep1.bam.bai, output_ci/CI_2H_rep1/stats/CI_2H_rep1_final_pairs.txt; Input files updated by another job: output_ci/CI_2H_rep1/CI_2H_rep1_mapq.bam
+    wildcards: sample=CI_2H_rep1
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:03:15 2026]
+rule mark_duplicates:
+    input: output_ci/CI_2H_rep2/CI_2H_rep2_mapq.bam
+    output: output_ci/CI_2H_rep2/CI_2H_rep2.bam, output_ci/CI_2H_rep2/CI_2H_rep2.bam.bai, output_ci/CI_2H_rep2/stats/CI_2H_rep2_dedupMetrics.txt, output_ci/CI_2H_rep2/stats/CI_2H_rep2_final_pairs.txt
+    log: output_ci/CI_2H_rep2/logs/mark_duplicates.log
+    jobid: 18
+    benchmark: output_ci/CI_2H_rep2/benchmarks/mark_duplicates.tsv
+    reason: Missing output files: output_ci/CI_2H_rep2/stats/CI_2H_rep2_dedupMetrics.txt, output_ci/CI_2H_rep2/stats/CI_2H_rep2_final_pairs.txt, output_ci/CI_2H_rep2/CI_2H_rep2.bam, output_ci/CI_2H_rep2/CI_2H_rep2.bam.bai; Input files updated by another job: output_ci/CI_2H_rep2/CI_2H_rep2_mapq.bam
+    wildcards: sample=CI_2H_rep2
+    resources: tmpdir=<TBD>
+
+Would remove temporary output output_ci/CI_DMSO_rep1/CI_DMSO_rep1_mapq.bam
+Would remove temporary output output_ci/CI_DMSO_rep2/CI_DMSO_rep2_mapq.bam
+Would remove temporary output output_ci/CI_2H_rep1/CI_2H_rep1_mapq.bam
+Would remove temporary output output_ci/CI_2H_rep2/CI_2H_rep2_mapq.bam
+
+[Wed Nov 18 00:03:15 2026]
+rule multiqc:
+    input: output_ci/qc/fastqc/CI_DMSO_rep1_R1_fastqc.zip, output_ci/qc/fastqc/CI_DMSO_rep1_R2_fastqc.zip, output_ci/qc/fastqc/CI_DMSO_rep2_R1_fastqc.zip, output_ci/qc/fastqc/CI_DMSO_rep2_R2_fastqc.zip, output_ci/qc/fastqc/CI_2H_rep1_R1_fastqc.zip, output_ci/qc/fastqc/CI_2H_rep1_R2_fastqc.zip, output_ci/qc/fastqc/CI_2H_rep2_R1_fastqc.zip, output_ci/qc/fastqc/CI_2H_rep2_R2_fastqc.zip, output_ci/CI_DMSO_rep1/stats/CI_DMSO_rep1_Log.final.out, output_ci/CI_DMSO_rep2/stats/CI_DMSO_rep2_Log.final.out, output_ci/CI_2H_rep1/stats/CI_2H_rep1_Log.final.out, output_ci/CI_2H_rep2/stats/CI_2H_rep2_Log.final.out, output_ci/CI_DMSO_rep1/stats/CI_DMSO_rep1_ReadsPerGene.out.tab, output_ci/CI_DMSO_rep2/stats/CI_DMSO_rep2_ReadsPerGene.out.tab, output_ci/CI_2H_rep1/stats/CI_2H_rep1_ReadsPerGene.out.tab, output_ci/CI_2H_rep2/stats/CI_2H_rep2_ReadsPerGene.out.tab, output_ci/CI_DMSO_rep1/stats/CI_DMSO_rep1_dedupMetrics.txt, output_ci/CI_DMSO_rep2/stats/CI_DMSO_rep2_dedupMetrics.txt, output_ci/CI_2H_rep1/stats/CI_2H_rep1_dedupMetrics.txt, output_ci/CI_2H_rep2/stats/CI_2H_rep2_dedupMetrics.txt
+    output: output_ci/qc/TTpipe_multiqc.html
+    log: output_ci/logs/multiqc.log
+    jobid: 59
+    benchmark: output_ci/benchmarks/multiqc.tsv
+    reason: Missing output files: output_ci/qc/TTpipe_multiqc.html; Input files updated by another job: output_ci/CI_2H_rep1/stats/CI_2H_rep1_dedupMetrics.txt, output_ci/CI_DMSO_rep2/stats/CI_DMSO_rep2_ReadsPerGene.out.tab, output_ci/qc/fastqc/CI_DMSO_rep1_R1_fastqc.zip, output_ci/CI_DMSO_rep2/stats/CI_DMSO_rep2_dedupMetrics.txt, output_ci/CI_2H_rep1/stats/CI_2H_rep1_Log.final.out, output_ci/qc/fastqc/CI_2H_rep1_R2_fastqc.zip, output_ci/CI_DMSO_rep1/stats/CI_DMSO_rep1_Log.final.out, output_ci/qc/fastqc/CI_DMSO_rep2_R1_fastqc.zip, output_ci/CI_2H_rep1/stats/CI_2H_rep1_ReadsPerGene.out.tab, output_ci/CI_2H_rep2/stats/CI_2H_rep2_Log.final.out, output_ci/qc/fastqc/CI_DMSO_rep1_R2_fastqc.zip, output_ci/CI_2H_rep2/stats/CI_2H_rep2_dedupMetrics.txt, output_ci/CI_DMSO_rep1/stats/CI_DMSO_rep1_dedupMetrics.txt, output_ci/qc/fastqc/CI_DMSO_rep2_R2_fastqc.zip, output_ci/CI_DMSO_rep1/stats/CI_DMSO_rep1_ReadsPerGene.out.tab, output_ci/CI_2H_rep2/stats/CI_2H_rep2_ReadsPerGene.out.tab, output_ci/CI_DMSO_rep2/stats/CI_DMSO_rep2_Log.final.out, output_ci/qc/fastqc/CI_2H_rep2_R2_fastqc.zip, output_ci/qc/fastqc/CI_2H_rep2_R1_fastqc.zip, output_ci/qc/fastqc/CI_2H_rep1_R1_fastqc.zip
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:03:15 2026]
+rule split_strands:
+    input: output_ci/CI_DMSO_rep1/CI_DMSO_rep1.bam, output_ci/CI_DMSO_rep1/CI_DMSO_rep1.bam.bai
+    output: output_ci/CI_DMSO_rep1/CI_DMSO_rep1_forward.bam, output_ci/CI_DMSO_rep1/CI_DMSO_rep1_forward.bam.bai
+    log: output_ci/CI_DMSO_rep1/logs/split_strands_forward.log
+    jobid: 21
+    benchmark: output_ci/CI_DMSO_rep1/benchmarks/split_strands_forward.tsv
+    reason: Missing output files: output_ci/CI_DMSO_rep1/CI_DMSO_rep1_forward.bam.bai, output_ci/CI_DMSO_rep1/CI_DMSO_rep1_forward.bam; Input files updated by another job: output_ci/CI_DMSO_rep1/CI_DMSO_rep1.bam, output_ci/CI_DMSO_rep1/CI_DMSO_rep1.bam.bai
+    wildcards: sample=CI_DMSO_rep1, strand=forward
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:03:15 2026]
+rule split_strands:
+    input: output_ci/CI_2H_rep2/CI_2H_rep2.bam, output_ci/CI_2H_rep2/CI_2H_rep2.bam.bai
+    output: output_ci/CI_2H_rep2/CI_2H_rep2_reverse.bam, output_ci/CI_2H_rep2/CI_2H_rep2_reverse.bam.bai
+    log: output_ci/CI_2H_rep2/logs/split_strands_reverse.log
+    jobid: 28
+    benchmark: output_ci/CI_2H_rep2/benchmarks/split_strands_reverse.tsv
+    reason: Missing output files: output_ci/CI_2H_rep2/CI_2H_rep2_reverse.bam, output_ci/CI_2H_rep2/CI_2H_rep2_reverse.bam.bai; Input files updated by another job: output_ci/CI_2H_rep2/CI_2H_rep2.bam.bai, output_ci/CI_2H_rep2/CI_2H_rep2.bam
+    wildcards: sample=CI_2H_rep2, strand=reverse
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:03:15 2026]
+rule split_strands:
+    input: output_ci/CI_DMSO_rep2/CI_DMSO_rep2.bam, output_ci/CI_DMSO_rep2/CI_DMSO_rep2.bam.bai
+    output: output_ci/CI_DMSO_rep2/CI_DMSO_rep2_forward.bam, output_ci/CI_DMSO_rep2/CI_DMSO_rep2_forward.bam.bai
+    log: output_ci/CI_DMSO_rep2/logs/split_strands_forward.log
+    jobid: 23
+    benchmark: output_ci/CI_DMSO_rep2/benchmarks/split_strands_forward.tsv
+    reason: Missing output files: output_ci/CI_DMSO_rep2/CI_DMSO_rep2_forward.bam, output_ci/CI_DMSO_rep2/CI_DMSO_rep2_forward.bam.bai; Input files updated by another job: output_ci/CI_DMSO_rep2/CI_DMSO_rep2.bam.bai, output_ci/CI_DMSO_rep2/CI_DMSO_rep2.bam
+    wildcards: sample=CI_DMSO_rep2, strand=forward
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:03:15 2026]
+rule split_strands:
+    input: output_ci/CI_2H_rep1/CI_2H_rep1.bam, output_ci/CI_2H_rep1/CI_2H_rep1.bam.bai
+    output: output_ci/CI_2H_rep1/CI_2H_rep1_forward.bam, output_ci/CI_2H_rep1/CI_2H_rep1_forward.bam.bai
+    log: output_ci/CI_2H_rep1/logs/split_strands_forward.log
+    jobid: 25
+    benchmark: output_ci/CI_2H_rep1/benchmarks/split_strands_forward.tsv
+    reason: Missing output files: output_ci/CI_2H_rep1/CI_2H_rep1_forward.bam.bai, output_ci/CI_2H_rep1/CI_2H_rep1_forward.bam; Input files updated by another job: output_ci/CI_2H_rep1/CI_2H_rep1.bam, output_ci/CI_2H_rep1/CI_2H_rep1.bam.bai
+    wildcards: sample=CI_2H_rep1, strand=forward
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:03:15 2026]
+rule split_strands:
+    input: output_ci/CI_2H_rep2/CI_2H_rep2.bam, output_ci/CI_2H_rep2/CI_2H_rep2.bam.bai
+    output: output_ci/CI_2H_rep2/CI_2H_rep2_forward.bam, output_ci/CI_2H_rep2/CI_2H_rep2_forward.bam.bai
+    log: output_ci/CI_2H_rep2/logs/split_strands_forward.log
+    jobid: 27
+    benchmark: output_ci/CI_2H_rep2/benchmarks/split_strands_forward.tsv
+    reason: Missing output files: output_ci/CI_2H_rep2/CI_2H_rep2_forward.bam, output_ci/CI_2H_rep2/CI_2H_rep2_forward.bam.bai; Input files updated by another job: output_ci/CI_2H_rep2/CI_2H_rep2.bam.bai, output_ci/CI_2H_rep2/CI_2H_rep2.bam
+    wildcards: sample=CI_2H_rep2, strand=forward
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:03:15 2026]
+rule merge_bams:
+    input: output_ci/CI_2H_rep1/CI_2H_rep1.bam, output_ci/CI_2H_rep2/CI_2H_rep2.bam
+    output: output_ci/merged/2H.bam, output_ci/merged/2H.bam.bai
+    log: output_ci/logs/merge_bams_2H.log
+    jobid: 32
+    benchmark: output_ci/benchmarks/merge_bams_2H.tsv
+    reason: Missing output files: output_ci/merged/2H.bam, output_ci/merged/2H.bam.bai; Input files updated by another job: output_ci/CI_2H_rep1/CI_2H_rep1.bam, output_ci/CI_2H_rep2/CI_2H_rep2.bam
+    wildcards: condition=2H, suffix=
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:03:15 2026]
+rule split_strands:
+    input: output_ci/CI_DMSO_rep1/CI_DMSO_rep1.bam, output_ci/CI_DMSO_rep1/CI_DMSO_rep1.bam.bai
+    output: output_ci/CI_DMSO_rep1/CI_DMSO_rep1_reverse.bam, output_ci/CI_DMSO_rep1/CI_DMSO_rep1_reverse.bam.bai
+    log: output_ci/CI_DMSO_rep1/logs/split_strands_reverse.log
+    jobid: 22
+    benchmark: output_ci/CI_DMSO_rep1/benchmarks/split_strands_reverse.tsv
+    reason: Missing output files: output_ci/CI_DMSO_rep1/CI_DMSO_rep1_reverse.bam.bai, output_ci/CI_DMSO_rep1/CI_DMSO_rep1_reverse.bam; Input files updated by another job: output_ci/CI_DMSO_rep1/CI_DMSO_rep1.bam, output_ci/CI_DMSO_rep1/CI_DMSO_rep1.bam.bai
+    wildcards: sample=CI_DMSO_rep1, strand=reverse
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:03:15 2026]
+rule split_strands:
+    input: output_ci/CI_DMSO_rep2/CI_DMSO_rep2.bam, output_ci/CI_DMSO_rep2/CI_DMSO_rep2.bam.bai
+    output: output_ci/CI_DMSO_rep2/CI_DMSO_rep2_reverse.bam, output_ci/CI_DMSO_rep2/CI_DMSO_rep2_reverse.bam.bai
+    log: output_ci/CI_DMSO_rep2/logs/split_strands_reverse.log
+    jobid: 24
+    benchmark: output_ci/CI_DMSO_rep2/benchmarks/split_strands_reverse.tsv
+    reason: Missing output files: output_ci/CI_DMSO_rep2/CI_DMSO_rep2_reverse.bam, output_ci/CI_DMSO_rep2/CI_DMSO_rep2_reverse.bam.bai; Input files updated by another job: output_ci/CI_DMSO_rep2/CI_DMSO_rep2.bam.bai, output_ci/CI_DMSO_rep2/CI_DMSO_rep2.bam
+    wildcards: sample=CI_DMSO_rep2, strand=reverse
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:03:15 2026]
+rule split_strands:
+    input: output_ci/CI_2H_rep1/CI_2H_rep1.bam, output_ci/CI_2H_rep1/CI_2H_rep1.bam.bai
+    output: output_ci/CI_2H_rep1/CI_2H_rep1_reverse.bam, output_ci/CI_2H_rep1/CI_2H_rep1_reverse.bam.bai
+    log: output_ci/CI_2H_rep1/logs/split_strands_reverse.log
+    jobid: 26
+    benchmark: output_ci/CI_2H_rep1/benchmarks/split_strands_reverse.tsv
+    reason: Missing output files: output_ci/CI_2H_rep1/CI_2H_rep1_reverse.bam.bai, output_ci/CI_2H_rep1/CI_2H_rep1_reverse.bam; Input files updated by another job: output_ci/CI_2H_rep1/CI_2H_rep1.bam, output_ci/CI_2H_rep1/CI_2H_rep1.bam.bai
+    wildcards: sample=CI_2H_rep1, strand=reverse
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:03:15 2026]
+rule merge_bams:
+    input: output_ci/CI_DMSO_rep1/CI_DMSO_rep1.bam, output_ci/CI_DMSO_rep2/CI_DMSO_rep2.bam
+    output: output_ci/merged/DMSO.bam, output_ci/merged/DMSO.bam.bai
+    log: output_ci/logs/merge_bams_DMSO.log
+    jobid: 30
+    benchmark: output_ci/benchmarks/merge_bams_DMSO.tsv
+    reason: Missing output files: output_ci/merged/DMSO.bam.bai, output_ci/merged/DMSO.bam; Input files updated by another job: output_ci/CI_DMSO_rep1/CI_DMSO_rep1.bam, output_ci/CI_DMSO_rep2/CI_DMSO_rep2.bam
+    wildcards: condition=DMSO, suffix=
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:03:15 2026]
+rule merge_bams:
+    input: output_ci/CI_2H_rep1/CI_2H_rep1_forward.bam, output_ci/CI_2H_rep2/CI_2H_rep2_forward.bam
+    output: output_ci/merged/2H_forward.bam, output_ci/merged/2H_forward.bam.bai
+    log: output_ci/logs/merge_bams_2H_forward.log
+    jobid: 39
+    benchmark: output_ci/benchmarks/merge_bams_2H_forward.tsv
+    reason: Missing output files: output_ci/merged/2H_forward.bam.bai, output_ci/merged/2H_forward.bam; Input files updated by another job: output_ci/CI_2H_rep2/CI_2H_rep2_forward.bam, output_ci/CI_2H_rep1/CI_2H_rep1_forward.bam
+    wildcards: condition=2H, suffix=_forward
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:03:15 2026]
+rule htseq_count:
+    input: output_ci/CI_DMSO_rep1/CI_DMSO_rep1_forward.bam, tests/dryrun/genes.gtf
+    output: output_ci/CI_DMSO_rep1/counts/CI_DMSO_rep1_forward.counts.txt
+    log: output_ci/CI_DMSO_rep1/logs/htseq_count_forward.log
+    jobid: 43
+    benchmark: output_ci/CI_DMSO_rep1/benchmarks/htseq_count_forward.tsv
+    reason: Missing output files: output_ci/CI_DMSO_rep1/counts/CI_DMSO_rep1_forward.counts.txt; Input files updated by another job: output_ci/CI_DMSO_rep1/CI_DMSO_rep1_forward.bam
+    wildcards: sample=CI_DMSO_rep1, strand=forward
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:03:15 2026]
+rule htseq_count:
+    input: output_ci/CI_2H_rep1/CI_2H_rep1_forward.bam, tests/dryrun/genes.gtf
+    output: output_ci/CI_2H_rep1/counts/CI_2H_rep1_forward.counts.txt
+    log: output_ci/CI_2H_rep1/logs/htseq_count_forward.log
+    jobid: 45
+    benchmark: output_ci/CI_2H_rep1/benchmarks/htseq_count_forward.tsv
+    reason: Missing output files: output_ci/CI_2H_rep1/counts/CI_2H_rep1_forward.counts.txt; Input files updated by another job: output_ci/CI_2H_rep1/CI_2H_rep1_forward.bam
+    wildcards: sample=CI_2H_rep1, strand=forward
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:03:15 2026]
+rule htseq_count:
+    input: output_ci/CI_DMSO_rep1/CI_DMSO_rep1_reverse.bam, tests/dryrun/genes.gtf
+    output: output_ci/CI_DMSO_rep1/counts/CI_DMSO_rep1_reverse.counts.txt
+    log: output_ci/CI_DMSO_rep1/logs/htseq_count_reverse.log
+    jobid: 47
+    benchmark: output_ci/CI_DMSO_rep1/benchmarks/htseq_count_reverse.tsv
+    reason: Missing output files: output_ci/CI_DMSO_rep1/counts/CI_DMSO_rep1_reverse.counts.txt; Input files updated by another job: output_ci/CI_DMSO_rep1/CI_DMSO_rep1_reverse.bam
+    wildcards: sample=CI_DMSO_rep1, strand=reverse
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:03:15 2026]
+rule htseq_count:
+    input: output_ci/CI_2H_rep1/CI_2H_rep1_reverse.bam, tests/dryrun/genes.gtf
+    output: output_ci/CI_2H_rep1/counts/CI_2H_rep1_reverse.counts.txt
+    log: output_ci/CI_2H_rep1/logs/htseq_count_reverse.log
+    jobid: 49
+    benchmark: output_ci/CI_2H_rep1/benchmarks/htseq_count_reverse.tsv
+    reason: Missing output files: output_ci/CI_2H_rep1/counts/CI_2H_rep1_reverse.counts.txt; Input files updated by another job: output_ci/CI_2H_rep1/CI_2H_rep1_reverse.bam
+    wildcards: sample=CI_2H_rep1, strand=reverse
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:03:15 2026]
+rule scale_factors:
+    input: output_ci/merged/DMSO.bam, output_ci/merged/2H.bam
+    output: output_ci/tracks/scale_factors.tsv
+    log: output_ci/logs/scale_factors.log
+    jobid: 31
+    benchmark: output_ci/benchmarks/scale_factors.tsv
+    reason: Missing output files: output_ci/tracks/scale_factors.tsv; Input files updated by another job: output_ci/merged/2H.bam, output_ci/merged/DMSO.bam
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:03:15 2026]
+rule merge_bams:
+    input: output_ci/CI_DMSO_rep1/CI_DMSO_rep1_reverse.bam, output_ci/CI_DMSO_rep2/CI_DMSO_rep2_reverse.bam
+    output: output_ci/merged/DMSO_reverse.bam, output_ci/merged/DMSO_reverse.bam.bai
+    log: output_ci/logs/merge_bams_DMSO_reverse.log
+    jobid: 37
+    benchmark: output_ci/benchmarks/merge_bams_DMSO_reverse.tsv
+    reason: Missing output files: output_ci/merged/DMSO_reverse.bam.bai, output_ci/merged/DMSO_reverse.bam; Input files updated by another job: output_ci/CI_DMSO_rep2/CI_DMSO_rep2_reverse.bam, output_ci/CI_DMSO_rep1/CI_DMSO_rep1_reverse.bam
+    wildcards: condition=DMSO, suffix=_reverse
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:03:15 2026]
+rule merge_bams:
+    input: output_ci/CI_2H_rep1/CI_2H_rep1_reverse.bam, output_ci/CI_2H_rep2/CI_2H_rep2_reverse.bam
+    output: output_ci/merged/2H_reverse.bam, output_ci/merged/2H_reverse.bam.bai
+    log: output_ci/logs/merge_bams_2H_reverse.log
+    jobid: 41
+    benchmark: output_ci/benchmarks/merge_bams_2H_reverse.tsv
+    reason: Missing output files: output_ci/merged/2H_reverse.bam, output_ci/merged/2H_reverse.bam.bai; Input files updated by another job: output_ci/CI_2H_rep2/CI_2H_rep2_reverse.bam, output_ci/CI_2H_rep1/CI_2H_rep1_reverse.bam
+    wildcards: condition=2H, suffix=_reverse
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:03:15 2026]
+rule htseq_count:
+    input: output_ci/CI_DMSO_rep2/CI_DMSO_rep2_forward.bam, tests/dryrun/genes.gtf
+    output: output_ci/CI_DMSO_rep2/counts/CI_DMSO_rep2_forward.counts.txt
+    log: output_ci/CI_DMSO_rep2/logs/htseq_count_forward.log
+    jobid: 44
+    benchmark: output_ci/CI_DMSO_rep2/benchmarks/htseq_count_forward.tsv
+    reason: Missing output files: output_ci/CI_DMSO_rep2/counts/CI_DMSO_rep2_forward.counts.txt; Input files updated by another job: output_ci/CI_DMSO_rep2/CI_DMSO_rep2_forward.bam
+    wildcards: sample=CI_DMSO_rep2, strand=forward
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:03:15 2026]
+rule htseq_count:
+    input: output_ci/CI_2H_rep2/CI_2H_rep2_forward.bam, tests/dryrun/genes.gtf
+    output: output_ci/CI_2H_rep2/counts/CI_2H_rep2_forward.counts.txt
+    log: output_ci/CI_2H_rep2/logs/htseq_count_forward.log
+    jobid: 46
+    benchmark: output_ci/CI_2H_rep2/benchmarks/htseq_count_forward.tsv
+    reason: Missing output files: output_ci/CI_2H_rep2/counts/CI_2H_rep2_forward.counts.txt; Input files updated by another job: output_ci/CI_2H_rep2/CI_2H_rep2_forward.bam
+    wildcards: sample=CI_2H_rep2, strand=forward
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:03:15 2026]
+rule htseq_count:
+    input: output_ci/CI_DMSO_rep2/CI_DMSO_rep2_reverse.bam, tests/dryrun/genes.gtf
+    output: output_ci/CI_DMSO_rep2/counts/CI_DMSO_rep2_reverse.counts.txt
+    log: output_ci/CI_DMSO_rep2/logs/htseq_count_reverse.log
+    jobid: 48
+    benchmark: output_ci/CI_DMSO_rep2/benchmarks/htseq_count_reverse.tsv
+    reason: Missing output files: output_ci/CI_DMSO_rep2/counts/CI_DMSO_rep2_reverse.counts.txt; Input files updated by another job: output_ci/CI_DMSO_rep2/CI_DMSO_rep2_reverse.bam
+    wildcards: sample=CI_DMSO_rep2, strand=reverse
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:03:15 2026]
+rule htseq_count:
+    input: output_ci/CI_2H_rep2/CI_2H_rep2_reverse.bam, tests/dryrun/genes.gtf
+    output: output_ci/CI_2H_rep2/counts/CI_2H_rep2_reverse.counts.txt
+    log: output_ci/CI_2H_rep2/logs/htseq_count_reverse.log
+    jobid: 50
+    benchmark: output_ci/CI_2H_rep2/benchmarks/htseq_count_reverse.tsv
+    reason: Missing output files: output_ci/CI_2H_rep2/counts/CI_2H_rep2_reverse.counts.txt; Input files updated by another job: output_ci/CI_2H_rep2/CI_2H_rep2_reverse.bam
+    wildcards: sample=CI_2H_rep2, strand=reverse
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:03:15 2026]
+rule merge_bams:
+    input: output_ci/CI_DMSO_rep1/CI_DMSO_rep1_forward.bam, output_ci/CI_DMSO_rep2/CI_DMSO_rep2_forward.bam
+    output: output_ci/merged/DMSO_forward.bam, output_ci/merged/DMSO_forward.bam.bai
+    log: output_ci/logs/merge_bams_DMSO_forward.log
+    jobid: 35
+    benchmark: output_ci/benchmarks/merge_bams_DMSO_forward.tsv
+    reason: Missing output files: output_ci/merged/DMSO_forward.bam.bai, output_ci/merged/DMSO_forward.bam; Input files updated by another job: output_ci/CI_DMSO_rep1/CI_DMSO_rep1_forward.bam, output_ci/CI_DMSO_rep2/CI_DMSO_rep2_forward.bam
+    wildcards: condition=DMSO, suffix=_forward
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:03:15 2026]
+rule count_matrix:
+    input: output_ci/CI_DMSO_rep1/counts/CI_DMSO_rep1_forward.counts.txt, output_ci/CI_DMSO_rep2/counts/CI_DMSO_rep2_forward.counts.txt, output_ci/CI_2H_rep1/counts/CI_2H_rep1_forward.counts.txt, output_ci/CI_2H_rep2/counts/CI_2H_rep2_forward.counts.txt, output_ci/CI_DMSO_rep1/counts/CI_DMSO_rep1_reverse.counts.txt, output_ci/CI_DMSO_rep2/counts/CI_DMSO_rep2_reverse.counts.txt, output_ci/CI_2H_rep1/counts/CI_2H_rep1_reverse.counts.txt, output_ci/CI_2H_rep2/counts/CI_2H_rep2_reverse.counts.txt, output_ci/counts/gene_info.tsv
+    output: output_ci/counts/counts_forward.txt, output_ci/counts/counts_reverse.txt, output_ci/counts/counts_deseq2.txt
+    log: output_ci/logs/count_matrix.log
+    jobid: 42
+    benchmark: output_ci/benchmarks/count_matrix.tsv
+    reason: Missing output files: output_ci/counts/counts_reverse.txt, output_ci/counts/counts_forward.txt, output_ci/counts/counts_deseq2.txt; Input files updated by another job: output_ci/CI_DMSO_rep2/counts/CI_DMSO_rep2_forward.counts.txt, output_ci/CI_DMSO_rep2/counts/CI_DMSO_rep2_reverse.counts.txt, output_ci/CI_2H_rep2/counts/CI_2H_rep2_forward.counts.txt, output_ci/counts/gene_info.tsv, output_ci/CI_2H_rep1/counts/CI_2H_rep1_reverse.counts.txt, output_ci/CI_2H_rep2/counts/CI_2H_rep2_reverse.counts.txt, output_ci/CI_DMSO_rep1/counts/CI_DMSO_rep1_reverse.counts.txt, output_ci/CI_2H_rep1/counts/CI_2H_rep1_forward.counts.txt, output_ci/CI_DMSO_rep1/counts/CI_DMSO_rep1_forward.counts.txt
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:03:15 2026]
+rule bigwig:
+    input: output_ci/merged/DMSO_forward.bam, output_ci/merged/DMSO_forward.bam.bai, output_ci/tracks/scale_factors.tsv
+    output: output_ci/tracks/DMSO_forward.bw
+    log: output_ci/logs/bigwig_DMSO_forward.log
+    jobid: 34
+    benchmark: output_ci/benchmarks/bigwig_DMSO_forward.tsv
+    reason: Missing output files: output_ci/tracks/DMSO_forward.bw; Input files updated by another job: output_ci/merged/DMSO_forward.bam.bai, output_ci/merged/DMSO_forward.bam, output_ci/tracks/scale_factors.tsv
+    wildcards: condition=DMSO, suffix=_forward
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:03:15 2026]
+rule bigwig:
+    input: output_ci/merged/2H.bam, output_ci/merged/2H.bam.bai, output_ci/tracks/scale_factors.tsv
+    output: output_ci/tracks/2H.bw
+    log: output_ci/logs/bigwig_2H.log
+    jobid: 33
+    benchmark: output_ci/benchmarks/bigwig_2H.tsv
+    reason: Missing output files: output_ci/tracks/2H.bw; Input files updated by another job: output_ci/merged/2H.bam, output_ci/merged/2H.bam.bai, output_ci/tracks/scale_factors.tsv
+    wildcards: condition=2H, suffix=
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:03:15 2026]
+rule bigwig:
+    input: output_ci/merged/DMSO.bam, output_ci/merged/DMSO.bam.bai, output_ci/tracks/scale_factors.tsv
+    output: output_ci/tracks/DMSO.bw
+    log: output_ci/logs/bigwig_DMSO.log
+    jobid: 29
+    benchmark: output_ci/benchmarks/bigwig_DMSO.tsv
+    reason: Missing output files: output_ci/tracks/DMSO.bw; Input files updated by another job: output_ci/merged/DMSO.bam.bai, output_ci/tracks/scale_factors.tsv, output_ci/merged/DMSO.bam
+    wildcards: condition=DMSO, suffix=
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:03:15 2026]
+rule bigwig:
+    input: output_ci/merged/DMSO_reverse.bam, output_ci/merged/DMSO_reverse.bam.bai, output_ci/tracks/scale_factors.tsv
+    output: output_ci/tracks/DMSO_reverse.bw
+    log: output_ci/logs/bigwig_DMSO_reverse.log
+    jobid: 36
+    benchmark: output_ci/benchmarks/bigwig_DMSO_reverse.tsv
+    reason: Missing output files: output_ci/tracks/DMSO_reverse.bw; Input files updated by another job: output_ci/merged/DMSO_reverse.bam.bai, output_ci/merged/DMSO_reverse.bam, output_ci/tracks/scale_factors.tsv
+    wildcards: condition=DMSO, suffix=_reverse
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:03:15 2026]
+rule bigwig:
+    input: output_ci/merged/2H_reverse.bam, output_ci/merged/2H_reverse.bam.bai, output_ci/tracks/scale_factors.tsv
+    output: output_ci/tracks/2H_reverse.bw
+    log: output_ci/logs/bigwig_2H_reverse.log
+    jobid: 40
+    benchmark: output_ci/benchmarks/bigwig_2H_reverse.tsv
+    reason: Missing output files: output_ci/tracks/2H_reverse.bw; Input files updated by another job: output_ci/merged/2H_reverse.bam, output_ci/tracks/scale_factors.tsv, output_ci/merged/2H_reverse.bam.bai
+    wildcards: condition=2H, suffix=_reverse
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:03:15 2026]
+rule bigwig:
+    input: output_ci/merged/2H_forward.bam, output_ci/merged/2H_forward.bam.bai, output_ci/tracks/scale_factors.tsv
+    output: output_ci/tracks/2H_forward.bw
+    log: output_ci/logs/bigwig_2H_forward.log
+    jobid: 38
+    benchmark: output_ci/benchmarks/bigwig_2H_forward.tsv
+    reason: Missing output files: output_ci/tracks/2H_forward.bw; Input files updated by another job: output_ci/merged/2H_forward.bam.bai, output_ci/tracks/scale_factors.tsv, output_ci/merged/2H_forward.bam
+    wildcards: condition=2H, suffix=_forward
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:03:15 2026]
+rule qc_summary:
+    input: tests/dryrun/samplesheet.txt, output_ci/CI_DMSO_rep1/stats/CI_DMSO_rep1_Log.final.out, output_ci/CI_DMSO_rep2/stats/CI_DMSO_rep2_Log.final.out, output_ci/CI_2H_rep1/stats/CI_2H_rep1_Log.final.out, output_ci/CI_2H_rep2/stats/CI_2H_rep2_Log.final.out, output_ci/CI_DMSO_rep1/stats/CI_DMSO_rep1_ReadsPerGene.out.tab, output_ci/CI_DMSO_rep2/stats/CI_DMSO_rep2_ReadsPerGene.out.tab, output_ci/CI_2H_rep1/stats/CI_2H_rep1_ReadsPerGene.out.tab, output_ci/CI_2H_rep2/stats/CI_2H_rep2_ReadsPerGene.out.tab, output_ci/CI_DMSO_rep1/stats/CI_DMSO_rep1_mapq.txt, output_ci/CI_DMSO_rep2/stats/CI_DMSO_rep2_mapq.txt, output_ci/CI_2H_rep1/stats/CI_2H_rep1_mapq.txt, output_ci/CI_2H_rep2/stats/CI_2H_rep2_mapq.txt, output_ci/CI_DMSO_rep1/stats/CI_DMSO_rep1_dedupMetrics.txt, output_ci/CI_DMSO_rep2/stats/CI_DMSO_rep2_dedupMetrics.txt, output_ci/CI_2H_rep1/stats/CI_2H_rep1_dedupMetrics.txt, output_ci/CI_2H_rep2/stats/CI_2H_rep2_dedupMetrics.txt, output_ci/CI_DMSO_rep1/stats/CI_DMSO_rep1_final_pairs.txt, output_ci/CI_DMSO_rep2/stats/CI_DMSO_rep2_final_pairs.txt, output_ci/CI_2H_rep1/stats/CI_2H_rep1_final_pairs.txt, output_ci/CI_2H_rep2/stats/CI_2H_rep2_final_pairs.txt, output_ci/counts/counts_forward.txt, output_ci/counts/counts_reverse.txt, output_ci/counts/counts_deseq2.txt, output_ci/counts/gene_info.tsv
+    output: output_ci/qc/sample_qc.tsv
+    log: output_ci/logs/qc_summary.log
+    jobid: 58
+    benchmark: output_ci/benchmarks/qc_summary.tsv
+    reason: Missing output files: output_ci/qc/sample_qc.tsv; Input files updated by another job: output_ci/CI_DMSO_rep1/stats/CI_DMSO_rep1_mapq.txt, output_ci/CI_2H_rep1/stats/CI_2H_rep1_dedupMetrics.txt, output_ci/counts/counts_reverse.txt, output_ci/CI_2H_rep2/stats/CI_2H_rep2_mapq.txt, output_ci/counts/gene_info.tsv, output_ci/CI_DMSO_rep2/stats/CI_DMSO_rep2_ReadsPerGene.out.tab, output_ci/CI_DMSO_rep2/stats/CI_DMSO_rep2_dedupMetrics.txt, output_ci/CI_2H_rep1/stats/CI_2H_rep1_Log.final.out, output_ci/CI_2H_rep1/stats/CI_2H_rep1_final_pairs.txt, output_ci/CI_DMSO_rep1/stats/CI_DMSO_rep1_Log.final.out, output_ci/CI_2H_rep1/stats/CI_2H_rep1_mapq.txt, output_ci/CI_2H_rep1/stats/CI_2H_rep1_ReadsPerGene.out.tab, output_ci/CI_2H_rep2/stats/CI_2H_rep2_Log.final.out, output_ci/CI_2H_rep2/stats/CI_2H_rep2_dedupMetrics.txt, output_ci/CI_2H_rep2/stats/CI_2H_rep2_final_pairs.txt, output_ci/CI_DMSO_rep1/stats/CI_DMSO_rep1_dedupMetrics.txt, output_ci/CI_DMSO_rep2/stats/CI_DMSO_rep2_final_pairs.txt, output_ci/counts/counts_deseq2.txt, output_ci/CI_DMSO_rep2/stats/CI_DMSO_rep2_mapq.txt, output_ci/CI_DMSO_rep1/stats/CI_DMSO_rep1_ReadsPerGene.out.tab, output_ci/CI_2H_rep2/stats/CI_2H_rep2_ReadsPerGene.out.tab, output_ci/CI_DMSO_rep2/stats/CI_DMSO_rep2_Log.final.out, output_ci/counts/counts_forward.txt, output_ci/CI_DMSO_rep1/stats/CI_DMSO_rep1_final_pairs.txt
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:03:15 2026]
+rule deseq2:
+    input: output_ci/counts/counts_deseq2.txt, output_ci/counts/samples_deseq2.txt
+    output: output_ci/analysis/deseq2/degs_2H_vs_DMSO.csv, output_ci/analysis/deseq2/deg_summary.tsv, output_ci/analysis/deseq2/normalized_counts.tsv, output_ci/analysis/deseq2/vst.tsv, output_ci/analysis/figures/pca.pdf
+    log: output_ci/logs/deseq2.log
+    jobid: 53
+    benchmark: output_ci/benchmarks/deseq2.txt
+    reason: Missing output files: output_ci/analysis/figures/pca.pdf, output_ci/analysis/deseq2/degs_2H_vs_DMSO.csv, output_ci/analysis/deseq2/deg_summary.tsv, output_ci/analysis/deseq2/normalized_counts.tsv, output_ci/analysis/deseq2/vst.tsv; Input files updated by another job: output_ci/counts/counts_deseq2.txt, output_ci/counts/samples_deseq2.txt
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:03:15 2026]
+rule results_explorer:
+    input: output_ci/analysis/deseq2/degs_2H_vs_DMSO.csv, output_ci/counts/gene_info.tsv, output_ci/analysis/deseq2/normalized_counts.tsv, output_ci/counts/samples_deseq2.txt, output_ci/analysis/deseq2/deg_summary.tsv
+    output: output_ci/analysis/TTpipe_results_explorer.html
+    log: output_ci/logs/results_explorer.log
+    jobid: 55
+    benchmark: output_ci/benchmarks/results_explorer.tsv
+    reason: Missing output files: output_ci/analysis/TTpipe_results_explorer.html; Input files updated by another job: output_ci/analysis/deseq2/deg_summary.tsv, output_ci/counts/gene_info.tsv, output_ci/analysis/deseq2/normalized_counts.tsv, output_ci/analysis/deseq2/degs_2H_vs_DMSO.csv, output_ci/counts/samples_deseq2.txt
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:03:15 2026]
+rule stranded_signal:
+    input: output_ci/tracks/DMSO_forward.bw, output_ci/tracks/DMSO_reverse.bw, output_ci/tracks/2H_forward.bw, output_ci/tracks/2H_reverse.bw, output_ci/tracks/scale_factors.tsv, output_ci/counts/gene_info.tsv, tests/dryrun/genes.gtf, output_ci/counts/counts_forward.txt, output_ci/counts/counts_reverse.txt, output_ci/counts/counts_deseq2.txt, tests/dryrun/samplesheet.txt, output_ci/analysis/deseq2/degs_2H_vs_DMSO.csv
+    output: output_ci/analysis/TTpipe_stranded_signal.html
+    log: output_ci/logs/stranded_signal.log
+    jobid: 56
+    benchmark: output_ci/benchmarks/stranded_signal.tsv
+    reason: Missing output files: output_ci/analysis/TTpipe_stranded_signal.html; Input files updated by another job: output_ci/counts/counts_reverse.txt, output_ci/counts/gene_info.tsv, output_ci/analysis/deseq2/degs_2H_vs_DMSO.csv, output_ci/counts/counts_deseq2.txt, output_ci/tracks/2H_reverse.bw, output_ci/tracks/2H_forward.bw, output_ci/counts/counts_forward.txt, output_ci/tracks/DMSO_reverse.bw, output_ci/tracks/scale_factors.tsv, output_ci/tracks/DMSO_forward.bw
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:03:15 2026]
+rule qc_report:
+    input: output_ci/qc/sample_qc.tsv, tests/dryrun/samplesheet.txt, output_ci/analysis/deseq2/deg_summary.tsv, output_ci/analysis/deseq2/vst.tsv, output_ci/tracks/scale_factors.tsv, output_ci/tracks/DMSO.bw, output_ci/tracks/2H.bw, output_ci/tracks/DMSO_forward.bw, output_ci/tracks/DMSO_reverse.bw, output_ci/tracks/2H_forward.bw, output_ci/tracks/2H_reverse.bw
+    output: output_ci/qc/TTpipe_qc_report.html
+    log: output_ci/logs/qc_report.log
+    jobid: 57
+    benchmark: output_ci/benchmarks/qc_report.tsv
+    reason: Missing output files: output_ci/qc/TTpipe_qc_report.html; Input files updated by another job: output_ci/tracks/DMSO.bw, output_ci/tracks/2H_reverse.bw, output_ci/tracks/2H_forward.bw, output_ci/qc/sample_qc.tsv, output_ci/analysis/deseq2/deg_summary.tsv, output_ci/tracks/2H.bw, output_ci/tracks/DMSO_reverse.bw, output_ci/tracks/scale_factors.tsv, output_ci/tracks/DMSO_forward.bw, output_ci/analysis/deseq2/vst.tsv
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:03:15 2026]
+rule sankey:
+    input: output_ci/analysis/deseq2/degs_2H_vs_DMSO.csv
+    output: output_ci/analysis/figures/sankey.pdf, output_ci/analysis/deseq2/sankey_categories.tsv
+    log: output_ci/logs/sankey.log
+    jobid: 54
+    benchmark: output_ci/benchmarks/sankey.txt
+    reason: Missing output files: output_ci/analysis/deseq2/sankey_categories.tsv, output_ci/analysis/figures/sankey.pdf; Input files updated by another job: output_ci/analysis/deseq2/degs_2H_vs_DMSO.csv
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:03:15 2026]
+rule all:
+    input: output_ci/qc/fastqc/CI_DMSO_rep1_R1_fastqc.zip, output_ci/qc/fastqc/CI_DMSO_rep1_R2_fastqc.zip, output_ci/qc/fastqc/CI_DMSO_rep2_R1_fastqc.zip, output_ci/qc/fastqc/CI_DMSO_rep2_R2_fastqc.zip, output_ci/qc/fastqc/CI_2H_rep1_R1_fastqc.zip, output_ci/qc/fastqc/CI_2H_rep1_R2_fastqc.zip, output_ci/qc/fastqc/CI_2H_rep2_R1_fastqc.zip, output_ci/qc/fastqc/CI_2H_rep2_R2_fastqc.zip, output_ci/CI_DMSO_rep1/CI_DMSO_rep1.bam.bai, output_ci/CI_DMSO_rep2/CI_DMSO_rep2.bam.bai, output_ci/CI_2H_rep1/CI_2H_rep1.bam.bai, output_ci/CI_2H_rep2/CI_2H_rep2.bam.bai, output_ci/CI_DMSO_rep1/CI_DMSO_rep1_forward.bam.bai, output_ci/CI_DMSO_rep1/CI_DMSO_rep1_reverse.bam.bai, output_ci/CI_DMSO_rep2/CI_DMSO_rep2_forward.bam.bai, output_ci/CI_DMSO_rep2/CI_DMSO_rep2_reverse.bam.bai, output_ci/CI_2H_rep1/CI_2H_rep1_forward.bam.bai, output_ci/CI_2H_rep1/CI_2H_rep1_reverse.bam.bai, output_ci/CI_2H_rep2/CI_2H_rep2_forward.bam.bai, output_ci/CI_2H_rep2/CI_2H_rep2_reverse.bam.bai, output_ci/tracks/DMSO.bw, output_ci/tracks/2H.bw, output_ci/tracks/DMSO_forward.bw, output_ci/tracks/DMSO_reverse.bw, output_ci/tracks/2H_forward.bw, output_ci/tracks/2H_reverse.bw, output_ci/counts/counts_forward.txt, output_ci/counts/counts_reverse.txt, output_ci/counts/counts_deseq2.txt, output_ci/counts/gene_info.tsv, output_ci/tracks/scale_factors.tsv, output_ci/counts/samples_deseq2.txt, output_ci/counts/gene_info.tsv, output_ci/analysis/deseq2/deg_summary.tsv, output_ci/analysis/deseq2/normalized_counts.tsv, output_ci/analysis/deseq2/vst.tsv, output_ci/analysis/figures/pca.pdf, output_ci/analysis/figures/sankey.pdf, output_ci/analysis/deseq2/sankey_categories.tsv, output_ci/analysis/deseq2/degs_2H_vs_DMSO.csv, output_ci/analysis/TTpipe_results_explorer.html, output_ci/analysis/TTpipe_stranded_signal.html, output_ci/qc/TTpipe_qc_report.html, output_ci/qc/TTpipe_multiqc.html
+    jobid: 0
+    reason: Input files updated by another job: output_ci/tracks/DMSO.bw, output_ci/counts/counts_reverse.txt, output_ci/CI_DMSO_rep1/CI_DMSO_rep1.bam.bai, output_ci/analysis/TTpipe_results_explorer.html, output_ci/qc/TTpipe_multiqc.html, output_ci/qc/fastqc/CI_DMSO_rep1_R1_fastqc.zip, output_ci/analysis/deseq2/deg_summary.tsv, output_ci/qc/fastqc/CI_2H_rep1_R2_fastqc.zip, output_ci/tracks/2H.bw, output_ci/tracks/DMSO_forward.bw, output_ci/CI_2H_rep2/CI_2H_rep2.bam.bai, output_ci/CI_2H_rep2/CI_2H_rep2_reverse.bam.bai, output_ci/analysis/TTpipe_stranded_signal.html, output_ci/analysis/figures/pca.pdf, output_ci/CI_DMSO_rep2/CI_DMSO_rep2_forward.bam.bai, output_ci/CI_2H_rep1/CI_2H_rep1_forward.bam.bai, output_ci/qc/fastqc/CI_DMSO_rep2_R2_fastqc.zip, output_ci/counts/counts_deseq2.txt, output_ci/analysis/figures/sankey.pdf, output_ci/counts/counts_forward.txt, output_ci/CI_DMSO_rep2/CI_DMSO_rep2.bam.bai, output_ci/qc/fastqc/CI_2H_rep2_R1_fastqc.zip, output_ci/counts/samples_deseq2.txt, output_ci/CI_2H_rep1/CI_2H_rep1_reverse.bam.bai, output_ci/counts/gene_info.tsv, output_ci/analysis/deseq2/degs_2H_vs_DMSO.csv, output_ci/tracks/2H_reverse.bw, output_ci/tracks/2H_forward.bw, output_ci/analysis/deseq2/sankey_categories.tsv, output_ci/qc/fastqc/CI_DMSO_rep2_R1_fastqc.zip, output_ci/analysis/deseq2/vst.tsv, output_ci/qc/fastqc/CI_DMSO_rep1_R2_fastqc.zip, output_ci/qc/TTpipe_qc_report.html, output_ci/CI_DMSO_rep1/CI_DMSO_rep1_reverse.bam.bai, output_ci/CI_DMSO_rep1/CI_DMSO_rep1_forward.bam.bai, output_ci/CI_DMSO_rep2/CI_DMSO_rep2_reverse.bam.bai, output_ci/CI_2H_rep1/CI_2H_rep1.bam.bai, output_ci/tracks/DMSO_reverse.bw, output_ci/tracks/scale_factors.tsv, output_ci/analysis/deseq2/normalized_counts.tsv, output_ci/qc/fastqc/CI_2H_rep2_R2_fastqc.zip, output_ci/CI_2H_rep2/CI_2H_rep2_forward.bam.bai, output_ci/qc/fastqc/CI_2H_rep1_R1_fastqc.zip
+    resources: tmpdir=<TBD>
+
+Job stats:
+job                 count
+----------------  -------
+all                     1
+bigwig                  6
+count_matrix            1
+deseq2                  1
+fastqc                  8
+gene_info               1
+htseq_count             8
+mapq_filter             4
+mark_duplicates         4
+merge_bams              6
+multiqc                 1
+qc_report               1
+qc_summary              1
+results_explorer        1
+sample_table            1
+sankey                  1
+scale_factors           1
+split_strands           8
+star_align              4
+stranded_signal         1
+total                  60
+
+Reasons:
+    (check individual jobs above for details)
+    input files updated by another job:
+        all, bigwig, count_matrix, deseq2, htseq_count, mapq_filter, mark_duplicates, merge_bams, multiqc, qc_report, qc_summary, results_explorer, sankey, scale_factors, split_strands, stranded_signal
+    output files have to be generated:
+        bigwig, count_matrix, deseq2, fastqc, gene_info, htseq_count, mapq_filter, mark_duplicates, merge_bams, multiqc, qc_report, qc_summary, results_explorer, sample_table, sankey, scale_factors, split_strands, star_align, stranded_signal
+
+This was a dry-run (flag -n). The order of jobs does not reflect the order of execution.

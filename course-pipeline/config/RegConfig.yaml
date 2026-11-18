@@ -1,0 +1,117 @@
+## RegPipe configuration. Everything you normally change is in this file or in
+## the samplesheet; the workflow code reads these keys and nothing else.
+
+## ---- Samples ---------------------------------------------------------------
+## Tab-separated, one row per sequencing library. Columns:
+##   Project Cell_Type Assay Target Bio_Rep Control Read1 Sequencing_Directory
+## Control holds the *name* of the control sample (built the same way as the
+## other names, see fileNamesFrom) or NA when the sample has no control.
+samplesheet: 'RegSamplesheet.txt'
+
+## Columns joined with '_' to form each sample name (= output prefix),
+## e.g. Cell_Type HCT116, Target CTCF, Bio_Rep 1 -> HCT116_CTCF_1.
+fileNamesFrom: ['Cell_Type', 'Target', 'Bio_Rep']
+
+## Folder that relative paths in the samplesheet (Sequencing_Directory) and in
+## `reference:` / `encodePeaks:` below are read from. Relative to the folder
+## you launch from. The course data sit next to this pipeline in ../data;
+## absolute paths in the samplesheet or below are used as they are.
+dataDir: '../data'
+
+## ---- Compute site ----------------------------------------------------------
+## Folder in profiles/ with env.sh + config.yaml. Overridden by --profile or
+## $REGPIPE_PROFILE (set that in ~/.bashrc so the repo stays cluster-neutral).
+hpcProfile: 'profiles/local'
+
+## Where results go. A relative path is placed under $REGPIPE_OUTPUT_ROOT if
+## set, otherwise under the directory you launch from.
+outputDir: 'output'
+
+## ---- Reference ---------------------------------------------------------------
+## hg38 chr8, hard-masked (N) outside the course window so that coordinates stay
+## genomic but bowtie2-build only has 5 Mb of real sequence to index.
+reference:
+  fasta: 'reference/chr8_course.fa.gz'
+  blacklist: 'reference/blacklist.bed.gz'     # ENCODE GRCh38 blacklist (ENCFF356LFX)
+
+## The region the course data cover (1-based, inclusive, as samtools writes it).
+## bigWigs are made for this region only, and the locus plot draws it.
+window:
+  chrom: 'chr8'
+  start: 125000000
+  end: 130000000
+
+## Effective genome size for MACS3 (-g): the number of bases reads can map to.
+## For a whole human genome you would use MACS3's 'hs' (2.7e9). Here reads can
+## only map inside the 5 Mb window, so we use the window's non-N bases
+## (5,000,001 positions; the hg38 sequence in this window has no N gaps).
+## Recompute it if you change the window: count A/C/G/T in the window, e.g.
+##   samtools faidx genome.fa chr8:125000000-130000000 | grep -v '>' | tr -cd 'ACGTacgt' | wc -c
+effectiveGenomeSize: 5000001
+
+## ---- Alignment and filtering -----------------------------------------------
+bowtie2Args: '--very-sensitive'
+## Reads kept by `filter`: MAPQ at least this, none of these SAM flags.
+## 1804 = unmapped (4) + mate unmapped (8) + secondary (256) + QC fail (512) + duplicate (1024),
+## the ENCODE ChIP-seq filter.
+minMapq: 30
+excludeFlags: 1804
+
+## Optional: split each FASTQ into this many chunks, align the chunks in parallel
+## and merge them (Snakemake's scattergather, module 7). 0 = off (align each FASTQ
+## in one job). The filtered BAMs are the same either way.
+scatter_chunks: 0
+
+## ---- Peak calling (MACS3) ----------------------------------------------------
+macs3:
+  qvalue: 0.01
+  ## Duplicates were already removed by `filter`, so MACS3 must keep every read.
+  keepDup: 'all'
+  ## Extra MACS3 arguments per Target. A Target that is not listed gets `default`.
+  ## Every target is called as narrow peaks (.narrowPeak), as in ENCODE's TF and
+  ## histone pipelines: H3K27ac marks promoters and enhancers, which are a few kb
+  ## at most. `--broad` would make MACS3 write .broadPeak instead, which the
+  ## rules downstream do not expect.
+  ## --nomodel --extsize: a 5 Mb window has too few strong peaks for MACS3 to
+  ## build its fragment-size model reliably, so the fragment size is given.
+  ## DNase: no control and no fragments, so reads are centered on the cut site
+  ## (--shift -extsize/2), as ENCODE does for ATAC/DNase.
+  targetArgs:
+    default: '--nomodel --extsize 200'
+    CTCF: '--nomodel --extsize 200'
+    H3K27ac: '--nomodel --extsize 200'
+    DNase: '--nomodel --shift -75 --extsize 150'
+
+## ---- Signal tracks (deepTools bamCoverage) -----------------------------------
+bigwig:
+  binSize: 10
+  normalizeUsing: 'CPM'      # counts per million mapped reads
+  extendReads: 200           # single-end reads are extended to this fragment length
+
+## ---- ENCODE reference peaks (for ctcf_rad21_overlap and the locus plot) ------
+encodePeaks:
+  rad21: 'peaks/RAD21_ENCFF391AAM.bed.gz'      # RAD21 IDR peaks, HCT116
+  ctcf: 'peaks/CTCF_ENCODE_IDR.bed.gz'         # ENCODE's own CTCF IDR peaks (ENCSR000BSE)
+## Target whose consensus peaks are compared with the ENCODE peaks above.
+overlapTarget: 'CTCF'
+
+## ---- Locus plot (R / plotgardener) ---------------------------------------------
+## Draws the window above: bigWig signal for every sample of these targets, their
+## consensus peaks, the ENCODE RAD21 peaks and the genes.
+## Set make_locus_plot: false if R/plotgardener is not available on your machine
+## (plotgardener has no conda build for Apple-silicon Macs; see the README).
+make_locus_plot: true
+locusPlot:
+  name: 'MYC'                         # output: figures/<name>_locus.pdf
+  targets: ['CTCF', 'H3K27ac', 'DNase']
+  assembly: 'hg38'                    # plotgardener assembly (genes from TxDb/org.Hs.eg.db)
+
+## ---- Email notifications ---------------------------------------------------
+## One email when the workflow starts, one when it finishes, one if a job fails.
+## Prefer `export REGPIPE_EMAIL=you@university.edu` in ~/.bashrc: it keeps your
+## address out of a shared repo and wins over `email:` below. With neither set,
+## nothing is sent. A failed email never fails the run.
+notify:
+  email: ''
+  events: ['start', 'success', 'error']
+  command: 'mail -s {subject} {email}'

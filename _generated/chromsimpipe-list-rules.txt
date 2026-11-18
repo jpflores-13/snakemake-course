@@ -1,0 +1,10 @@
+all
+analyzeCondition
+benchmarkSummary
+convertHic
+getMotif
+mergeShards
+orientCTCF
+preparePolysim
+simulateShard
+validateCTCF

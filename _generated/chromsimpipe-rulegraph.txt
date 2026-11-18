@@ -1,0 +1,8 @@
+Building DAG of jobs...
+MissingInputException in rule orientCTCF in file workflows/ChromSimPipe.snakefile, line 223:
+Missing input files for rule orientCTCF:
+    output: output/loci/chr1_fig1/ctcf/ctcf_oriented_hg38_condition1.bed
+    wildcards: locus=chr1_fig1, ctcfType=condition1
+    affected files:
+        data/STRS_HEK293_eGFP-YAP_CTCF_cont_0h_peaks.narrowPeak
+        data/GRCh38.primary_assembly.genome.fa

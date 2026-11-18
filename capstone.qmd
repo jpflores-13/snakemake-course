@@ -1,0 +1,188 @@
+---
+title: "Capstone project"
+description: "Turn one of your own analyses into a pipeline that follows the lab template, then review it with a partner."
+---
+
+The workshops end here, and the real work starts. For the capstone you take
+an analysis you actually run, as a set of scripts, a notebook, or commands
+you keep in a text file, and turn it into a pipeline that someone else in
+the lab could run on their laptop or on the cluster without asking you how.
+
+You have three weeks. You work on your own pipeline and review a partner's.
+At the end you should have something you will keep using.
+
+::: {.callout-note}
+## What you need before you start
+
+- The two workshop days (modules 0-8), or the same material on your own.
+- At least two of the [Snakemake-ify exercises](exercises/snakemakeify.qmd). Exercise 9
+  (the whole `run_all.sh` as one Snakefile) is the best warm-up.
+- A partner. Pair up at the end of day 2.
+:::
+
+## Pick a workflow
+
+Use your own if you have one. Good candidates are things you run more than
+once: a processing chain you redo for every new sequencing run, a QC report
+you rebuild by hand, a figure you regenerate whenever the data change.
+
+Keep the scope small enough to finish in three weeks. Five to ten rules is
+about right. If your analysis is bigger, take the first half and stop at a
+clean output (for example, filtered BAMs and bigWigs) that the second half
+could pick up later.
+
+If you have nothing of your own yet, pick one of these. Each one is an assay
+the lab runs, and each is a chain of tools you have seen in the course or
+can install from bioconda.
+
+| Assay | Suggested scope | Things it makes you solve |
+|---|---|---|
+| CUT&Tag | Trim, align with bowtie2, filter, spike-in scaled bigWigs, peaks with SEACR, FRiP per sample | A second genome (the *E. coli* spike-in) aligned per sample; a scale factor computed in one rule and used by another; IgG as a control looked up by name |
+| Micro-C | Start from the `.mcool` files MicroCPipe writes; insulation scores and pileups at a list of CTCF sites with cooltools | Inputs produced by another pipeline; a resolution sweep as a wildcard; one R or Python figure across samples |
+| TT-seq | Start from TTpipe's BAMs; strand-specific coverage over a set of enhancers or eRNAs; a table per sample | Strand as a wildcard; an annotation file from config; an R script with `snakemake@input` |
+| RNA-seq | Salmon index and quant, tximport and DESeq2 in R, a QC table | A contrast list in config; `directory()` outputs (Salmon writes a folder); one R step that needs every sample |
+
+Do not rebuild MicroCPipe or TTpipe. Where a row above starts from their
+output, treat that output as your raw data.
+
+## The lab template
+
+Your pipeline follows the same layout as the lab's pipelines. RegPipe, the
+pipeline you built during the course, is the reference: copy its layout and
+change the names. With `<Name>` standing for your pipeline's name:
+
+```
+<Name>/
+  <Name>.sh                 launcher: reads the config, sources the profile, runs snakemake
+  unlock.sh                 releases the lock after a crash
+  <Name>Samplesheet.txt     one row per sample, tab-separated
+  config/<Name>Config.yaml  every path, threshold and switch
+  config/requirements.txt   Python packages for the launcher's venv
+  profiles/local/           env.sh + config.yaml for a laptop
+  profiles/<site>/          env.sh + config.yaml for a cluster
+  envs/*.yml                one conda env per group of tools
+  workflows/<Name>.snakefile
+  workflows/rules/*.smk     common.smk plus one file per stage
+  scripts/                  Python and R called with script:
+  tests/test_dryrun.py      a dry run on a tiny samplesheet
+```
+
+Where to look while you build:
+
+- RegPipe itself, in `course-pipeline/` in the course repository. Read
+  `RegPipe.sh`, `workflows/rules/common.smk` and `tests/test_dryrun.py` first.
+  The stopping points in `stopping-points/` show the same pipeline at earlier
+  stages, if you want to grow yours the same way.
+- The [field guide](field-guide/index.qmd), which walks through MicroCPipe,
+  TTpipe and ChromSimPipe, and its [conventions page](field-guide/conventions.qmd),
+  which lists the rules every lab pipeline keeps to (sample naming from
+  `fileNamesFrom`, `outputDir`, where logs and benchmarks go, how profiles are picked).
+- Module 3 ([config](lessons/03-config.qmd)) for the samplesheet and config,
+  module 6 ([structure](lessons/06-structure.qmd)) for the layout, module 5
+  ([cluster](lessons/05-cluster.qmd)) for profiles, and module 8
+  ([testing](lessons/08-testing.qmd)) for the dry-run test.
+
+## Deliverables
+
+Tick these off in your repository's README as you go. Your partner checks
+them in the final review.
+
+- [ ] A git repository on GitHub with the layout above.
+- [ ] `<Name>Samplesheet.txt` with the lab's columns, and sample names built from
+      `fileNamesFrom`, not typed into the Snakefile.
+- [ ] `config/<Name>Config.yaml`. No path, threshold or genome build hard-coded in a rule.
+- [ ] `profiles/local/` and at least one cluster profile (`profiles/<site>/`, or
+      `profiles/slurm-template/` filled in for the cluster you use).
+- [ ] `<Name>.sh` that runs the whole pipeline with one command on a laptop and
+      with `sbatch` on the cluster, and an `unlock.sh`.
+- [ ] One `envs/*.yml` per tool group, with every rule that runs an external tool
+      pointing at one.
+- [ ] A `log:` on every rule that runs a tool, and a `benchmark:` on the slow ones,
+      all under `outputDir`.
+- [ ] `tests/test_dryrun.py` that runs `snakemake -n` on a small samplesheet and
+      checks the job count, passing with `pytest`.
+- [ ] One real run on real data (a subset is fine), with the outputs checked
+      against your old scripts' outputs.
+- [ ] A README: what it does, how to run it, what each output is, what you tested
+      and on what.
+
+## Rubric
+
+Your partner and the instructor use the same table. "Meets" on every row is
+a finished capstone. "Strong" is what a pipeline looks like when another
+person can pick it up with no help.
+
+| Criterion | Needs work | Meets | Strong |
+|---|---|---|---|
+| **Correctness** | Some outputs differ from the old scripts and nobody knows why | Outputs match the old scripts (same read counts, same peaks), or the differences are explained | Matches, and the README says how it was checked (commands and numbers from a real run) |
+| **Reproducibility** | Depends on tools on your `PATH` or files outside the repository | Every tool comes from `envs/*.yml`; a fresh clone runs with the launcher | Versions pinned; a second person ran it from a fresh clone on another machine |
+| **Configurability** | Paths or thresholds inside rules | Paths, thresholds and switches in config; samples in the samplesheet | Optional steps behind config switches; a new sample needs one samplesheet row and nothing else |
+| **Readability** | One long Snakefile; rule names do not say what they do | Rules split by stage in `workflows/rules/`; clear rule and file names | A newcomer can find the rule that made any output file in under a minute; comments say why, not what |
+| **Testing** | No test | `tests/test_dryrun.py` runs a dry run and checks the job count | The test also covers a switch (on and off) or a second samplesheet, and runs in under a minute |
+
+## Milestones
+
+### Week 1: plan and first rules
+
+- Write down the old workflow as a list of steps, with the input and output
+  files of each. This list becomes your rule list and your `rule all`.
+- Set up the repository with the template layout (copy RegPipe and rename).
+- Get the first two or three rules working on one sample with `snakemake -n`,
+  then for real.
+- Fill in the samplesheet and config for your test data.
+- Meet your partner for 20 minutes: swap step lists and check each other's plan.
+
+### Week 2: the whole chain
+
+- All rules written, with logs, threads and conda envs.
+- The full pipeline runs on your test data on a laptop with the local profile.
+- Compare the outputs with your old scripts' outputs, the way the
+  Snakemake-ify exercises do (`samtools view -c`, `wc -l`, `cmp`).
+- Mid-point review with your partner (protocol below), on the dry run and the DAG.
+
+### Week 3: cluster, test, review
+
+- The cluster profile works: one run with `sbatch <Name>.sh`.
+- `tests/test_dryrun.py` passes.
+- README finished.
+- Final review with your partner, then a short demo to the group: show the
+  DAG, run the dry run, open one output.
+
+## Review with a partner
+
+Each review takes about 45 minutes. The author stays quiet for the first part
+and only answers questions in the second.
+
+**Before the review (author).** Push your latest code. Send your partner the
+repository link and the one command that runs it.
+
+**Part 1 (reviewer, 20 min, author watching).** Work through these on a fresh
+clone, out loud:
+
+1. Read the README only. Can you tell what goes in and what comes out?
+2. Run the dry run with the launcher (`bash <Name>.sh -n`). Does it work
+   without asking the author anything? How many jobs, and does that number make
+   sense for the samplesheet?
+3. Draw the DAG (`--dag | dot -Tpdf > dag.pdf`). Does its shape match the
+   steps in the README?
+4. Pick one output file and find the rule that makes it. Then find where each
+   of that rule's settings comes from (config, samplesheet, or hard-coded).
+5. In a copy of the samplesheet, duplicate one row and change its `Bio_Rep`
+   (keep the same FASTQ). Dry run with that copy. Does the job count go up by
+   what you expect? Do not run it for real.
+6. Run the tests.
+
+**Part 2 (both, 15 min).** The reviewer goes through the rubric row by row and
+says which column fits and why. The author answers questions.
+
+**Part 3 (reviewer, 10 min, after the meeting).** Open up to five GitHub
+issues on the author's repository, one per problem, each with the command you
+ran and what happened. Label the one you would fix first.
+
+The author closes the issues before the next milestone.
+
+## Getting help
+
+Bring problems to your partner or the instructor with the command you ran,
+the full error, and the rule it came from. Snakemake's error
+messages name the rule and the file; paste those lines, not a screenshot.

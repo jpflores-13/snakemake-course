@@ -1,0 +1,112 @@
+Config file config/MicroCConfig.yaml is extended by additional config specified via the command line.
+Building DAG of jobs...
+Job stats:
+job                    count
+-------------------  -------
+all                        1
+analysis_expected          1
+analysis_insulation        1
+cool                       1
+hic                        1
+mcool                      1
+merge_pairs                1
+total                      7
+
+
+[Wed Nov 18 00:03:14 2026]
+rule merge_pairs:
+    input: tests/dryrun/lib1.pairs.gz, tests/dryrun/lib2.pairs.gz
+    output: output_ci/merged_CI_CellA_1/merged_CI_CellA_1_merged.pairs.gz
+    log: output_ci/merged_CI_CellA_1/logs/merged_CI_CellA_1_merge_pairs.log
+    jobid: 2
+    benchmark: output_ci/merged_CI_CellA_1/benchmarks/merged_CI_CellA_1_merge_pairs.tsv
+    reason: Missing output files: output_ci/merged_CI_CellA_1/merged_CI_CellA_1_merged.pairs.gz
+    wildcards: group=merged_CI_CellA_1
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:03:14 2026]
+rule hic:
+    input: output_ci/merged_CI_CellA_1/merged_CI_CellA_1_merged.pairs.gz, tests/dryrun/tiny.chrom.sizes
+    output: output_ci/merged_CI_CellA_1/merged_CI_CellA_1.hic
+    log: output_ci/merged_CI_CellA_1/logs/merged_CI_CellA_1_hic.log
+    jobid: 4
+    benchmark: output_ci/merged_CI_CellA_1/benchmarks/merged_CI_CellA_1_hic.tsv
+    reason: Missing output files: output_ci/merged_CI_CellA_1/merged_CI_CellA_1.hic; Input files updated by another job: output_ci/merged_CI_CellA_1/merged_CI_CellA_1_merged.pairs.gz
+    wildcards: group=merged_CI_CellA_1
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:03:14 2026]
+rule cool:
+    input: output_ci/merged_CI_CellA_1/merged_CI_CellA_1_merged.pairs.gz, tests/dryrun/tiny.chrom.sizes
+    output: output_ci/merged_CI_CellA_1/merged_CI_CellA_1.cool
+    log: output_ci/merged_CI_CellA_1/logs/merged_CI_CellA_1_cool.log
+    jobid: 1
+    benchmark: output_ci/merged_CI_CellA_1/benchmarks/merged_CI_CellA_1_cool.tsv
+    reason: Missing output files: output_ci/merged_CI_CellA_1/merged_CI_CellA_1.cool; Input files updated by another job: output_ci/merged_CI_CellA_1/merged_CI_CellA_1_merged.pairs.gz
+    wildcards: group=merged_CI_CellA_1
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:03:14 2026]
+rule mcool:
+    input: output_ci/merged_CI_CellA_1/merged_CI_CellA_1.cool
+    output: output_ci/merged_CI_CellA_1/merged_CI_CellA_1.mcool
+    log: output_ci/merged_CI_CellA_1/logs/merged_CI_CellA_1_mcool.log
+    jobid: 3
+    benchmark: output_ci/merged_CI_CellA_1/benchmarks/merged_CI_CellA_1_mcool.tsv
+    reason: Missing output files: output_ci/merged_CI_CellA_1/merged_CI_CellA_1.mcool; Input files updated by another job: output_ci/merged_CI_CellA_1/merged_CI_CellA_1.cool
+    wildcards: group=merged_CI_CellA_1
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:03:14 2026]
+rule analysis_expected:
+    input: output_ci/merged_CI_CellA_1/merged_CI_CellA_1.mcool
+    output: output_ci/merged_CI_CellA_1/analysis/merged_CI_CellA_1_expected.tsv, output_ci/merged_CI_CellA_1/analysis/merged_CI_CellA_1_expected.done
+    log: output_ci/merged_CI_CellA_1/logs/merged_CI_CellA_1_expected.log
+    jobid: 5
+    reason: Missing output files: output_ci/merged_CI_CellA_1/analysis/merged_CI_CellA_1_expected.done; Input files updated by another job: output_ci/merged_CI_CellA_1/merged_CI_CellA_1.mcool
+    wildcards: group=merged_CI_CellA_1
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:03:14 2026]
+rule analysis_insulation:
+    input: output_ci/merged_CI_CellA_1/merged_CI_CellA_1.mcool
+    output: output_ci/merged_CI_CellA_1/analysis/merged_CI_CellA_1_insulation.tsv, output_ci/merged_CI_CellA_1/analysis/merged_CI_CellA_1_insulation.done
+    log: output_ci/merged_CI_CellA_1/logs/merged_CI_CellA_1_insulation.log
+    jobid: 6
+    reason: Missing output files: output_ci/merged_CI_CellA_1/analysis/merged_CI_CellA_1_insulation.done; Input files updated by another job: output_ci/merged_CI_CellA_1/merged_CI_CellA_1.mcool
+    wildcards: group=merged_CI_CellA_1
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:03:14 2026]
+rule all:
+    input: output_ci/merged_CI_CellA_1/merged_CI_CellA_1.cool, output_ci/merged_CI_CellA_1/merged_CI_CellA_1.mcool, output_ci/merged_CI_CellA_1/merged_CI_CellA_1.hic, output_ci/merged_CI_CellA_1/analysis/merged_CI_CellA_1_expected.done, output_ci/merged_CI_CellA_1/analysis/merged_CI_CellA_1_insulation.done
+    jobid: 0
+    reason: Input files updated by another job: output_ci/merged_CI_CellA_1/analysis/merged_CI_CellA_1_expected.done, output_ci/merged_CI_CellA_1/merged_CI_CellA_1.hic, output_ci/merged_CI_CellA_1/analysis/merged_CI_CellA_1_insulation.done, output_ci/merged_CI_CellA_1/merged_CI_CellA_1.mcool, output_ci/merged_CI_CellA_1/merged_CI_CellA_1.cool
+    resources: tmpdir=<TBD>
+
+Job stats:
+job                    count
+-------------------  -------
+all                        1
+analysis_expected          1
+analysis_insulation        1
+cool                       1
+hic                        1
+mcool                      1
+merge_pairs                1
+total                      7
+
+Reasons:
+    (check individual jobs above for details)
+    input files updated by another job:
+        all, analysis_expected, analysis_insulation, cool, hic, mcool
+    output files have to be generated:
+        analysis_expected, analysis_insulation, cool, hic, mcool, merge_pairs
+
+This was a dry-run (flag -n). The order of jobs does not reflect the order of execution.

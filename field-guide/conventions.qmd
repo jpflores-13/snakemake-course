@@ -1,0 +1,283 @@
+---
+title: "How our pipelines compare to community conventions"
+subtitle: "Field guide"
+description: "The Snakemake workflow catalog's standard layout next to the lab's, what we do differently, and which differences are worth keeping."
+---
+
+The Snakemake community has a recommended way to lay out a workflow, and the
+[Snakemake workflow catalog](https://snakemake.github.io/snakemake-workflow-catalog/) lists
+workflows that follow it. The lab's three pipelines follow a different pattern, inherited from
+the PhanstielLab pipelines (dietJuicer, bagPipes). Neither is wrong. This page puts them side by
+side so that when you read a catalog workflow, or someone reads ours, nothing is a surprise, and so
+you know which of our habits are deliberate and which are just history.
+
+## The two layouts {#layouts}
+
+::: {.panel-tabset}
+
+## Community layout
+
+```
+my-workflow/
+├── workflow/
+│   ├── Snakefile
+│   ├── rules/          align.smk  peaks.smk ...
+│   ├── envs/           *.yaml
+│   ├── scripts/        *.py  *.R
+│   ├── schemas/        config.schema.yaml  samples.schema.yaml
+│   └── report/         captions for report()
+├── config/
+│   ├── config.yaml
+│   ├── samples.tsv
+│   └── README.md       how to configure (the catalog shows this)
+├── .test/              tiny real data + config for CI
+├── resources/          downloaded references
+└── results/            everything the workflow writes
+```
+
+You run it with `snakemake --cores 8 --sdm conda` from the repository root (Snakemake finds
+`workflow/Snakefile` on its own), and a cluster profile lives with the user, not the workflow.
+
+## Lab layout
+
+```
+MicroCPipe/
+├── MicroCPipe.sh  MicroCMerge.sh  unlock.sh     # launchers
+├── MicroCSamplesheet.txt
+├── config/        MicroCConfig.yaml  requirements.txt
+├── profiles/      local  longleaf  pioneer  biowulf  slurm-template
+│                  (each: config.yaml + env.sh)
+├── workflows/     MicroCPipe.snakefile  MicroCMerge.snakefile
+│                  rules/common.smk  rules/formats.smk
+├── envs/          microc_*.yml
+├── scripts/       get_qc.py  qc_report.py ...
+├── tests/         test_dryrun.py  dryrun/ (fixture)
+└── docs/          Quarto site
+```
+
+You run it with `bash MicroCPipe.sh` or `sbatch MicroCPipe.sh`. Outputs go to `output/` (or
+`outputDir`).
+
+:::
+
+## Side by side {#table}
+
+| Topic | Community convention | Lab pipelines | Verdict |
+|---|---|---|---|
+| Entry point | `workflow/Snakefile`, found automatically | `workflows/<Name>.snakefile`, always passed with `-s` | Cosmetic. Keep, but see below |
+| Rule files | `workflow/rules/*.smk` | `workflows/rules/*.smk` (MicroCPipe, TTpipe); one file (ChromSimPipe) | Same idea |
+| Config | `config/config.yaml` | `config/<Name>Config.yaml` | Same idea |
+| Samplesheet | `config/samples.tsv` | `<Name>Samplesheet.txt` at the root | Same idea |
+| Config validation | `validate(config, "schemas/config.schema.yaml")` | Hand-written checks in Python at parse time | Worth adding a schema |
+| Outputs | `results/`, `resources/`, `logs/` | Everything under `outputDir` (default `output/`), logs inside it | Deliberate, keep |
+| Profiles | With the user (`~/.config/snakemake/`) or `workflow/profiles/default` | `profiles/<site>/` in the repository, one per cluster | Deliberate, keep |
+| Resources | `threads:` and often `resources:` in rules | Only `threads:` in rules; memory, time and partition in profiles | Deliberate, but restructure |
+| Launch | `snakemake ...` directly | Launcher script that is itself a SLURM job | Deliberate, keep |
+| Snakemake install | conda/mamba environment | pip into a venv (`env/`) made by the launcher | Deliberate, keep |
+| Tool installs | `conda:` per rule, or wrappers | `conda:` per rule; no wrappers | Fine |
+| Reports | `report()` + `snakemake --report` | Own static HTML dashboards | Fine |
+| Reuse | `module` + `use rule * from ...` | `include:` with a hook function (MicroCPipe) | Fine at this size |
+| Linting | `snakemake --lint` and snakefmt in CI | Not run | Worth adding |
+| Tests | `.test/` with tiny real data, a real run in CI | pytest dry runs on placeholder fixtures (MicroCPipe, TTpipe); unit tests only (ChromSimPipe) | Different, both useful |
+
+## What we do differently, and why {#differences}
+
+### `workflows/*.snakefile` instead of `workflow/Snakefile` {#entry-point}
+
+MicroCPipe has two workflows (core and merge) in one repository, so it needs two names, and the
+launchers always pass `-s`. The cost is small but real: `snakemake -n` in the repository root does
+nothing useful, editors do not recognize `.snakefile` as Snakemake without a setting, and the
+catalog's tools look for `workflow/Snakefile`. Renaming the folder to `workflow/` and the main file to
+`Snakefile` (keeping `merge.smk` or a second Snakefile beside it) would cost one line in each launcher.
+Low priority.
+
+### Profiles in the repository {#profiles}
+
+The catalog treats the cluster as the user's business. The lab ships one profile per cluster
+because the people running the pipelines move between a few known clusters, and a profile that
+already has the right partition names saves each of them a day. The launchers pick the profile from
+`--profile`, then `$<NAME>_PROFILE`, then `hpcProfile` in the config, so the repository stays
+neutral and each person sets their cluster once in `~/.bashrc`. Keep this. Two things to fix:
+
+- Shipped profiles should not contain real account names. MicroCPipe and TTpipe use `<account>`
+  placeholders and MicroCPipe's launcher refuses to start until they are filled in; ChromSimPipe's
+  `longleaf` and `pioneer` profiles carry real accounts.
+- Snakemake 8 automatically uses `profiles/default/` (relative to the current directory, then to
+  the Snakefile) as a *workflow profile*. The lab's `profiles/` folder is exactly where Snakemake
+  looks, so never name a site profile `default` unless you mean that.
+
+### Resources only in profiles {#resources}
+
+Rules declare `threads:` and nothing else; `set-threads` and `set-resources` in each profile give
+every rule its CPUs, memory and time. This is the dietJuicer pattern, and it is a good one: moving to
+a new cluster never touches a rule, and the numbers sit next to the partition names they depend on.
+
+The problem is duplication. MicroCPipe's five profiles repeat the same 16 `set-threads` lines and
+the same `set-resources` block, and TTpipe's repeat 24 rules. Add a rule and you edit five files;
+forget one and that rule silently gets `default-resources` on that cluster. This has already
+happened: TTpipe's eight spike-in rules appear in none of its profiles. The `threads:` in each
+rule is also overridden by every profile, so the same number lives in six places.
+
+Snakemake 8 has a direct fix. It reads two profiles: the general one (`--profile`) and a workflow
+profile (`--workflow-profile`, default `profiles/default/`). Settings in the workflow profile
+override the general one. So:
+
+- `profiles/default/config.yaml`: `set-threads` and `set-resources` for every rule, once.
+- `profiles/<site>/config.yaml`: `executor`, `jobs`, `latency-wait`, `default-resources` with the
+  account and partition, and the GPU partition for the one rule that needs it.
+
+A site that needs a bigger number for one rule (a cluster with large-memory nodes) can still pass
+`--set-resources hic:mem_mb=200000` from its launcher call or keep its own override. This keeps the
+lab's idea (no resources in rules) and removes the copies.
+
+### A launcher script {#launcher}
+
+Catalog workflows are started with `snakemake` directly. The lab's launchers do four things a bare
+command does not: they are themselves a small SLURM job (`#SBATCH -t 10-00:00:00`), so the
+Snakemake process survives you logging out; they pick the site profile; they create the Snakemake
+venv if needed; and they always add `--rerun-incomplete --keep-going -p` and the SLURM log
+directory. For people who run one pipeline a few times a year, that is worth a lot. Keep it.
+
+The cost is that the three launchers are copies of one idea, and they have drifted:
+
+| | MicroCPipe.sh | TTpipe.sh | ChromSimPipe.sh |
+|---|---|---|---|
+| Activates the venv | no (on purpose, see [MicroCPipe](microcpipe.qmd#mc-launcher)) | yes | yes |
+| Stops on an unedited `<placeholder>` | yes | no | no |
+| Checks that `env.sh` exists | yes | yes | no |
+| `cores: 100` in SLURM profiles | yes | no | no (uses `cpus_per_task`) |
+
+MicroCPipe's version is the newest and the most careful. Bringing the other two up to it is the
+cheapest improvement on this page.
+
+### Snakemake from pip, in a venv {#venv}
+
+The catalog's instructions install Snakemake with conda or mamba. The lab installs it with pip
+(`snakemake==8.27.1` in `config/requirements.txt`) into a venv the launcher builds. The reason is
+in the profiles' `env.sh` files: the conda modules on the lab's clusters are older than Snakemake
+8.27 accepts, so each person installs Miniforge for the per-rule environments anyway, and keeping
+Snakemake itself out of conda means one less environment to solve. Pinning the exact Snakemake
+version in a text file is also easy to read. Keep it, with two notes: the SLURM executor plugin is
+not pinned (`>=1.0` in two repositories, unpinned in ChromSimPipe), and the launcher runs `pip
+install` on every start, which needs network access on the node the launcher runs on.
+
+### Hand-written validation instead of schemas {#validation}
+
+Catalog workflows call `validate(config, "schemas/config.schema.yaml")` and
+`validate(samples, "schemas/samples.schema.yaml")`. A JSON schema checks types, required keys and
+allowed values, and can fill in defaults. The lab's pipelines check the config and samplesheet in
+Python at parse time instead (TTpipe's `common.smk` and ChromSimPipe's `parameters.py` have dozens of
+checks). Those checks do things a schema cannot, such as "`reference_condition` must be a
+`Condition` in the samplesheet" or "the GTF and the genome use the same chromosome naming", and their
+messages say how to fix the problem. A schema would still help with the simple cases and would
+document every key in one file. Use both: a schema for types and allowed values, Python for the
+checks that compare one input with another.
+
+### No wrappers {#wrappers}
+
+[Snakemake wrappers](https://snakemake-wrappers.readthedocs.io/) are tested, versioned snippets
+for common tools (`wrapper: "v3.x.x/bio/samtools/sort"`). The lab writes the shell commands itself,
+with pinned tools in `envs/*.yml`. For pipelines like MicroCPipe, where the exact flags *are* the
+method (`bwa mem -5SP -T0`, the pairtools options), a visible shell command is easier to review and
+cite than a wrapper call. Fine as is.
+
+### Own HTML reports instead of `report()` {#reports}
+
+Snakemake's `report()` flag marks outputs for `snakemake --report report.html`, which bundles
+them with run statistics and the workflow graph. The lab writes its own static dashboards
+(`qc_report.py` in MicroCPipe and TTpipe) with thresholds from the config. Those do more than
+`--report` would. Snakemake's between-workflow cache (`cache: True` on a rule, with
+`--cache`) is a different feature that would suit expensive reference steps, such as TTpipe's
+`star_index`, if several projects share one index. Not needed today.
+
+### `include:` with a hook instead of `module` {#modules}
+
+MicroCPipe's `formats.smk` is included by two Snakefiles, each defining `get_pairs()` first (see
+[MicroCPipe](microcpipe.qmd#mc-include)). Snakemake's module system (`module formats: snakefile:
+...` then `use rule cool from formats with: input: ...`) does the same with an explicit interface, and
+also lets another lab reuse our rules without copying them. For two Snakefiles in one repository,
+`include:` is simpler to read. Switch only if the format rules start being reused across
+repositories.
+
+## What `snakemake --lint` says {#lint}
+
+We ran `snakemake --lint` (Snakemake 8.27.1) from each pipeline's root at the pinned commits. MicroCPipe
+and TTpipe were given their dry-run test configs so they parse without data; ChromSimPipe parses
+with its shipped config, because linting does not build the job graph and so does not need the
+input files. All three exit with status 1 (lints found).
+
+<!-- GENERATE: microcpipe-lint | pipelines/microcpipe | snakemake --lint -s workflows/MicroCPipe.snakefile --configfile config/MicroCConfig.yaml tests/dryrun/config.yaml -->
+<!-- GENERATE: ttpipe-lint | pipelines/ttpipe | snakemake --lint -s workflows/TTpipe.snakefile --configfile config/TTpipeConfig.yaml tests/dryrun/config.yaml -->
+<!-- GENERATE: chromsimpipe-lint | pipelines/chromsimpipe | snakemake --lint -s workflows/ChromSimPipe.snakefile -->
+
+| Lint | MicroCPipe | TTpipe | ChromSimPipe |
+|---|---:|---:|---:|
+| Absolute path | 40 | 151 | 0 |
+| Path composition with `+` | 34 | 131 | 0 |
+| Mixed rules and functions in same snakefile | 1 | 5 | 1 |
+| Shell command uses a variable from outside the rule | 0 | 8 (`PY` 4, `SCRIPTS` 4) | 0 |
+| Param is a prefix of an input or output but hardcoded | 0 | 6 | 0 |
+| No log directive | 0 | 1 (`sample_table`) | 0 |
+| Long `run:` block, move to a script | 0 | 1 (`sample_table`) | 0 |
+| Environment variable used without `envvars:` | 0 | 0 | 1 (`CHROMSIM_CONFIG`) |
+
+How to read this:
+
+- **"Absolute path" and "path composition" are one issue, and mostly a false alarm.** Rules
+  write `OUT + "/{group}/logs/..."`. The linter sees a string that starts with `/` and calls it
+  absolute; it also dislikes building paths with `+`. `OUT` comes from the config, so nothing is
+  really hard-coded. ChromSimPipe writes the same paths as f-strings
+  (`f"{LOG_DIR}/{{locus}}/..."`) and gets neither lint. Switching to f-strings would remove 356 of
+  the 380 findings across the three pipelines and make the rest easy to see.
+- **Shell variables from outside the rule** (`{PY}`, `{SCRIPTS}` in TTpipe) work, because
+  Snakemake fills shell placeholders from global variables too, but a reader cannot see them in the
+  rule. Pass them as `params:`.
+- **Hardcoded param prefixes** are params like `outdir = OUT + "/qc/fastqc"` that repeat part of an
+  output path. If the output moves, the param does not. Deriving it from the output
+  (`lambda w, output: os.path.dirname(output.zip)`) keeps them in step.
+- **`sample_table`** is the only `run:` block and the only rule without a log. Both lints are fair
+  and both are small.
+- **`envvars:`** is half right for ChromSimPipe: the Snakefile *sets* `CHROMSIM_CONFIG` rather than
+  reading it, so asserting it would not help. The lint does point at something real, though: the
+  scripts depend on environment variables that Snakemake does not track.
+- **Mixed rules and functions**: the linter wants helper functions in `common.smk`. MicroCPipe and
+  TTpipe mostly do this already; the remaining functions sit next to the one rule that uses them,
+  which we think reads better.
+- In our run, the line numbers the linter gave for rules in included `.smk` files did not match the
+  files. Find the rule by name.
+- Linting ChromSimPipe runs its parse-time code, which writes
+  `output/<run name>_ChromSimSamplesheet.txt` (see [ChromSimPipe](chromsimpipe.qmd#cs-parse-time)).
+
+Nothing in the lint output is a bug. The linter does not catch the things that matter most in
+these pipelines, such as the stale-samplesheet bug TTpipe fixed or ChromSimPipe's parameters that
+Snakemake cannot see. Run it anyway: once the false alarms are gone, it is a cheap CI step that
+catches new habits creeping in.
+
+## Tests: dry runs versus `.test/` {#tests}
+
+Catalog workflows usually ship a `.test/` folder with a few thousand real reads and run the whole
+workflow in CI. MicroCPipe and TTpipe instead run `snakemake -n` against placeholder files and
+assert job counts (see [TTpipe](ttpipe.qmd#tt-tests)). Dry runs are fast, need no conda
+environments, and are very good at catching broken wiring, switches that pull in the wrong rules,
+and samplesheet parsing. They cannot catch a wrong flag or a tool that crashes. A small real-data
+run catches those, but takes minutes and needs the environments. The two are complements. For
+ChromSimPipe, which has neither, a dry-run fixture is the first thing to add; a real run in CI is
+not possible without a GPU.
+
+## What is worth changing, in order {#ranked}
+
+1. **Bring TTpipe's and ChromSimPipe's launchers up to MicroCPipe's** (no venv activation,
+   placeholder check, `env.sh` check) and add `cores: 100` where rules use `threads:`.
+2. **Remove real account names from ChromSimPipe's shipped profiles.**
+3. **Move per-rule `set-threads`/`set-resources` into one workflow profile** (`profiles/default/`)
+   and keep only site settings in `profiles/<site>/`.
+4. **Add a dry-run fixture and CI to ChromSimPipe.**
+5. **Write paths as f-strings and add `snakemake --lint` to CI.**
+6. **Add JSON schemas** for the configs and samplesheets, keeping the cross-checks in Python.
+7. **Rename `workflows/` to `workflow/`** if the pipelines ever go into the catalog.
+
+Everything else on this page (launchers, profiles in the repository, pip-installed Snakemake, own
+reports, shell commands instead of wrappers, outputs under one folder) is a deliberate choice that
+suits how the lab works.
+
+[Back to the field guide](index.qmd)

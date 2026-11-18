@@ -1,0 +1,17 @@
+Config file config/MicroCConfig.yaml is extended by additional config specified via the command line.
+align
+all
+analysis_compartments
+analysis_expected
+analysis_insulation
+analysis_loops
+benchmark_summary
+cool
+dedup
+hic
+library_complexity
+mcool
+qc_report
+qc_summary
+sort_bam
+split

@@ -1,0 +1,218 @@
+project:
+  type: website
+  output-dir: _site
+  # live command output (dry runs, DAGs) -> _generated/; see README.md
+  pre-render: _scripts/generate.py
+  # only these are pages; everything else (SPEC.md, data/, course-pipeline/,
+  # stopping-points/, snakemakeify/, pipelines/, README.md) is left alone
+  render:
+    - "*.qmd"
+    - "lessons/*.qmd"
+    - "answers/*.qmd"
+    - "exercises/*.qmd"
+    - "field-guide/*.qmd"
+    - "!SPEC.md"
+    - "!README.md"
+  resources:
+    - "_generated/*.svg"
+    - "CITATION.cff"
+    - "LICENSE"
+    - "LICENSE-code"
+    - "envs/course.yml"
+
+execute:
+  freeze: auto
+
+lang: en-US
+
+website:
+  title: "Snakemake for genomics"
+  description: "A hands-on Snakemake course for genomics labs: two half-day workshops, slides, exercises and answer keys."
+  site-url: https://jpflores-13.github.io/snakemake-course
+  repo-url: https://github.com/jpflores-13/snakemake-course
+  repo-actions: [edit, issue]
+  page-navigation: true
+  bread-crumbs: true
+  back-to-top-navigation: true
+  search:
+    location: navbar
+    type: overlay
+  navbar:
+    background: light
+    collapse-below: lg
+    left:
+      - text: Home
+        href: index.qmd
+      - text: Schedule
+        href: schedule.qmd
+      - text: Setup
+        href: setup.qmd
+      - text: Lessons
+        menu:
+          - text: "0. Why Snakemake"
+            href: lessons/00-why.qmd
+          - text: "1. Rules"
+            href: lessons/01-rules.qmd
+          - text: "2. Wildcards"
+            href: lessons/02-wildcards.qmd
+          - text: "3. Config and samplesheets"
+            href: lessons/03-config.qmd
+          - text: "4. Rules that behave"
+            href: lessons/04-rules-that-behave.qmd
+          - text: "---"
+          - text: "5. Running on a cluster"
+            href: lessons/05-cluster.qmd
+          - text: "6. Structuring a pipeline"
+            href: lessons/06-structure.qmd
+          - text: "7. Beyond files"
+            href: lessons/07-beyond-files.qmd
+          - text: "8. Testing"
+            href: lessons/08-testing.qmd
+      - text: Field guide
+        menu:
+          - text: "Reading the lab pipelines"
+            href: field-guide/index.qmd
+          - text: "MicroCPipe"
+            href: field-guide/microcpipe.qmd
+          - text: "TTpipe"
+            href: field-guide/ttpipe.qmd
+          - text: "ChromSimPipe"
+            href: field-guide/chromsimpipe.qmd
+          - text: "Lab conventions"
+            href: field-guide/conventions.qmd
+      - text: Snakemake-ify
+        href: exercises/snakemakeify.qmd
+      - text: Capstone
+        href: capstone.qmd
+      - text: Answers
+        menu:
+          - text: "0. Why Snakemake"
+            href: answers/00-why-answers.qmd
+          - text: "1. Rules"
+            href: answers/01-rules-answers.qmd
+          - text: "2. Wildcards"
+            href: answers/02-wildcards-answers.qmd
+          - text: "3. Config and samplesheets"
+            href: answers/03-config-answers.qmd
+          - text: "4. Rules that behave"
+            href: answers/04-rules-that-behave-answers.qmd
+          - text: "5. Running on a cluster"
+            href: answers/05-cluster-answers.qmd
+          - text: "6. Structuring a pipeline"
+            href: answers/06-structure-answers.qmd
+          - text: "7. Beyond files"
+            href: answers/07-beyond-files-answers.qmd
+          - text: "8. Testing"
+            href: answers/08-testing-answers.qmd
+          - text: "---"
+          - text: "Snakemake-ify"
+            href: answers/snakemakeify-answers.qmd
+      - text: Cheat sheet
+        href: cheatsheet.qmd
+      - text: About
+        href: about.qmd
+    right:
+      - icon: github
+        href: https://github.com/jpflores-13/snakemake-course
+        aria-label: Course repository on GitHub
+
+  sidebar:
+    - id: lessons
+      title: "Lessons"
+      style: docked
+      collapse-level: 2
+      contents:
+        - text: "Schedule"
+          href: schedule.qmd
+        - text: "Setup"
+          href: setup.qmd
+        - section: "Day 1"
+          contents:
+            - lessons/00-why.qmd
+            - lessons/01-rules.qmd
+            - lessons/02-wildcards.qmd
+            - lessons/03-config.qmd
+            - lessons/04-rules-that-behave.qmd
+        - section: "Day 2"
+          contents:
+            - lessons/05-cluster.qmd
+            - lessons/06-structure.qmd
+            - lessons/07-beyond-files.qmd
+            - lessons/08-testing.qmd
+        - section: "Practice"
+          contents:
+            - exercises/snakemakeify.qmd
+            - capstone.qmd
+        - section: "Reference"
+          contents:
+            - cheatsheet.qmd
+            - glossary.qmd
+            - references.qmd
+    - id: answers
+      title: "Answer keys"
+      style: docked
+      contents:
+        - section: "Answer keys"
+          contents:
+            - answers/00-why-answers.qmd
+            - answers/01-rules-answers.qmd
+            - answers/02-wildcards-answers.qmd
+            - answers/03-config-answers.qmd
+            - answers/04-rules-that-behave-answers.qmd
+            - answers/05-cluster-answers.qmd
+            - answers/06-structure-answers.qmd
+            - answers/07-beyond-files-answers.qmd
+            - answers/08-testing-answers.qmd
+            - answers/snakemakeify-answers.qmd
+    - id: field-guide
+      title: "Field guide"
+      style: docked
+      contents:
+        - field-guide/index.qmd
+        - field-guide/microcpipe.qmd
+        - field-guide/ttpipe.qmd
+        - field-guide/chromsimpipe.qmd
+        - field-guide/conventions.qmd
+
+  page-footer:
+    left: "Snakemake for genomics, by JP Flores. Lessons [CC BY 4.0](about.qmd#license), code [MIT](about.qmd#license)."
+    right:
+      - text: Glossary
+        href: glossary.qmd
+      - text: References
+        href: references.qmd
+      - text: Cite
+        href: about.qmd#how-to-cite
+
+format:
+  html:
+    theme:
+      light: [cosmo, styles/theme.scss]
+      dark: [cosmo, styles/theme.scss, styles/theme-dark.scss]
+    respect-user-color-scheme: true
+    highlight-style:
+      light: github
+      dark: github-dark
+    code-copy: true
+    code-overflow: wrap
+    code-annotations: below
+    code-block-bg: true
+    code-block-border-left: true
+    toc: true
+    toc-depth: 2
+    toc-title: "On this page"
+    smooth-scroll: true
+    anchor-sections: true
+    link-external-icon: true
+    link-external-newwindow: true
+    lightbox: auto
+    callout-appearance: default
+    # lessons also render as reveal.js slides (lessons/_metadata.yml) and the cheat
+    # sheet as a PDF; link to those from the page. The trailing "docx" entry only
+    # tells Quarto not to add its default links on top of these two.
+    format-links:
+      - {format: revealjs, text: Slides, icon: easel}
+      - {format: typst, text: PDF, icon: file-pdf}
+      - docx
+    language:
+      other-formats-title: "Also as"

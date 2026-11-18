@@ -1,0 +1,307 @@
+---
+title: "TTpipe"
+subtitle: "Field guide"
+description: "An annotated tour of the lab's TT-seq pipeline: switches, conditional rules, target functions and tests that count jobs."
+---
+
+TTpipe is the largest of the three pipelines: seven rule files plus `common.smk`, 33 rule
+definitions (a few are two variants of one rule), and a config with switches that turn whole halves of the workflow on and off. It is the place to see module 6
+(structure) and module 8 (testing) at full size.
+
+Code on this page is pulled from the repository at the pinned commit (ebdc210).
+
+## What the pipeline does {#tt-biology}
+
+TT-seq measures transcription as it happens. Cells are given 4-thiouridine (4sU) for a short pulse,
+so only RNA made during those minutes carries the label. The labeled RNA is fragmented and pulled
+down, and the library is sequenced strand-specifically. Because most of that RNA is freshly made
+and not yet spliced, reads cover introns as well as exons, and the signal reflects how much
+polymerase passed through a gene during the pulse rather than how much mature RNA has piled up.
+TTpipe reimplements the TT-seq workflow described for Magnitov et al. 2024 (*Mol Cell*, GEO
+GSE260914); the shipped samplesheet describes that study's eight mouse ES cell samples (ZFP143
+degradation: DMSO, 2 h, 6 h, 24 h, two replicates each), with paths you replace.
+
+Processing aligns read pairs with STAR, keeps reads with MAPQ ≥ 10, removes PCR duplicates with
+Picard, and splits each BAM into the two genomic strands. Replicates of a condition are merged and
+turned into scaled bigWig tracks, and HTSeq counts reads over whole gene bodies on each strand.
+Analysis runs DESeq2 for every comparison against a reference condition, ranks genes for
+preranked GSEA (fgsea), and draws a Sankey diagram of how genes move between up, down and
+unchanged across the comparisons. Reports summarize QC, strandedness and replicate agreement.
+
+## The rule graph {#tt-rulegraph}
+
+{{< generated name="ttpipe-rulegraph" >}}
+
+<!-- GENERATE: ttpipe-rulegraph | pipelines/ttpipe | snakemake -s workflows/TTpipe.snakefile --configfile config/TTpipeConfig.yaml tests/dryrun/config.yaml --cores 1 --rulegraph -->
+
+The graph has two halves joined at the count matrix. Processing runs from `fastqc` and `star_align`
+down to `bigwig` and `count_matrix`; analysis runs from `count_matrix` (or a matrix you supply) and
+`sample_table` through `deseq2`, `rnk`, `fgsea` and `sankey`. The report rules (`qc_summary`,
+`qc_report`, `multiqc`, `results_explorer`, `stranded_signal`) hang off both. Which boxes exist
+depends on the config: with `trim: true` there is a `fastp` box, with `gsea_collections` set there are
+`rnk` and `fgsea` boxes, and with `run_processing: false` the whole top half is gone.
+
+The repository keeps its own diagrams in `docs/img/`, and `tests/test_dag.py` fails when they no
+longer match `snakemake --rulegraph`, so they cannot drift from the code.
+
+On the test fixture (2 conditions × 2 replicates) the full dry run plans 60 jobs, among them
+4 `star_align`, 8 `fastqc` (two mates × four samples), 8 `split_strands` and 8 `htseq_count` (two
+strands × four samples), and 6 `bigwig` (two conditions × all/forward/reverse).
+
+## A walk from inputs to outputs {#tt-walk}
+
+1. **`samplesheet.txt`**: one row per sample with `Name`, `Condition`, `Replicate`, and the FASTQ
+   columns (only needed when processing runs).
+2. **`config/TTpipeConfig.yaml`**: the switches (`run_processing`, `run_analysis`, `qc_report`, `trim`,
+   `multiqc`, `spike_in`), the reference, strandedness, and the DESeq2/GSEA settings.
+3. **`workflows/rules/common.smk`** reads both, checks them, and defines every output path as a
+   template plus the target functions.
+4. **Per sample**: `fastqc` → (`fastp`) → `star_align` → `mapq_filter` → `mark_duplicates` →
+   `split_strands` → `htseq_count`.
+5. **Per condition**: `merge_bams` → `scale_factors` → `bigwig`.
+6. **Once**: `gene_info`, `count_matrix`, `sample_table`, `deseq2`, `sankey`, the reports.
+7. **Per comparison and gene-set collection**: `rnk` → `fgsea`.
+
+## Concepts in the wild
+
+### The samplesheet as an input {#tt-sample-table}
+
+This is the most instructive rule in the three pipelines, because it records a bug that happened.
+
+{{< snippet repo="ttpipe" file="workflows/TTpipe.snakefile" lines="35-50" >}}
+
+`sample_table` writes the sample/condition/replicate table DESeq2 reads. The `run:` block takes the
+values from `SAMPLES` and `SAMPLE_TABLE`, which `common.smk` built from the samplesheet when the
+Snakefile was parsed. So the rule does not need to *read* the samplesheet. It lists it as input
+anyway, and the comment says why: without it, adding samples to the sheet did not rerun the rule.
+The output already existed and none of its inputs had changed, so Snakemake kept the old table,
+and DESeq2 then failed because the count matrix and the table listed different samples.
+
+The lesson for module 7: Snakemake reruns a job when something it *tracks* changes. Python values
+computed at parse time are not tracked. If a rule's output depends on a file, put the file in
+`input:`, even when the rule gets the values some other way. `qc_summary` and `qc_report` do the
+same, and `tests/test_stale_inputs.py` checks it by really running the rule, appending two samples,
+and running it again:
+
+{{< snippet repo="ttpipe" file="tests/test_stale_inputs.py" lines="30-54" >}}
+
+`sample_table` is also the only `run:` block in the lab's pipelines. It is a few lines of pure
+Python with no tool to call, which is the case `run:` is for.
+
+### Switches and conditional includes {#tt-switches}
+
+{{< snippet repo="ttpipe" file="workflows/rules/common.smk" lines="13-25" >}}
+
+Three booleans decide which parts of the workflow exist. Note the guard on line 17: a config with
+every switch off is an error, not a run that does nothing. The two string settings are checked
+against their allowed values immediately, so `strandedness: dUTp` fails at parse time with the
+allowed values in the message.
+
+The Snakefile then includes rule files, one of them only when a switch is on:
+
+{{< snippet repo="ttpipe" file="workflows/TTpipe.snakefile" lines="52-59" >}}
+
+With `spike_in.enabled: false` (the default), `spike.smk` is never read and its rules do not exist.
+
+### `if TRIM:` defines a rule, or doesn't {#tt-conditional-rules}
+
+`include:` is not the only way to switch rules. Inside `processing.smk`, rules are defined inside
+ordinary Python `if` blocks:
+
+{{< snippet repo="ttpipe" file="workflows/rules/processing.smk" lines="8-24" >}}
+
+{{< snippet repo="ttpipe" file="workflows/rules/processing.smk" lines="68-91" >}}
+
+When `trim` is false, there is no `fastp` rule at all, and `star_reads()` hands STAR the raw FASTQs.
+When it is true, `star_reads()` returns the trimmed paths, which only `fastp` can produce, so the
+DAG gains one `fastp` job per sample. The test `test_trim_adds_fastp` checks exactly that: four more
+jobs, all of them `fastp`.
+
+Two small things in `fastp`: `TRIM_R.replace("{mate}", "1")` fills in one wildcard of a template by
+hand and leaves `{sample}` for Snakemake, and both trimmed files are `temp()`, removed once STAR
+has read them.
+
+The same trick gives *variants* of a rule. `processing.smk` defines `scale_factors`,
+`bigwig_sample` and `count_matrix` under `if not SPIKE_ENABLED:`, and `spike.smk` defines rules with
+the same names for the spike-in case. Exactly one version exists in any run. Profiles key on rule
+names, so one `set-resources: scale_factors:` entry covers both.
+
+{{< snippet repo="ttpipe" file="workflows/rules/spike.smk" lines="88-113" >}}
+
+Compare its input (the spike-in counts table) with the plain version's (the merged BAMs). The two
+variants need different inputs, which is why this is two rules and not one rule with an `if` inside
+`params`.
+
+### Target functions {#tt-targets}
+
+`rule all` in TTpipe is one line: `all_targets()`. The work is in `common.smk`:
+
+{{< snippet repo="ttpipe" file="workflows/rules/common.smk" lines="326-341" >}}
+
+{{< snippet repo="ttpipe" file="workflows/rules/common.smk" lines="356-387" >}}
+
+- Each part of the workflow has its own function, and `all_targets()` adds them up according to
+  the switches.
+- Every path is built from a template defined once near the top of `common.smk` (`FASTQC_ZIP`,
+  `BIGWIG_STRAND`, ...). The rules use the same templates as their outputs, so the target list and
+  the rules cannot disagree about a filename.
+- `stranded_targets()` is the subtle one. In an analysis-only run, the stranded bigWigs are not
+  built in this run. The page is requested only if the files already exist on disk from an earlier
+  run; otherwise it is skipped quietly. That is a target function deciding based on the file
+  system at parse time, which is fine for *targets* but would be a mistake inside a rule's inputs.
+
+### Wildcard constraints, including an empty one {#tt-wildcards}
+
+{{< snippet repo="ttpipe" file="workflows/rules/common.smk" lines="85-91" >}}
+
+Same idea as MicroCPipe: each wildcard matches only the real names. The `or "NONE"` matters when
+the list is empty (no GSEA collections): `"|".join([])` is the empty string, an empty pattern that
+matches an empty wildcard value. `"NONE"` keeps the constraint a real pattern that no file uses.
+
+`merge_bams` uses a rule-level constraint to let one rule make three files per condition:
+
+{{< snippet repo="ttpipe" file="workflows/rules/processing.smk" lines="241-269" >}}
+
+`suffix = "|_forward|_reverse"` allows the empty string as one of the alternatives, so
+`merged/DMSO.bam`, `merged/DMSO_forward.bam` and `merged/DMSO_reverse.bam` all come from this rule.
+By default a wildcard has to match at least one character, so without the constraint the
+all-reads BAM would have no rule. The input lambda then picks the right per-sample BAMs from the
+suffix.
+
+### Shell escaping in the real world {#tt-escaping}
+
+{{< snippet repo="ttpipe" file="workflows/rules/processing.smk" lines="271-301" >}}
+
+{{< snippet repo="ttpipe" file="workflows/rules/processing.smk" lines="303-329" >}}
+
+Three escapes from module 4 in a few lines:
+
+- `${{kv%%=*}}` is bash's `${kv%%=*}` (everything before the first `=`) with the braces doubled so
+  Snakemake leaves them alone.
+- `awk ... '$1==c {{print $3}}'` is the same rule for awk's braces.
+- `'%s\\t%s\\n'` is written with two backslashes so the shell script contains `\t`, which `printf`
+  turns into a tab. MicroCPipe's preseq fallback writes a single `\t`, so Python puts a literal tab
+  character in the script; both work, but the doubled form keeps the command readable in `-p`
+  output.
+
+The `[ -n "$SF" ] || { ...; exit 1; }` line in `bigwig` is the opposite of MicroCPipe's preseq
+fallback: here an empty scale factor is a real error, so the block writes a message and fails the
+job on purpose.
+
+`{PY}` in these commands is not a rule field. It is the module-level variable
+`PY = "$CONDA_PREFIX/bin/python"` from the top of `processing.smk`; Snakemake fills shell
+placeholders from the rule's fields first and then from global variables. It works, but the
+linter flags it (see [conventions](conventions.qmd#lint)), and a reader looking for `PY` in the
+rule will not find it.
+
+### Params that must not be filled in {#tt-params}
+
+{{< snippet repo="ttpipe" file="workflows/rules/analysis.smk" lines="10-33" >}}
+
+`deseq2` runs once for all comparisons and writes one CSV per comparison. The R script needs the
+*pattern* `degs_{comparison}.csv`, with the braces still in it, to know where to write. A plain
+string param would be formatted with the job's wildcards and fail (this rule has no `{comparison}`
+wildcard). Wrapping it in `lambda wildcards: DEGS` turns that off: Snakemake does not format the
+value a params function returns.
+
+The neighboring rule shows a constraint from module 2 that is easy to forget:
+
+{{< snippet repo="ttpipe" file="workflows/rules/analysis.smk" lines="59-77" >}}
+
+All outputs of a rule must have the same wildcards. The ranked list has `{comparison}` only; the
+fgsea result has `{collection}` and `{comparison}`. So the ranked list gets its own rule.
+
+### Inputs that depend on the run mode {#tt-run-mode}
+
+{{< snippet repo="ttpipe" file="workflows/rules/report.smk" lines="145-173" >}}
+
+The QC report reads different files in a processing-only, analysis-only or full run. Its input
+function returns a dictionary, and `qc_report` uses `unpack(qc_report_inputs)` so each key becomes a
+named input (`{input.sample_qc}`, `{input.scale}`). In a report-only run, `_qc_summary_data_inputs`
+lists only files that already exist, so nothing is built.
+
+### Resources in profiles, and one launcher difference {#tt-launcher}
+
+The resource story is MicroCPipe's: rules declare only `threads:`, and every rule has a
+`set-threads` and `set-resources` entry in each profile. The local profile's comments are honest
+about where the numbers come from:
+
+{{< snippet repo="ttpipe" file="profiles/local/config.yaml" lines="1-15" >}}
+
+The launcher is *not* the same, though:
+
+{{< snippet repo="ttpipe" file="TTpipe.sh" lines="58-65" >}}
+
+TTpipe's launcher activates the venv, the thing MicroCPipe's launcher deliberately avoids. TTpipe
+copes on the inside instead: every script is run as `$CONDA_PREFIX/bin/python` (`PY` in
+`processing.smk`), and the comments in `report.smk` say why ("the launcher's venv bin/ is first on
+PATH in cluster jobs"). Python tools inside the conda environments can still hit the problem
+MicroCPipe describes when an environment path is long enough for conda to rewrite their first
+line. Two other differences from MicroCPipe: TTpipe's SLURM
+profiles have no `cores: 100` line, and the launcher has no check for unedited `<placeholder>`
+values. If you run TTpipe on SLURM, check a `star_align` log for the thread count it actually used.
+
+### Tests that assert job counts {#tt-tests}
+
+{{< snippet repo="ttpipe" file="tests/test_dryrun.py" lines="26-47" >}}
+
+`dry_run()` runs `snakemake -n` with the main config plus an overlay and optional `--config`
+overrides. `jobs()` turns the "Job stats" table into a dictionary. With those two helpers, each
+test is a statement about the DAG:
+
+{{< snippet repo="ttpipe" file="tests/test_dryrun.py" lines="83-108" >}}
+
+These tests check *differences*: turning on `trim` adds exactly four jobs and all of them are
+`fastp`; per-sample tracks add twelve `bigwig_sample` jobs; turning off the report removes exactly
+two. A test like that keeps passing when someone adds an unrelated rule, and fails when a switch
+starts pulling in more (or less) than it should. The same file also feeds broken samplesheets and
+configs to a dry run and checks the error message, so the parse-time checks in `common.smk` are
+tested too.
+
+## What you would change {#tt-change}
+
+- **Stop activating the venv in `TTpipe.sh` and `unlock.sh`**, as MicroCPipe does, and add the
+  `cores: 100` line and the placeholder check from MicroCPipe's profiles and launcher. The three
+  launchers started from one pattern and have drifted.
+- **Add `conda:` to the four spike-in rules that call `{PY}` without one** (`spike_reference`,
+  `spike_summary`, the spike-in `scale_factors`, `spike_size_factors`). The scripts use only the
+  standard library, so `$CONDA_PREFIX` falling back to the launcher's base environment works today,
+  but it depends on how the launcher set up the shell.
+- **Rename `PY` and `SCRIPTS` into `params:`** (`params: py=PY`), so each rule says what it uses.
+- **Move a few small rules to `localrules:`.** `sample_table` writes a few lines of text; on SLURM it
+  is still a queued job.
+
+## Exercises for the curious {#tt-exercises}
+
+1. You want to add RSeQC's `infer_experiment.py` as an optional strandedness check. List every file
+   you would touch.
+2. Delete `config["samplesheet"]` from the input of `sample_table`, run the pipeline, add two
+   samples, and run it again. What happens, and which rule fails?
+3. Why are `scale_factors` and `count_matrix` defined twice, under opposite `if`s, instead of once
+   with an `if` inside the rule?
+4. The tests count jobs from `snakemake -n`. Name one kind of bug these tests cannot catch.
+
+::: {.callout-note collapse="true"}
+## Short answers
+
+1. The config (a switch, off by default); `common.smk` (an output template and a line in
+   `processing_targets()` behind the switch); a rule in `processing.smk` (with `conda:` and
+   `threads:`); an env file in `envs/` if no existing one has RSeQC; a `set-threads`/`set-resources`
+   entry in every profile; a dry-run test that the switch adds one job per sample; and the docs.
+   If the QC report should show it, `report.smk` and `qc_report.py` too.
+2. `sample_table` does not rerun, because its output exists and nothing it tracks has changed. The
+   count matrix is rebuilt (its inputs changed), so `deseq2` gets a matrix with six samples and a
+   table with four, and fails with "sample names differ between the count matrix and the sample
+   table". That is the bug the comment describes.
+3. The two versions need different *inputs* (merged BAMs, or the spike-in counts table), and inputs
+   decide the DAG. A single rule would need an input function that switches, plus params that
+   switch, plus a shell command that switches. Two small rules are easier to read and to test, and
+   because they share a name the profiles need no change.
+4. Anything that happens when a tool runs: wrong flags, a wrong `samtools -f` strand mask, a script
+   that crashes on real data. A dry run never executes a command. The unit tests in `tests/`
+   (`test_processing_scripts.py`, `test_stranded_signal.py`, ...) cover some scripts on small
+   synthetic inputs; the tools themselves were checked on real data on the cluster
+   (`docs/validation.qmd`).
+:::
+
+[Next: ChromSimPipe](chromsimpipe.qmd)

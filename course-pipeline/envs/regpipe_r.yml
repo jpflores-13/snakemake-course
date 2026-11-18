@@ -1,0 +1,18 @@
+name: regpipe_r
+## R / Bioconductor for the locus figure (rule locus_plot): one Bioconductor 3.22
+## release set on R 4.5. plotGenes() with assembly "hg38" takes gene models from
+## TxDb.Hsapiens.UCSC.hg38.knownGene and gene symbols from org.Hs.eg.db.
+## Solves for linux-64 and osx-64. bioconda has NO osx-arm64 build of
+## bioconductor-plotgardener: on an Apple-silicon Mac set make_locus_plot: false
+## in the config, or see README.md (Apple silicon) for the Rosetta route.
+channels:
+  - conda-forge
+  - bioconda
+  - nodefaults
+dependencies:
+  - r-base=4.5
+  - bioconductor-plotgardener=1.16.0
+  - bioconductor-rtracklayer=1.70.1
+  - bioconductor-genomicranges=1.62.1
+  - bioconductor-txdb.hsapiens.ucsc.hg38.knowngene=3.22.0
+  - bioconductor-org.hs.eg.db=3.22.0

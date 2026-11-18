@@ -1,0 +1,24 @@
+Config file config/TTpipeConfig.yaml is extended by additional config specified via the command line.
+all
+bigwig
+bigwig_sample
+count_matrix
+deseq2
+fastqc
+fgsea
+gene_info
+htseq_count
+mapq_filter
+mark_duplicates
+merge_bams
+multiqc
+qc_report
+qc_summary
+results_explorer
+rnk
+sample_table
+sankey
+scale_factors
+split_strands
+star_align
+stranded_signal

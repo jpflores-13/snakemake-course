@@ -1,0 +1,135 @@
+[
+  {
+    "objectID": "zz-infra-test.html",
+    "href": "zz-infra-test.html",
+    "title": "Infra test",
+    "section": "",
+    "text": "workflows/MicroCPipe.snakefile\n\n## Merge the group's runs, mark/remove duplicates, collect stats\nrule dedup:\n    input:\n        lambda w: expand(OUT + \"/{{group}}/aligned/{run}.pairsam.gz\", run=RUNS_BY_GROUP[w.group]),\n    output:\n        pairsam = temp(OUT + \"/{group}/{group}_dedup.pairsam.gz\"),\n        stats = OUT + \"/{group}/{group}_dedup_stats.txt\",\n    log:\n        OUT + \"/{group}/logs/{group}_dedup.log\"\n    benchmark:\n        OUT + \"/{group}/benchmarks/{group}_dedup.tsv\"\n    threads: 16\n    conda: ENVS + \"/microc_align.yml\"\n    params:\n        tmpdir = OUT + \"/{group}/tmp_dedup\",\n    shell:\n        \"\"\"\n        : &gt; {log}\n        mkdir -p {params.tmpdir}\n        pairtools merge --tmpdir {params.tmpdir} --nproc {threads} {input} 2&gt;&gt; {log} | \\\n        pairtools dedup --nproc-in {threads} --nproc-out {threads} --mark-dups \\\n            --output-stats {output.stats} --output {output.pairsam} 2&gt;&gt; {log}\n        rm -rf {params.tmpdir}\n        \"\"\"\n\n\nMicroCPipe, lines 103-126 view on GitHub"
+  },
+  {
+    "objectID": "zz-infra-test.html#rule",
+    "href": "zz-infra-test.html#rule",
+    "title": "Infra test",
+    "section": "",
+    "text": "workflows/MicroCPipe.snakefile\n\n## Merge the group's runs, mark/remove duplicates, collect stats\nrule dedup:\n    input:\n        lambda w: expand(OUT + \"/{{group}}/aligned/{run}.pairsam.gz\", run=RUNS_BY_GROUP[w.group]),\n    output:\n        pairsam = temp(OUT + \"/{group}/{group}_dedup.pairsam.gz\"),\n        stats = OUT + \"/{group}/{group}_dedup_stats.txt\",\n    log:\n        OUT + \"/{group}/logs/{group}_dedup.log\"\n    benchmark:\n        OUT + \"/{group}/benchmarks/{group}_dedup.tsv\"\n    threads: 16\n    conda: ENVS + \"/microc_align.yml\"\n    params:\n        tmpdir = OUT + \"/{group}/tmp_dedup\",\n    shell:\n        \"\"\"\n        : &gt; {log}\n        mkdir -p {params.tmpdir}\n        pairtools merge --tmpdir {params.tmpdir} --nproc {threads} {input} 2&gt;&gt; {log} | \\\n        pairtools dedup --nproc-in {threads} --nproc-out {threads} --mark-dups \\\n            --output-stats {output.stats} --output {output.pairsam} 2&gt;&gt; {log}\n        rm -rf {params.tmpdir}\n        \"\"\"\n\n\nMicroCPipe, lines 103-126 view on GitHub"
+  },
+  {
+    "objectID": "zz-infra-test.html#nested-rule",
+    "href": "zz-infra-test.html#nested-rule",
+    "title": "Infra test",
+    "section": "Nested rule",
+    "text": "Nested rule\n\n\n\nworkflows/rules/processing.smk\n\nrule fastp:\n    input:\n        reads = raw_reads,\n    output:\n        r1 = temp(TRIM_R.replace(\"{mate}\", \"1\")),\n        r2 = temp(TRIM_R.replace(\"{mate}\", \"2\")),\n        json = FASTP_JSON,\n        html = OUT + \"/{sample}/stats/{sample}_fastp.html\",\n    log:\n        OUT + \"/{sample}/logs/fastp.log\",\n    benchmark:\n        OUT + \"/{sample}/benchmarks/fastp.tsv\",\n    threads: 8\n    conda: ENVS + \"/ttpipe_align.yml\"\n    params:\n        extra = config.get(\"fastp_extra\", \"\"),\n    shell:\n        \"\"\"\n        fastp -i {input.reads[0]} -I {input.reads[1]} -o {output.r1} -O {output.r2} \\\n            -w {threads} -j {output.json} -h {output.html} {params.extra} &gt; {log} 2&gt;&1\n        \"\"\"\n\n\nTTpipe, lines 71-91 view on GitHub"
+  },
+  {
+    "objectID": "zz-infra-test.html#def",
+    "href": "zz-infra-test.html#def",
+    "title": "Infra test",
+    "section": "Def",
+    "text": "Def\n\n\n\nworkflows/MicroCPipe.snakefile\n\n##### Hooks for rules/formats.smk #####\ndef get_pairs(wildcards):\n    return f\"{OUT}/{wildcards.group}/{wildcards.group}.pairs.gz\"\n\n\nMicroCPipe, lines 263-265 view on GitHub"
+  },
+  {
+    "objectID": "zz-infra-test.html#lines",
+    "href": "zz-infra-test.html#lines",
+    "title": "Infra test",
+    "section": "Lines",
+    "text": "Lines\n\n\n\nconfig/ChromSimConfig.test.yaml\n\n## Sample sheet\n## Tab-separated; one row per experimental sample. Required columns:\n##   CTCF_Peaks - CTCF peak file (narrowPeak/BED); 'NA' if this sample has none\n##   Hi-C       - Hi-C map to compare simulations against: .hic, .mcool (must\n##                contain the `resolution` below) or .cool; 'NA' if none\n## Every other column is free-form metadata (Project, Cell_Type, Condition, ...).\n## Paths may be absolute, or relative to the repo root. The shipped samplesheet\n## uses data/&lt;file&gt; with each cluster's files linked into data/ (see\n## data/README.md), so one samplesheet works on every cluster; with one cluster,\n## full paths are just as good.\nsamplesheet: 'ChromSimSamplesheet.txt'\n\n## Columns joined with '_' to build each sample's name. Conditions below refer\n## to samples by this name (ctcf_type / compare_hic).\n\n\nChromSimPipe, lines 12-25 view on GitHub"
+  },
+  {
+    "objectID": "zz-infra-test.html#missing",
+    "href": "zz-infra-test.html#missing",
+    "title": "Infra test",
+    "section": "Missing",
+    "text": "Missing\n\n\n\n\n\n\nWarningSnippet not found\n\n\n\nno rule, checkpoint or def named 'nope' in pipelines/microcpipe/workflows/MicroCPipe.snakefile\n\n\n\n\n\n\n\n\nWarningSnippet not found\n\n\n\nstopping-points/stopB/Snakefile does not exist (yet)"
+  },
+  {
+    "objectID": "zz-infra-test.html#generated-text",
+    "href": "zz-infra-test.html#generated-text",
+    "title": "Infra test",
+    "section": "Generated text",
+    "text": "Generated text\n\n\n\n$ snakemake -n -s workflows/MicroCPipe.snakefile --cores 1 --configfile config/MicroCConfig.yaml tests/dryrun/config.yaml\n\nConfig file config/MicroCConfig.yaml is extended by additional config specified via the command line.\nBuilding DAG of jobs...\nJob stats:\njob                    count\n-------------------  -------\nalign                      3\nall                        1\nanalysis_expected          2\nanalysis_insulation        2\nbenchmark_summary          1\ncool                       2\ndedup                      2\nhic                        2\nlibrary_complexity         2\nmcool                      2\nqc_report                  1\nqc_summary                 2\nsort_bam                   2\nsplit                      2\ntotal                     26\n\n\n..."
+  },
+  {
+    "objectID": "zz-infra-test.html#graph",
+    "href": "zz-infra-test.html#graph",
+    "title": "Infra test",
+    "section": "Graph",
+    "text": "Graph"
+  },
+  {
+    "objectID": "zz-infra-test.html#missing-output",
+    "href": "zz-infra-test.html#missing-output",
+    "title": "Infra test",
+    "section": "Missing output",
+    "text": "Missing output\n\n\n\n\n\n\nNoteOutput not here yet\n\n\n\nThis output (regpipe-dryrun) is made from the course data. Once data/ is in place, run quarto render and it appears here. Until then, run the command yourself and compare."
+  },
+  {
+    "objectID": "zz-infra-test.html#exercise",
+    "href": "zz-infra-test.html#exercise",
+    "title": "Infra test",
+    "section": "Exercise",
+    "text": "Exercise\n\n\n\n\n\n\nTipExercise 1.2: Predict the jobs\n\n\n\nText.\nAnswer\n\n\n\n\n\n\n\n\nImportantStopping point A\n\n\n\nStop here."
+  },
+  {
+    "objectID": "zz-infra-test-slides.html#rule",
+    "href": "zz-infra-test-slides.html#rule",
+    "title": "Infra test",
+    "section": "Rule",
+    "text": "Rule\n\n\n\nworkflows/MicroCPipe.snakefile\n\n## Merge the group's runs, mark/remove duplicates, collect stats\nrule dedup:\n    input:\n        lambda w: expand(OUT + \"/{{group}}/aligned/{run}.pairsam.gz\", run=RUNS_BY_GROUP[w.group]),\n    output:\n        pairsam = temp(OUT + \"/{group}/{group}_dedup.pairsam.gz\"),\n        stats = OUT + \"/{group}/{group}_dedup_stats.txt\",\n    log:\n        OUT + \"/{group}/logs/{group}_dedup.log\"\n    benchmark:\n        OUT + \"/{group}/benchmarks/{group}_dedup.tsv\"\n    threads: 16\n    conda: ENVS + \"/microc_align.yml\"\n    params:\n        tmpdir = OUT + \"/{group}/tmp_dedup\",\n    shell:\n        \"\"\"\n        : &gt; {log}\n        mkdir -p {params.tmpdir}\n        pairtools merge --tmpdir {params.tmpdir} --nproc {threads} {input} 2&gt;&gt; {log} | \\\n        pairtools dedup --nproc-in {threads} --nproc-out {threads} --mark-dups \\\n            --output-stats {output.stats} --output {output.pairsam} 2&gt;&gt; {log}\n        rm -rf {params.tmpdir}\n        \"\"\"\n\n\nMicroCPipe, lines 103-126 view on GitHub"
+  },
+  {
+    "objectID": "zz-infra-test-slides.html#nested-rule",
+    "href": "zz-infra-test-slides.html#nested-rule",
+    "title": "Infra test",
+    "section": "Nested rule",
+    "text": "Nested rule\n\n\n\nworkflows/rules/processing.smk\n\nrule fastp:\n    input:\n        reads = raw_reads,\n    output:\n        r1 = temp(TRIM_R.replace(\"{mate}\", \"1\")),\n        r2 = temp(TRIM_R.replace(\"{mate}\", \"2\")),\n        json = FASTP_JSON,\n        html = OUT + \"/{sample}/stats/{sample}_fastp.html\",\n    log:\n        OUT + \"/{sample}/logs/fastp.log\",\n    benchmark:\n        OUT + \"/{sample}/benchmarks/fastp.tsv\",\n    threads: 8\n    conda: ENVS + \"/ttpipe_align.yml\"\n    params:\n        extra = config.get(\"fastp_extra\", \"\"),\n    shell:\n        \"\"\"\n        fastp -i {input.reads[0]} -I {input.reads[1]} -o {output.r1} -O {output.r2} \\\n            -w {threads} -j {output.json} -h {output.html} {params.extra} &gt; {log} 2&gt;&1\n        \"\"\"\n\n\nTTpipe, lines 71-91 view on GitHub"
+  },
+  {
+    "objectID": "zz-infra-test-slides.html#def",
+    "href": "zz-infra-test-slides.html#def",
+    "title": "Infra test",
+    "section": "Def",
+    "text": "Def\n\n\n\nworkflows/MicroCPipe.snakefile\n\n##### Hooks for rules/formats.smk #####\ndef get_pairs(wildcards):\n    return f\"{OUT}/{wildcards.group}/{wildcards.group}.pairs.gz\"\n\n\nMicroCPipe, lines 263-265 view on GitHub"
+  },
+  {
+    "objectID": "zz-infra-test-slides.html#lines",
+    "href": "zz-infra-test-slides.html#lines",
+    "title": "Infra test",
+    "section": "Lines",
+    "text": "Lines\n\n\n\nconfig/ChromSimConfig.test.yaml\n\n## Sample sheet\n## Tab-separated; one row per experimental sample. Required columns:\n##   CTCF_Peaks - CTCF peak file (narrowPeak/BED); 'NA' if this sample has none\n##   Hi-C       - Hi-C map to compare simulations against: .hic, .mcool (must\n##                contain the `resolution` below) or .cool; 'NA' if none\n## Every other column is free-form metadata (Project, Cell_Type, Condition, ...).\n## Paths may be absolute, or relative to the repo root. The shipped samplesheet\n## uses data/&lt;file&gt; with each cluster's files linked into data/ (see\n## data/README.md), so one samplesheet works on every cluster; with one cluster,\n## full paths are just as good.\nsamplesheet: 'ChromSimSamplesheet.txt'\n\n## Columns joined with '_' to build each sample's name. Conditions below refer\n## to samples by this name (ctcf_type / compare_hic).\n\n\nChromSimPipe, lines 12-25 view on GitHub"
+  },
+  {
+    "objectID": "zz-infra-test-slides.html#missing",
+    "href": "zz-infra-test-slides.html#missing",
+    "title": "Infra test",
+    "section": "Missing",
+    "text": "Missing\n\n\n\n\n\n\nSnippet not found\n\n\nno rule, checkpoint or def named 'nope' in pipelines/microcpipe/workflows/MicroCPipe.snakefile\n\n\n\n\n\n\n\n\n\nSnippet not found\n\n\nstopping-points/stopB/Snakefile does not exist (yet)"
+  },
+  {
+    "objectID": "zz-infra-test-slides.html#generated-text",
+    "href": "zz-infra-test-slides.html#generated-text",
+    "title": "Infra test",
+    "section": "Generated text",
+    "text": "Generated text\n\n\n\n$ snakemake -n -s workflows/MicroCPipe.snakefile --cores 1 --configfile config/MicroCConfig.yaml tests/dryrun/config.yaml\n\nConfig file config/MicroCConfig.yaml is extended by additional config specified via the command line.\nBuilding DAG of jobs...\nJob stats:\njob                    count\n-------------------  -------\nalign                      3\nall                        1\nanalysis_expected          2\nanalysis_insulation        2\nbenchmark_summary          1\ncool                       2\ndedup                      2\nhic                        2\nlibrary_complexity         2\nmcool                      2\nqc_report                  1\nqc_summary                 2\nsort_bam                   2\nsplit                      2\ntotal                     26\n\n\n..."
+  },
+  {
+    "objectID": "zz-infra-test-slides.html#graph",
+    "href": "zz-infra-test-slides.html#graph",
+    "title": "Infra test",
+    "section": "Graph",
+    "text": "Graph"
+  },
+  {
+    "objectID": "zz-infra-test-slides.html#missing-output",
+    "href": "zz-infra-test-slides.html#missing-output",
+    "title": "Infra test",
+    "section": "Missing output",
+    "text": "Missing output\n\n\n\n\n\n\nOutput not here yet\n\n\nThis output (regpipe-dryrun) is made from the course data. Once data/ is in place, run quarto render and it appears here. Until then, run the command yourself and compare."
+  },
+  {
+    "objectID": "zz-infra-test-slides.html#exercise",
+    "href": "zz-infra-test-slides.html#exercise",
+    "title": "Infra test",
+    "section": "Exercise",
+    "text": "Exercise\n\n\n\n\n\n\n\nExercise 1.2: Predict the jobs\n\n\nText.\nAnswer\n\n\n\n\n\n\n\n\n\n\n\nStopping point A\n\n\nStop here."
+  }
+]

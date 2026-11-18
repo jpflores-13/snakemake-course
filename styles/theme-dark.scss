@@ -1,0 +1,17 @@
+/*-- scss:defaults --*/
+$lab-blue:   #6aaed6;
+$lab-teal:   #66c28a;
+$lab-orange: #f08a6b;
+$primary:    $lab-blue;
+$link-color: $lab-blue;
+$body-bg:    #1b1f24;
+$body-color: #dde3ea;
+$navbar-bg:  #15191d;
+$navbar-fg:  #dde3ea;
+$navbar-hl:  $lab-blue;
+$code-block-bg: #23282e;
+
+/*-- scss:rules --*/
+.navbar { border-bottom: 1px solid rgba(255, 255, 255, 0.08); }
+.pipeline-cards > div { border-color: rgba(255, 255, 255, 0.15); }
+.exercise a[href*="answers/"]:hover, a.answer-link:hover { color: #15191d; }

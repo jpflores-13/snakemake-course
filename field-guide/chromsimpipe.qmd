@@ -1,0 +1,291 @@
+---
+title: "ChromSimPipe"
+subtitle: "Field guide"
+description: "An annotated tour of the lab's loop-extrusion simulation pipeline: sentinel files, a four-way fan-out, GPU jobs, and a Python module as the single source of truth."
+---
+
+ChromSimPipe is the odd one out. It does not process sequencing reads; it runs physics
+simulations on GPUs and compares them with Hi-C. That makes it the best place to see module 7:
+outputs that are not single files, scatter-gather, and GPU resources.
+
+Code on this page is pulled from the repository at the pinned commit (e32dd36).
+
+## What the pipeline does {#cs-biology}
+
+Cohesin folds chromosomes by loop extrusion: a cohesin ring loads on chromatin and reels DNA
+into a growing loop until it falls off or stalls at a CTCF site whose motif points the right way.
+Where cohesin stalls, and how long it stays, shapes the contact map you measure with Hi-C.
+ChromSimPipe turns that idea into a test. It takes CTCF peaks (CUT&Tag or ChIP-seq) and a Hi-C
+map, orients each CTCF site by scanning for the CTCF motif (JASPAR MA0139.1) with FIMO, and
+simulates a polymer with loop-extruding cohesins (the Hansen lab's polysim, on polychrom and OpenMM)
+over a genomic window.
+
+Each *condition* in the config is one hypothesis: a set of cohesin parameters (lifetime, spacing,
+stall probability at CTCF) plus a set of CTCF sites. The shipped example has three conditions that
+ask whether the CTCF sites of a second state, alone or with weaker stalling, explain that state's
+Hi-C. For each condition the pipeline turns simulated conformations into a contact map and compares
+it with the experimental map (contact probability versus distance, loop pileups, insulation).
+
+## The rule graph {#cs-rulegraph}
+
+{{< generated name="chromsimpipe-rulegraph" >}}
+
+<!-- GENERATE: chromsimpipe-rulegraph | pipelines/chromsimpipe | snakemake -s workflows/ChromSimPipe.snakefile --cores 1 --rulegraph -->
+
+If the graph is missing above, it is because building it needs the input files (`data/` is empty
+in the repository). In text, the order is the one in the header of the Snakefile:
+
+{{< snippet repo="chromsimpipe" file="workflows/ChromSimPipe.snakefile" lines="4-24" >}}
+
+`convertHic`, `getMotif` and `preparePolysim` run once and are shared by every locus. `orientCTCF`
+and `validateCTCF` run per locus. Then the simulation fans out four ways (locus × condition ×
+replicate × shard), `mergeShards` gathers the shards of each replicate, `analyzeCondition` gathers
+the replicates of each condition, and `benchmarkSummary` collects the timings.
+
+With the shipped config (one locus, three conditions, `n_replicates: 3`, `n_shards: 2`) that is
+18 `simulateShard` jobs, 9 `mergeShards` and 3 `analyzeCondition`. <!-- VERIFY-DATA -->
+The test config (one condition, one replicate, one shard) is the "10-job smoke test" the code
+guide recommends running first on a new cluster. <!-- VERIFY-DATA -->
+
+## A walk from inputs to outputs {#cs-walk}
+
+1. **`ChromSimSamplesheet.txt`**: one row per experimental sample, with a `CTCF_Peaks` path and a
+   `Hi-C` path (or `NA`) and free metadata columns. `fileNamesFrom: ['Condition']` names each sample.
+2. **`config/ChromSimConfig.yaml`**: loci, conditions, physics (`polysim:`), motif settings, conda
+   environments, job counts (`n_replicates`, `n_shards`), `outputDir`.
+3. **`configs/parameters.py`** reads both and exposes everything as Python names.
+4. **`convertHic`** converts each needed Hi-C map to `.cool` at the simulation resolution.
+5. **`getMotif`** downloads the motif (only if no local MEME file is given); **`orientCTCF`** writes
+   oriented CTCF sites per locus and CTCF sample; **`validateCTCF`** checks them.
+6. **`simulateShard`** runs one polysim simulation on one GPU and writes HDF5 files of
+   conformations into a shard folder.
+7. **`mergeShards`** concatenates the shards of one replicate.
+8. **`analyzeCondition`** computes contact maps and comparisons into
+   `output/loci/<locus>/analysis/<condition>/`.
+
+## Concepts in the wild
+
+### Sentinel `.done` files, and why {#cs-sentinels}
+
+{{< snippet repo="chromsimpipe" file="workflows/ChromSimPipe.snakefile" rule="simulateShard" >}}
+
+The only declared output is `simulateShard_{condition}_rep{rep}_shard{shard}.done`. The real
+result is a folder of HDF5 files under `sims/`, and the rule never names it: the script builds the
+folder name itself, from the condition's `params_name` and `ctcf_type` and the replicate and shard
+numbers (`<params_name>_ctcf-<ctcf_type>_rep<N>_shard<S>/`). Snakemake cannot track a path it is never
+told. So the last line of the shell block, `touch {output.done}`, marks success. Because Snakemake
+runs the block in strict mode, a crashed simulation stops before the `touch`, no marker appears,
+and the job counts as failed.
+
+Every downstream rule depends on markers, not data:
+
+{{< snippet repo="chromsimpipe" file="workflows/ChromSimPipe.snakefile" rule="mergeShards" >}}
+
+This is the gather half of a scatter-gather (module 7). The input is one marker per shard of this
+replicate. `rules.simulateShard.output.done` is the *pattern* with `{locus}`, `{condition}`,
+`{rep}` and `{shard}` still in it, and `expand()` fills all four: three from the job's own wildcards
+and `shard` from `range(N_SHARDS)`.
+
+What markers cost you, compared with `directory()` outputs:
+
+- Snakemake does not delete a stale shard folder before rerunning a job, as it would for a declared
+  `directory()` output. A rerun writes into whatever is there.
+- Snakemake cannot tell whether the folder still exists. Delete `sims/` by hand and the markers
+  still say everything is done. The troubleshooting notes in the repository say exactly this: if
+  the merged folder is missing, delete its `.done` marker and resubmit.
+- `--summary` and `--list-changes` describe the markers, not the data.
+
+What they buy: the scripts own their folder layout, and adding a new analysis output to
+`run_analysis_all.py` needs no change to the workflow (the code guide says so in "Adding new
+analysis").
+
+`preparePolysim` uses a marker for a different reason:
+
+{{< snippet repo="chromsimpipe" file="workflows/ChromSimPipe.snakefile" rule="preparePolysim" >}}
+
+polysim compiles part of itself (Cython) the first time it is imported. If 18 shards started at
+once, they would all compile at the same time into the same place. This rule does the import once,
+and every shard lists its marker as an input, so shards start only after the build exists. The
+marker stands for "a side effect has happened", which no file output can express.
+
+### The fan-out: locus × condition × replicate × shard {#cs-fanout}
+
+{{< snippet repo="chromsimpipe" file="workflows/ChromSimPipe.snakefile" lines="160-165" >}}
+
+`rule all` asks for one `analyzeCondition` marker per locus and condition. Everything else is
+pulled in backwards: each condition marker needs `N_REPLICATES` merge markers, each merge marker
+needs `N_SHARDS` shard markers. Change `n_shards` from 2 to 4 and the number of GPU jobs doubles
+while each one saves half as many frames (`frames_per_replicate` is split across shards).
+
+{{< snippet repo="chromsimpipe" file="workflows/ChromSimPipe.snakefile" lines="73-80" >}}
+
+`L()` and `LP()` are small helpers worth copying. In `L()`, the f-string `{{locus}}` produces a
+literal `{locus}`, so `L('done')` is a pattern with a wildcard in it. That is the same escaping as
+MicroCPipe's `{{group}}` inside `expand()`, for a different reason: here it is f-string braces, not
+`expand()` braces. `LP()` gives the concrete folder for a job's locus.
+
+{{< snippet repo="chromsimpipe" file="workflows/ChromSimPipe.snakefile" lines="94-97" >}}
+
+The constraints here are regexes, not name lists: a locus is anything without a slash, replicate
+and shard are digits. `parameters.py` refuses locus names that contain `/`, which is what makes
+`[^/]+` safe.
+
+### An input function that adds an ordering {#cs-ordering}
+
+{{< snippet repo="chromsimpipe" file="workflows/ChromSimPipe.snakefile" rule="analyzeCondition" >}}
+
+Three inputs, three input-function patterns:
+
+- `merged` gathers the replicates of this condition (as in `mergeShards`).
+- `mcool = compare_mcool` returns the converted Hi-C map for this condition, or an empty list when
+  the condition has none. An empty list is a valid input: it just adds nothing.
+- `reference` returns another condition's `analyzeCondition` marker, but only when the config asks
+  every condition to reuse one reference condition's calibration. This makes the rule depend on
+  another job of *the same rule*, which forces an order without any file passing between them.
+
+Note `--skip-existing` in the command. The script skips a replicate whose contact map already
+exists. Combined with markers, that means deleting `analyzeCondition_<condition>.done` reruns the
+job, but the job may then skip the work. Delete the analysis output folder too if you want it
+recomputed.
+
+### GPU jobs from the profile {#cs-gpu}
+
+The `simulateShard` rule says nothing about GPUs except `--gpu 0`. The request is in the profile:
+
+{{< snippet repo="chromsimpipe" file="profiles/slurm-template/config.yaml" lines="37-44" >}}
+
+`gpu: 1` is a standard resource the SLURM executor plugin turns into `--gpus=1`, and the comment
+records what did not work on one cluster (a `gres` request that was never submitted). The rule
+can always say device 0 because, on a typical SLURM setup, a job only sees the GPU it was given.
+
+The local profile handles the laptop/workstation case differently:
+
+{{< snippet repo="chromsimpipe" file="profiles/local/config.yaml" lines="1-19" >}}
+
+`resources: - gpu=1` is a *global* limit: the whole run has one GPU, and each `simulateShard` job
+claims it (`set-resources: simulateShard: gpu: 1`), so only one simulation runs at a time while
+other rules still run beside it. To test on a machine with no GPU, the config's
+`polysim: platform: CUDA` can be set to `CPU`.
+
+ChromSimPipe's SLURM profiles set `cpus_per_task` instead of `set-threads`, and the rules have no
+`threads:` at all. The analysis parallelizes with `analysis.n_jobs` from the config, and the profile
+comment says to keep `cpus_per_task` at least that large. Two numbers in two files that must agree
+is the price of keeping resources out of the rules.
+
+### `parameters.py`: one source of truth for Snakemake and scripts {#cs-parameters}
+
+{{< snippet repo="chromsimpipe" file="configs/parameters.py" lines="1-32" >}}
+
+In MicroCPipe and TTpipe, the Snakefile reads the config and passes values to scripts on the
+command line. ChromSimPipe has dozens of physics parameters, and the simulation and analysis scripts
+need most of them. Instead of passing them all as arguments, everything reads one module:
+
+{{< snippet repo="chromsimpipe" file="workflows/ChromSimPipe.snakefile" lines="29-44" >}}
+
+- Lines 33-35: the Snakefile loads the default config only if no `--configfile` was given. Normally
+  Snakemake *merges* a `configfile:` in the Snakefile with `--configfile` on the command line. Here
+  the author wanted the command-line file to replace the default completely, because the scripts
+  read one file.
+- Lines 36-37: the chosen file's absolute path goes into `$CHROMSIM_CONFIG`.
+- Lines 39-44: the Snakefile imports `configs.parameters`, which reads `$CHROMSIM_CONFIG` itself.
+- The per-locus rules set `CHROMSIM_CONFIG` and `CHROMSIM_LOCUS` in front of the script call
+  (see `simulateShard` above), so each script imports the same module and sees the values for its
+  own locus.
+
+The module also validates more than either other pipeline does, with messages that say how to fix
+the problem:
+
+{{< snippet repo="chromsimpipe" file="configs/parameters.py" lines="107-118" >}}
+
+The trade-off is that Snakemake no longer sees the values. Two consequences:
+
+- **Changing a physics parameter does not rerun anything.** `simulateShard` passes only the config
+  file's *path* as a param, so Snakemake's params rerun trigger sees no change, and the config file is
+  not an input. The repository's troubleshooting table says it plainly: "Parameter changed but
+  nothing reruns ... delete the markers for the steps to redo".
+- **`--config key=value` does not reach the scripts.** It changes Snakemake's `config` dictionary,
+  which the Snakefile uses for a few things (`resolution`, the motif, the conda envs), while
+  `parameters.py` and every script read the file. `--config n_shards=4` changes nothing, quietly.
+
+### A parse-time write that respects the cluster {#cs-parse-time}
+
+{{< snippet repo="chromsimpipe" file="workflows/ChromSimPipe.snakefile" lines="99-110" >}}
+
+The Snakefile writes a copy of the parsed samplesheet next to the outputs. The comment points at a
+detail most people learn the hard way: on a cluster, *every job* parses the Snakefile again. An
+unconditional write would rewrite the file from every job at once. Comparing first means it is
+written once. (It also means `snakemake --lint` and `-n` write this file; parse-time code always
+runs.)
+
+### Conda environments: a file, a name or a path {#cs-conda}
+
+{{< snippet repo="chromsimpipe" file="workflows/ChromSimPipe.snakefile" lines="55-60" >}}
+
+`conda:` accepts an environment file, or the name or path of an existing environment. The config
+allows all three, so a cluster where building the GPU environment is slow can point at one built
+by hand. The `abspath` line handles a quirk: a relative `.yml` path in `conda:` is resolved from
+the Snakefile's folder (`workflows/`), not from the repository root.
+
+### A rule that exists only if needed {#cs-conditional}
+
+{{< snippet repo="chromsimpipe" file="workflows/ChromSimPipe.snakefile" lines="188-204" >}}
+
+Same pattern as TTpipe's `if TRIM:`. With a local MEME file in the config, there is no download rule,
+and `MOTIF_MEME` points at the local file, which then has to exist. The shell block checks that the
+download is really a MEME file, with the `|| {{ ...; exit 1; }}` form from module 4, because a web
+server can return an error page with status 200.
+
+### Testing {#cs-tests}
+
+ChromSimPipe's tests are unit tests: `tests/test_parameters_config.py`, `test_loci.py` and
+`test_paths.py` import `parameters.py` with small temporary configs and check paths, loci and
+validation messages. There is no dry-run test and no CI workflow for the tests (the only workflow
+publishes the docs). The test config is the substitute: one GPU job end to end, run by hand on a new
+cluster.
+
+## What you would change {#cs-change}
+
+- **Put the condition's parameters into `params:`.** For example
+  `params: cond = lambda w: COND_LOOKUP[w.condition]` in `simulateShard`. Snakemake stores params
+  and reruns a job when they change, so editing `ctcf_capture` would rerun that condition's shards
+  and everything after them, without anyone deleting markers.
+- **Add a dry-run fixture and a CI job.** A tiny samplesheet and config under `tests/`, as in
+  MicroCPipe and TTpipe, would let a dry run assert the 10-job and 39-job counts.
+  <!-- VERIFY-DATA -->
+- **Declare the merged folder as `directory()`.** Its name is known in the Snakefile
+  (`merged_<params_name>_ctcf-<ctcf_type>_rep<N>`, all from `COND_LOOKUP`), so `mergeShards` could
+  declare it and Snakemake would clear it before a rerun.
+- **Make `getMotif` a local rule** (`localrules: getMotif`). It downloads from the internet, and
+  compute nodes on some clusters have no outside network.
+- **Keep account names out of shipped profiles.** `profiles/longleaf` and `profiles/pioneer` carry
+  real SLURM accounts; the other two pipelines ship `<account>` placeholders and a launcher check.
+
+## Exercises for the curious {#cs-exercises}
+
+1. Add a second locus to `loci:`. How many more jobs does a full run have, and which jobs are not
+   repeated?
+2. You lower `ctcf_capture` for `cond2_weak-ctcf` and resubmit. What runs? What would you delete
+   to get the right result today?
+3. Rewrite `mergeShards` to declare its merged folder with `directory()` instead of a marker. What
+   do you gain, and what new problem appears for `analyzeCondition`?
+4. Why does `preparePolysim` not need a `{locus}` wildcard, while `validateCTCF` does?
+
+::: {.callout-note collapse="true"}
+## Short answers
+
+1. Per locus: 2 `orientCTCF` (one per CTCF sample), 1 `validateCTCF`, 18 `simulateShard`,
+   9 `mergeShards`, 3 `analyzeCondition`, so 33 more jobs. <!-- VERIFY-DATA --> `convertHic`,
+   `getMotif`, `preparePolysim` and `benchmarkSummary` are shared and still run once.
+2. Nothing reruns: the markers exist, and nothing Snakemake tracks changed. Delete the
+   `simulateShard_cond2_weak-ctcf_*`, `mergeShards_cond2_weak-ctcf_*` and
+   `analyzeCondition_cond2_weak-ctcf.done` markers for that locus, *and* that condition's analysis
+   folder (because of `--skip-existing`), then resubmit.
+3. Snakemake now knows the merged data exists, clears it before a rerun, and `--summary` reports it.
+   But `analyzeCondition` reads the merged folders through `--results-dir` (the whole `sims/`
+   folder), so you would also want its input to name those folders, or the dependency is only on
+   paper. The shard folders would still need markers unless you give them the same treatment.
+4. The polysim build is the same for every locus, so it runs once. `validateCTCF` checks the CTCF
+   sites inside one locus window, which differ per locus.
+:::
+
+[Next: how our pipelines compare to community conventions](conventions.qmd)
