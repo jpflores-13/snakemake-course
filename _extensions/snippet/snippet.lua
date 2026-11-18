@@ -168,7 +168,9 @@ local function find_block(lines, name, kinds, with_comments)
   local first = start
   if with_comments then
     local k = start - 1
-    while k >= 1 and lines[k]:match("^%s*#") and indent_of(lines[k]) == base do
+    -- stop at section banners such as "##### Hooks #####" or "## ======"
+    while k >= 1 and lines[k]:match("^%s*#") and indent_of(lines[k]) == base
+      and not lines[k]:match("^%s*###") and not lines[k]:match("^%s*#+%s*[=%-#~*]+%s*$") do
       first = k
       k = k - 1
     end

@@ -147,7 +147,7 @@ The cost is that the three launchers are copies of one idea, and they have drift
 | Checks that `env.sh` exists | yes | yes | no |
 | `cores: 100` in SLURM profiles | yes | no | no (uses `cpus_per_task`) |
 
-MicroCPipe's version is the newest and the most careful. Bringing the other two up to it is the
+MicroCPipe's version is the most careful. Bringing the other two up to it is the
 cheapest improvement on this page.
 
 ### Snakemake from pip, in a venv {#venv}

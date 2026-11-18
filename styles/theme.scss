@@ -100,7 +100,6 @@ table.schedule, .schedule table {
   text-align: right;
   color: $text-muted;
   .snippet-where { margin-right: 0.5em; }
-  a.snippet-link::after { content: " \2197"; }
 }
 .generated-output pre {
   max-height: 32rem;

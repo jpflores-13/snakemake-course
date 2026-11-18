@@ -1,0 +1,90 @@
+---
+title: "Field guide"
+subtitle: "The lab's pipelines, read like a map"
+description: "Annotated tours of MicroCPipe, TTpipe and ChromSimPipe, with a table of where each idea from the course shows up in real code."
+---
+
+The modules teach Snakemake on RegPipe, a pipeline built for the course. The field guide shows
+the same ideas in the three pipelines the lab actually runs:
+
+- [MicroCPipe](microcpipe.qmd): Micro-C, FASTQ to contact maps (`.cool`, `.mcool`, `.hic`) and a
+  QC dashboard. The smallest of the three and the closest to RegPipe. Start here.
+- [TTpipe](ttpipe.qmd): TT-seq, FASTQ to stranded tracks, gene counts, DESeq2 and GSEA. The largest,
+  with switches that turn whole halves of the workflow on and off.
+- [ChromSimPipe](chromsimpipe.qmd): loop-extrusion polymer simulations on GPUs, compared with
+  Hi-C. Outputs are folders, not files, and the job count multiplies four ways.
+- [How our pipelines compare to community conventions](conventions.qmd): the Snakemake workflow
+  catalog's layout next to ours, what `snakemake --lint` says, and what is worth changing.
+
+Each pipeline page has the same parts: what the pipeline does biologically, its rule graph, a
+walk from inputs to outputs, "Concepts in the wild" sections with the real code and a line-by-line
+reading, a short list of what you would change, and a few open exercises with answers.
+
+All code is pulled from the repositories at a fixed commit, and each block links to the same lines
+on GitHub, so what you read here is what ran. You can read a page after the matching module, or
+all of them after module 8. Nothing in the modules depends on the field guide.
+
+::: {.callout-tip}
+## How to use this with the modules
+
+Finished a module? Find its rows in the table below and follow one link per pipeline. Seeing the
+same idea written three ways, by the same person at different times, is the fastest way to tell
+what is a rule of Snakemake and what is one person's habit.
+:::
+
+## Where each idea shows up {#map}
+
+Cells name the file (paths relative to the repository root) and the rule or function. The link
+goes to the section that explains it. A dash means the pipeline does not use the idea.
+
+| Module | Idea | MicroCPipe | TTpipe | ChromSimPipe |
+|---|---|---|---|---|
+| [0](../lessons/00-why.qmd) | One command runs everything | `MicroCPipe.sh` ([launcher](microcpipe.qmd#mc-launcher)) | `TTpipe.sh` ([launcher](ttpipe.qmd#tt-launcher)) | `ChromSimPipe.sh` ([walk](chromsimpipe.qmd#cs-walk)) |
+| [1](../lessons/01-rules.qmd) | A rule: input, output, shell | `MicroCPipe.snakefile`: `align` ([input functions](microcpipe.qmd#mc-input-functions)) | `processing.smk`: `merge_bams` ([wildcards](ttpipe.qmd#tt-wildcards)) | `ChromSimPipe.snakefile`: `simulateShard` ([sentinels](chromsimpipe.qmd#cs-sentinels)) |
+| [1](../lessons/01-rules.qmd) | Target rule `all` | `MicroCPipe.snakefile`: `all`, `qc_targets()` ([targets](microcpipe.qmd#mc-targets)) | `common.smk`: `all_targets()` ([targets](ttpipe.qmd#tt-targets)) | `ChromSimPipe.snakefile`: `all` ([fan-out](chromsimpipe.qmd#cs-fanout)) |
+| [2](../lessons/02-wildcards.qmd) | Wildcards | `{group}`, `{run}` ([run vs group](microcpipe.qmd#mc-run-group)) | `{sample}`, `{mate}`, `{strand}`, `{condition}` ([walk](ttpipe.qmd#tt-walk)) | `{locus}`, `{condition}`, `{rep}`, `{shard}` ([fan-out](chromsimpipe.qmd#cs-fanout)) |
+| [2](../lessons/02-wildcards.qmd) | `expand()` | `dedup` input, with `{{group}}` ([input functions](microcpipe.qmd#mc-input-functions)) | `common.smk`: `processing_targets()` ([targets](ttpipe.qmd#tt-targets)) | `all`, `mergeShards` ([fan-out](chromsimpipe.qmd#cs-fanout)) |
+| [2](../lessons/02-wildcards.qmd) | `wildcard_constraints` | names joined with `re.escape` ([run vs group](microcpipe.qmd#mc-run-group)) | `common.smk`, and an empty-string `suffix` in `merge_bams` ([wildcards](ttpipe.qmd#tt-wildcards)) | regexes `[^/]+` and `\d+` ([fan-out](chromsimpipe.qmd#cs-fanout)) |
+| [2](../lessons/02-wildcards.qmd) | All outputs share wildcards | - | `analysis.smk`: `rnk` vs `fgsea` ([params](ttpipe.qmd#tt-params)) | - |
+| [3](../lessons/03-config.qmd) | Samplesheet | `MicroCSamplesheet.txt`, run and group IDs ([run vs group](microcpipe.qmd#mc-run-group)) | `common.smk`: parse and validate ([switches](ttpipe.qmd#tt-switches)) | `parameters.py`, names from `fileNamesFrom` ([parameters](chromsimpipe.qmd#cs-parameters)) |
+| [3](../lessons/03-config.qmd) | Config checked at parse time | `common.smk`: `outputs`, resolutions ([validation](microcpipe.qmd#mc-validation)) | `common.smk`: strandedness, conditions ([switches](ttpipe.qmd#tt-switches)) | `parameters.py`: loci ([parameters](chromsimpipe.qmd#cs-parameters)) |
+| [3](../lessons/03-config.qmd) | Input functions | `align`, `dedup` ([input functions](microcpipe.qmd#mc-input-functions)) | `star_reads()`, `qc_report_inputs()` with `unpack` ([run mode](ttpipe.qmd#tt-run-mode)) | `compare_mcool()`, `analyzeCondition` ([ordering](chromsimpipe.qmd#cs-ordering)) |
+| [4](../lessons/04-rules-that-behave.qmd) | `log:` and `benchmark:` | every rule; `: > {log}` then `2>>` ([input functions](microcpipe.qmd#mc-input-functions)) | every rule | every rule, `.out` and `.err` ([sentinels](chromsimpipe.qmd#cs-sentinels)) |
+| [4](../lessons/04-rules-that-behave.qmd) | `params:` | `formats.smk`: `hic` heap from `resources` ([resources](microcpipe.qmd#mc-resources)) | `analysis.smk`: `deseq2` lambda ([params](ttpipe.qmd#tt-params)) | `analyzeCondition`: `msd_flag` ([ordering](chromsimpipe.qmd#cs-ordering)) |
+| [4](../lessons/04-rules-that-behave.qmd) | `temp()` | `align`, `dedup`, `split` ([input functions](microcpipe.qmd#mc-input-functions)) | `fastp`, `star_align`, `mapq_filter` ([conditional rules](ttpipe.qmd#tt-conditional-rules)) | - |
+| [4](../lessons/04-rules-that-behave.qmd) | `conda:` | `ENVS + "/microc_*.yml"` | `ENVS + "/ttpipe_*.yml"` | `conda_env()`: file, name or path ([conda](chromsimpipe.qmd#cs-conda)) |
+| [4](../lessons/04-rules-that-behave.qmd) | Shell escaping `{{ }}` | `library_complexity`: preseq fallback ([preseq](microcpipe.qmd#mc-preseq)) | `scale_factors`, `bigwig` ([escaping](ttpipe.qmd#tt-escaping)) | `getMotif` ([conditional](chromsimpipe.qmd#cs-conditional)) |
+| [5](../lessons/05-cluster.qmd) | Profiles per site | `profiles/<site>/` ([resources](microcpipe.qmd#mc-resources)) | `profiles/<site>/` ([launcher](ttpipe.qmd#tt-launcher)) | `profiles/<site>/` ([GPU](chromsimpipe.qmd#cs-gpu)) |
+| [5](../lessons/05-cluster.qmd) | Resources only in profiles | `set-threads`, `set-resources` ([resources](microcpipe.qmd#mc-resources)) | same ([launcher](ttpipe.qmd#tt-launcher)) | `set-resources`, `cpus_per_task` ([GPU](chromsimpipe.qmd#cs-gpu)) |
+| [5](../lessons/05-cluster.qmd) | `latency-wait`, `cores` | `profiles/slurm-template/config.yaml` ([resources](microcpipe.qmd#mc-resources)) | no `cores:` in SLURM profiles ([launcher](ttpipe.qmd#tt-launcher)) | - |
+| [5](../lessons/05-cluster.qmd) | Launcher and venv | venv *not* activated ([launcher](microcpipe.qmd#mc-launcher)) | venv activated ([launcher](ttpipe.qmd#tt-launcher)) | venv activated ([conventions](conventions.qmd#launcher)) |
+| [6](../lessons/06-structure.qmd) | `include:` and `common.smk` | `common.smk`, `formats.smk` with a hook ([one rule file, two workflows](microcpipe.qmd#mc-include)) | seven rule files ([switches](ttpipe.qmd#tt-switches)) | one Snakefile plus `parameters.py` ([parameters](chromsimpipe.qmd#cs-parameters)) |
+| [6](../lessons/06-structure.qmd) | Switches | `outputs`, `make_bam`, `analysis` ([targets](microcpipe.qmd#mc-targets)) | `run_processing`, `run_analysis`, `trim`, `spike_in` ([switches](ttpipe.qmd#tt-switches)) | local MEME file or download ([conditional](chromsimpipe.qmd#cs-conditional)) |
+| [6](../lessons/06-structure.qmd) | Rules defined under `if` | - | `if TRIM:`, `if not SPIKE_ENABLED:` ([conditional rules](ttpipe.qmd#tt-conditional-rules)) | `if not MOTIF.get("meme"):` ([conditional](chromsimpipe.qmd#cs-conditional)) |
+| [6](../lessons/06-structure.qmd) | `run:` / `script:` | - (scripts called from `shell:`) | `sample_table` uses `run:` ([samplesheet as input](ttpipe.qmd#tt-sample-table)) | - (scripts called from `shell:`) |
+| [6](../lessons/06-structure.qmd) | `onstart` / `onsuccess` / `onerror` | `notify()` emails ([hooks](microcpipe.qmd#mc-hooks)) | same `notify()` | same `notify()` |
+| [7](../lessons/07-beyond-files.qmd) | Sentinel files | `touch()` markers for analyses ([targets](microcpipe.qmd#mc-targets)) | - | `.done` for every step ([sentinels](chromsimpipe.qmd#cs-sentinels)) |
+| [7](../lessons/07-beyond-files.qmd) | Scatter-gather | runs of a library gathered in `dedup` ([input functions](microcpipe.qmd#mc-input-functions)) | per-sample counts gathered in `count_matrix` | shards gathered in `mergeShards` ([sentinels](chromsimpipe.qmd#cs-sentinels)) |
+| [7](../lessons/07-beyond-files.qmd) | GPU jobs | - | - | `simulateShard` + profile ([GPU](chromsimpipe.qmd#cs-gpu)) |
+| [7](../lessons/07-beyond-files.qmd) | `rules.X.output` | `split`, `sort_bam` ([rules.X.output](microcpipe.qmd#mc-rules-output)) | - (path templates instead, [targets](ttpipe.qmd#tt-targets)) | `mergeShards`, `analyzeCondition` ([sentinels](chromsimpipe.qmd#cs-sentinels)) |
+| [7](../lessons/07-beyond-files.qmd) | What makes a job rerun | - | samplesheet as input ([samplesheet as input](ttpipe.qmd#tt-sample-table)) | parameters Snakemake cannot see ([parameters](chromsimpipe.qmd#cs-parameters)) |
+| [8](../lessons/08-testing.qmd) | Dry-run tests | `tests/test_dryrun.py`: job counts ([tests](microcpipe.qmd#mc-tests)) | `tests/test_dryrun.py`: job-count differences ([tests](ttpipe.qmd#tt-tests)) | - (unit tests only, [testing](chromsimpipe.qmd#cs-tests)) |
+| [8](../lessons/08-testing.qmd) | CI | `.github/workflows/ci.yml` ([tests](microcpipe.qmd#mc-tests)) | `.github/workflows/ci.yml` | - |
+| [8](../lessons/08-testing.qmd) | Rule graph in the docs | `docs/img/*.svg`, updated by hand | `tests/test_dag.py` fails if diagrams are stale ([rule graph](ttpipe.qmd#tt-rulegraph)) | text diagram in the docs |
+| [8](../lessons/08-testing.qmd) | `snakemake --lint` | [lint results](conventions.qmd#lint) | [lint results](conventions.qmd#lint) | [lint results](conventions.qmd#lint) |
+
+## Three pipelines, one pattern {#pattern}
+
+All three share a layout, which RegPipe copies:
+
+```
+<Name>.sh  unlock.sh  <Name>Samplesheet.txt
+config/<Name>Config.yaml  config/requirements.txt
+profiles/<site>/{config.yaml, env.sh}
+workflows/<Name>.snakefile  workflows/rules/*.smk
+envs/*.yml  scripts/  tests/  docs/
+```
+
+The pattern comes from the PhanstielLab pipelines (dietJuicer, bagPipes): edit a samplesheet and a
+config, pick a site profile once, then submit one launcher. Where the three differ, the field guide
+says which version to copy. Usually it is MicroCPipe's, because its launcher and profiles carry the most fixes.
