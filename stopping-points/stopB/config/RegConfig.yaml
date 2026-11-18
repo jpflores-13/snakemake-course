@@ -29,7 +29,7 @@ reference:
   blacklist: 'reference/blacklist.bed.gz'     # ENCODE GRCh38 blacklist (ENCFF356LFX)
 
 ## The region the course data cover (1-based, inclusive, as samtools writes it).
-## bigWigs are made for this region only, and the locus plot draws it.
+## bigWigs are made for this region only.
 window:
   chrom: 'chr8'
   start: 125000000

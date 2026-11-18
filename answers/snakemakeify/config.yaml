@@ -21,8 +21,8 @@ macs3:
   with_control: "--keep-dup all --nomodel --extsize 200"
   no_control: "--keep-dup all --nomodel --shift -75 --extsize 150"
 
-# q-value sweep (05_qvalue_sweep.sh). Quote the values: YAML would turn
-# 0.0001 into a float and Python would print it as 1e-04.
+# q-value sweep (05_qvalue_sweep.sh). Quote the values: they end up in file
+# names, and as floats Python would write 0.00001 as 1e-05.
 sweep:
   target: "CTCF"
   qvalues: ["0.05", "0.01", "0.001", "0.0001"]

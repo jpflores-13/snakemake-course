@@ -1,0 +1,789 @@
+---
+title: "Snakemake-ify: answers"
+description: "Worked solutions for the Snakemake-ify exercises, with what each legacy script got wrong and how the rules fix it."
+code-annotations: below
+---
+
+All solution files are in `answers/snakemakeify/` in the course repository:
+
+```
+answers/snakemakeify/
+  config.yaml          every setting that was a variable at the top of a script
+  common.smk           reads the samplesheet; sample lists; wildcard constraints
+  rules/*.smk          the rules for each exercise (fastqc, align, filter, peaks,
+                       sweep, qc, overlap, plot, ttseq)
+  scripts/             the Python and R scripts, edited for script:
+  ex1.smk ... ex9.smk  one runnable Snakefile per exercise
+  Snakefile            exercise S10: everything in one file
+```
+
+Each `exN.smk` loads the config, includes `common.smk` and the rule files it
+needs, and has its own `rule all`. Run them from your working folder (the one
+with the `data` link), for example
+`snakemake -s ~/snakemake-course/answers/snakemakeify/ex4.smk -c 4`.
+
+Every number on this page comes from running the legacy scripts and these
+solutions on the course data, with Snakemake 8.27.1 on a 4-core machine.
+
+## Shared setup: `common.smk`
+
+Exercise S1 is the first place you need the sample list, so here is the file
+every exercise includes.
+
+```{.python filename="answers/snakemakeify/common.smk"}
+# Shared by every exercise Snakefile: read the samplesheet once and
+# build the sample lists the rules need.
+import pandas as pd
+
+DATA = config["data"]  # <1>
+
+sheet = pd.read_csv(f"{DATA}/samplesheet.txt", sep="\t", dtype=str,
+                    keep_default_na=False)  # <2>
+sheet["sample"] = sheet[config["fileNamesFrom"]].agg("_".join, axis=1)  # <3>
+sheet = sheet.set_index("sample", drop=False)
+
+SAMPLES = sheet.index.tolist()
+CONTROLS = sorted(set(sheet["Control"]) - {"NA"})  # <4>
+PEAK_SAMPLES = [s for s in SAMPLES if s not in CONTROLS]
+TARGETS = sorted(set(sheet.loc[PEAK_SAMPLES, "Target"]))
+
+
+def reps_of(target):
+    """Peak-calling samples of one target, in samplesheet order."""
+    return [s for s in PEAK_SAMPLES if sheet.loc[s, "Target"] == target]
+
+
+wildcard_constraints:  # <5>
+    sample="|".join(SAMPLES),
+    target="|".join(TARGETS),
+    q=r"[0-9.]+",
+```
+1. The data folder comes from `config.yaml` (`data: "data"`), relative to where
+   you run Snakemake. This replaces `DATA=~/snakemake-course/data` at the top
+   of every legacy script: you change it once, or on the command line with
+   `--config data=/path/to/data`.
+2. `keep_default_na=False` keeps the text `NA` in the `Control` column as the
+   string `"NA"`. Without it pandas turns it into a missing value and
+   `control != "NA"` is always true.
+3. Sample names are built from the samplesheet columns listed in
+   `fileNamesFrom`, the same way the lab pipelines do it. The legacy scripts
+   typed the list three times (01, 02, 03) and built it a fourth way in 04.
+4. A control is any sample named in someone's `Control` column. The legacy
+   script decided by name (`target == input*`); this works for an IgG control
+   too.
+5. Constraining `{sample}` to the real sample names stops a pattern like
+   `{sample}_q{q}_peaks.narrowPeak` from matching in odd ways, and turns a typo
+   into a clear error.
+
+## Exercise S1: FastQC {#ex-s1}
+
+```{.python filename="answers/snakemakeify/rules/fastqc.smk"}
+# Exercise 1: 01_fastqc.sh
+rule fastqc:
+    input:
+        f"{DATA}/fastq/{{sample}}.fastq.gz",  # <1>
+    output:
+        html="results/fastqc/{sample}_fastqc.html",  # <2>
+        zip="results/fastqc/{sample}_fastqc.zip",
+    log:
+        "results/logs/fastqc/{sample}.log",
+    shell:
+        "fastqc --quiet --outdir results/fastqc {input} > {log} 2>&1"
+```
+1. An f-string, so `{DATA}` is filled in by Python and `{{sample}}` (doubled
+   braces) stays as the Snakemake wildcard `{sample}`.
+2. FastQC decides its own output names: `<fastq name without .fastq.gz>_fastqc.html`
+   and `.zip`. The rule has to declare exactly those, or Snakemake reports
+   missing output after the job finishes.
+
+`ex1.smk` adds the target:
+
+```{.python filename="answers/snakemakeify/ex1.smk (excerpt)"}
+rule all:
+    input:
+        expand("results/fastqc/{sample}_fastqc.html", sample=SAMPLES),  # <1>
+```
+1. `expand()` with `SAMPLES` replaces the `for s in $SAMPLES` loop. Snakemake
+   works backwards from these ten file names to ten `fastqc` jobs.
+
+**What the legacy script got wrong.** Nothing serious. The skip check looks
+at the HTML only, so a run killed between writing the HTML and the zip would
+be skipped next time. Snakemake records a job as finished only when it ends
+without error and all its outputs exist, and it marks outputs of an
+interrupted job as incomplete so they are redone.
+
+**Check.** `snakemake -s ex1.smk -n` shows 11 jobs (10 `fastqc`, 1 `all`).
+`fastqc_data.txt` and `summary.txt` inside each zip are identical to the
+legacy ones for all ten samples.
+
+## Exercise S2: Index and align {#ex-s2}
+
+```{.python filename="answers/snakemakeify/rules/align.smk"}
+# Exercise 2: 02_align.sh
+rule reference:
+    input:
+        f"{DATA}/reference/chr8_course.fa.gz",
+    output:
+        fa="results/index/chr8_course.fa",
+        fai="results/index/chr8_course.fa.fai",  # <1>
+    shell:
+        "gunzip -c {input} > {output.fa} && samtools faidx {output.fa}"
+
+
+rule bowtie2_index:
+    input:
+        rules.reference.output.fa,  # <2>
+    output:
+        multiext("results/index/chr8_course",
+                 ".1.bt2", ".2.bt2", ".3.bt2", ".4.bt2", ".rev.1.bt2", ".rev.2.bt2"),  # <3>
+    params:
+        prefix="results/index/chr8_course",
+    log:
+        "results/logs/bowtie2_index.log",
+    threads: 4
+    shell:
+        "bowtie2-build --threads {threads} {input} {params.prefix} > {log} 2>&1"
+
+
+rule align:
+    input:
+        fq=f"{DATA}/fastq/{{sample}}.fastq.gz",
+        index=rules.bowtie2_index.output,  # <4>
+    output:
+        bam="results/align/{sample}.bam",
+        bai="results/align/{sample}.bam.bai",
+    params:
+        prefix=rules.bowtie2_index.params.prefix,
+    log:
+        "results/logs/align/{sample}.bowtie2.log",
+    threads: 4  # <5>
+    shell:
+        "bowtie2 -p {threads} -x {params.prefix} -U {input.fq} 2> {log}"  # <6>
+        " | samtools sort -@ 2 -o {output.bam} -"
+        " && samtools index {output.bam}"
+```
+1. The `.fai` is now a declared output. In the legacy version it was made
+   "for later" and used by `07_overlap.sh` without saying so. Here any rule that
+   needs it lists it as an input (S7 does).
+2. `rules.reference.output.fa` refers to the other rule's output by name, so
+   the path is typed once.
+3. All six index files are outputs. If one is missing, Snakemake reruns the
+   index. The legacy check looked for `chr8_course.1.bt2` only: with just that
+   file present, `02_align.sh` skipped the index, bowtie2 failed for all ten
+   samples, and the script still exited with status 0.
+4. The align jobs depend on the whole index, so they wait for it, and a new
+   index makes them out of date.
+5. `threads:` replaces `THREADS=4`. On a laptop with `-c 2`, Snakemake lowers
+   it to 2 and `{threads}` follows.
+6. Snakemake runs every `shell:` with `set -euo pipefail`. If bowtie2 fails,
+   the pipe fails, the job fails, and Snakemake deletes the half-written BAM.
+   The legacy script had no `pipefail`, so only `samtools sort` decided
+   whether the step "worked".
+
+**Check.** 13 jobs. Record counts match the legacy BAMs for every sample
+(HCT116_CTCF_1: 28634, HCT116_H3K27ac_2: 210899). The files are not
+byte-for-byte identical: with `-p 4` bowtie2 writes reads in the order its
+threads finish, so reads at the same position can be sorted in a different
+order. Sorted, the records are identical (`samtools view x.bam | sort | md5sum`).
+
+## Exercise S3: One script, many outputs {#ex-s3}
+
+```{.python filename="answers/snakemakeify/rules/filter.smk"}
+# Exercise 3: 03_filter.sh
+rule filter_reads:
+    input:
+        bam="results/align/{sample}.bam",
+        blacklist=f"{DATA}/reference/blacklist.bed.gz",
+    output:
+        temp("results/filter/{sample}.noBL.bam"),  # <1>
+    params:
+        mapq=config["filter"]["mapq"],  # <2>
+    shell:
+        "samtools view -b -q {params.mapq} {input.bam}"
+        " | bedtools intersect -v -abam stdin -b {input.blacklist} > {output}"
+
+
+rule markdup:
+    input:
+        "results/filter/{sample}.noBL.bam",
+    output:
+        bam="results/filter/{sample}.filt.bam",
+        bai="results/filter/{sample}.filt.bam.bai",
+    log:
+        "results/logs/markdup/{sample}.log",
+    shell:
+        "samtools markdup -r {input} {output.bam} 2> {log}"
+        " && samtools index {output.bam}"
+
+
+rule flagstat:  # <3>
+    input:
+        "results/filter/{sample}.filt.bam",
+    output:
+        "results/filter/{sample}.flagstat.txt",
+    shell:
+        "samtools flagstat {input} > {output}"
+
+
+rule bigwig:
+    input:
+        bam="results/filter/{sample}.filt.bam",
+        bai="results/filter/{sample}.filt.bam.bai",  # <4>
+    output:
+        "results/tracks/{sample}.bw",
+    params:
+        binsize=config["bigwig"]["binsize"],
+        extend_reads=config["bigwig"]["extend"],  # <5>
+    log:
+        "results/logs/bigwig/{sample}.log",
+    threads: 4
+    shell:
+        "bamCoverage -b {input.bam} -o {output} --normalizeUsing CPM"
+        " --binSize {params.binsize} --extendReads {params.extend_reads} -p {threads} 2> {log}"
+```
+1. `temp()` replaces `rm $s.q$MAPQ.bam $s.noBL.bam`. Snakemake deletes the file
+   once every job that needs it has finished. The MAPQ-filtered BAM is gone
+   entirely: it goes straight into bedtools through a pipe.
+2. `MAPQ=30` is now `filter: mapq: 30` in `config.yaml`. Because it is a
+   `params:` value, changing it in the config makes Snakemake rerun this rule
+   and everything downstream.
+3. One rule per thing a later step needs. The legacy loop wrote six files per
+   sample behind one skip check on `$s.filt.bam`: if `bamCoverage` failed, the
+   next run skipped that sample and the bigWig never appeared. Here a missing
+   bigWig is one `bigwig` job.
+4. bamCoverage needs the index but does not name it on the command line. List
+   it as an input anyway, so the job never starts before `samtools index` is done.
+5. A params name cannot be `extend` (Snakemake reserves it; you get
+   "extend is reserved for internal use"), hence `extend_reads`.
+
+**Check.** 53 jobs from scratch. The ten flagstat files and the ten bigWigs are
+byte-for-byte identical to the legacy ones. HCT116_CTCF_1 keeps 24453 of its
+28634 reads. The filtered BAMs have the same read counts, but for 8 of the 10
+samples a few different reads survive: when duplicates tie, `samtools markdup`
+keeps the first one it sees, and that depends on the bowtie2 thread order from
+S2. The kept reads sit at the same positions, which is why the bigWigs, and in
+S4 the peaks, are identical.
+
+## Exercise S4: Peaks with a control {#ex-s4}
+
+```{.python filename="answers/snakemakeify/rules/peaks.smk"}
+# Exercise 4: 04_call_peaks.sh
+def macs3_inputs(wildcards):  # <1>
+    """Treatment BAM, plus the control BAM named in the samplesheet."""
+    inputs = {"treatment": f"results/filter/{wildcards.sample}.filt.bam"}
+    control = sheet.loc[wildcards.sample, "Control"]
+    if control != "NA":
+        inputs["control"] = f"results/filter/{control}.filt.bam"
+    return inputs
+
+
+def macs3_options(wildcards, input):  # <2>
+    if "control" in input.keys():
+        return f"-c {input.control} {config['macs3']['with_control']}"
+    return config["macs3"]["no_control"]
+
+
+rule call_peaks:
+    input:
+        unpack(macs3_inputs),  # <3>
+    output:
+        peaks="results/peaks/{sample}_peaks.narrowPeak",
+        summits="results/peaks/{sample}_summits.bed",
+        xls="results/peaks/{sample}_peaks.xls",
+    params:
+        gsize=config["macs3"]["gsize"],
+        qvalue=config["macs3"]["qvalue"],
+        options=macs3_options,
+    log:
+        "results/logs/macs3/{sample}.log",
+    shell:
+        "macs3 callpeak -t {input.treatment} {params.options} -f BAM"
+        " -g {params.gsize} -q {params.qvalue}"
+        " -n {wildcards.sample} --outdir results/peaks 2> {log}"
+```
+1. The input function does what the `while read ... control` loop did: look up
+   the sample's row and find its control by name. The difference is that
+   Snakemake calls it while building the DAG, so the control BAM becomes a real
+   dependency. Delete `results/filter/HCT116_input-CTCF_2.filt.bam` and
+   Snakemake remakes it before calling peaks on HCT116_CTCF_2. The legacy script
+   would have run MACS3 and failed.
+2. A params function can take `input` as well as `wildcards`. ChIP gets
+   `-c control` plus the ChIP options, DNase the cut-site options. Both strings
+   live in `config.yaml`.
+3. `unpack()` turns the returned dict into named inputs, so the shell command
+   can use `{input.treatment}` and `{input.control}`.
+
+**Which samples get peaks.** `PEAK_SAMPLES` (from `common.smk`) is every
+sample that is not someone's control. `rule all` in `ex4.smk` asks for
+`expand("results/peaks/{sample}_peaks.narrowPeak", sample=PEAK_SAMPLES)`.
+
+**Check.** 39 jobs, 6 `call_peaks`. All six `_peaks.narrowPeak` and
+`_summits.bed` files are byte-for-byte identical to the legacy ones: 24 and 64
+CTCF peaks, 138 and 141 H3K27ac, 223 and 217 DNase. (The `.xls` files differ
+only in the command line MACS3 writes into their header.)
+
+## Exercise S5: A parameter sweep {#ex-s5}
+
+```{.python filename="answers/snakemakeify/rules/sweep.smk"}
+# Exercise 5: 05_qvalue_sweep.sh
+SWEEP_SAMPLES = reps_of(config["sweep"]["target"])
+QVALUES = config["sweep"]["qvalues"]  # <1>
+
+
+rule sweep_call:
+    input:
+        treatment="results/filter/{sample}.filt.bam",
+        control=lambda wc: f"results/filter/{sheet.loc[wc.sample, 'Control']}.filt.bam",  # <2>
+    output:
+        "results/sweep/{sample}_q{q}_peaks.narrowPeak",  # <3>
+    params:
+        gsize=config["macs3"]["gsize"],
+        options=config["macs3"]["with_control"],
+    log:
+        "results/logs/sweep/{sample}_q{q}.log",
+    shell:
+        "macs3 callpeak -t {input.treatment} -c {input.control} {params.options} -f BAM"
+        " -g {params.gsize} -q {wildcards.q}"
+        " -n {wildcards.sample}_q{wildcards.q} --outdir results/sweep 2> {log}"
+
+
+rule sweep_counts:
+    input:
+        expand("results/sweep/{sample}_q{q}_peaks.narrowPeak",
+               sample=SWEEP_SAMPLES, q=QVALUES),  # <4>
+    output:
+        "results/sweep/sweep_counts.tsv",
+    run:  # <5>
+        # expand() loops over q fastest, so this matches the input order
+        labels = [(s, q) for s in SWEEP_SAMPLES for q in QVALUES]
+        with open(output[0], "w") as out:
+            out.write("sample\tqvalue\tn_peaks\n")
+            for (s, q), path in zip(labels, input):
+                with open(path) as fh:
+                    n = sum(1 for _ in fh)
+                out.write(f"{s}\t{q}\t{n}\n")
+```
+1. The q-values are strings in `config.yaml` (`["0.05", "0.01", "0.001", "0.0001"]`),
+   so the file names use exactly that text. To try a fifth cutoff, add it to
+   the list: only the new jobs run.
+2. The control comes from the samplesheet, as in S4. This is the bug in the
+   legacy script: `CONTROL=HCT116_input-CTCF_1` was used for both replicates,
+   but the samplesheet pairs HCT116_CTCF_2 with HCT116_input-CTCF_2.
+3. `{q}` is a wildcard like `{sample}`. One rule covers the whole sweep, and
+   the `[0-9.]+` constraint in `common.smk` keeps it from swallowing part of the
+   sample name.
+4. Two lists in one `expand()` give every combination: 2 samples x 4 q-values
+   = 8 files, so 8 `sweep_call` jobs.
+5. A short `run:` block (Python inside the rule) is enough for a table this
+   small. `input` and `output` are the same objects as in `shell:`.
+
+**Check.** 24 jobs from scratch: 8 `sweep_call`, `sweep_counts`, and only the
+alignment and filtering the sweep needs (CTCF reps and their two controls).
+The HCT116_CTCF_1 rows match the legacy table. The HCT116_CTCF_2 rows do not:
+
+```
+sample          qvalue  legacy  snakemake
+HCT116_CTCF_2   0.05    66      67
+HCT116_CTCF_2   0.01    62      64
+HCT116_CTCF_2   0.001   57      60
+HCT116_CTCF_2   0.0001  54      55
+```
+
+The legacy sweep called replicate 2 against replicate 1's input. The q 0.01
+row should equal the 64 peaks from S4, which used the same settings, and only
+the Snakemake version does. Because the legacy sweep and peak scripts each
+had their own copy of the control choice, they drifted apart. With one
+samplesheet lookup they cannot.
+
+## Exercise S6: A Python script that globs {#ex-s6}
+
+```{.python filename="answers/snakemakeify/rules/qc.smk"}
+# Exercise 6: 06_qc_summary.py
+rule qc_summary:
+    input:
+        bams=expand("results/filter/{sample}.filt.bam", sample=SAMPLES),  # <1>
+        flagstats=expand("results/filter/{sample}.flagstat.txt", sample=SAMPLES),
+        peaks=expand("results/peaks/{sample}_peaks.narrowPeak", sample=PEAK_SAMPLES),  # <2>
+    output:
+        "results/qc/qc_summary.tsv",
+    params:
+        samples=SAMPLES,  # <3>
+        peak_samples=PEAK_SAMPLES,
+    script:
+        "../scripts/qc_summary.py"  # <4>
+```
+1. The `glob("*.filt.bam")` is now an explicit list. Snakemake knows the
+   inputs before it runs anything, so it can make them first. The glob used
+   whatever was in the folder: a sample whose filtering failed simply had no
+   row, and a stale BAM from an old run would have got one.
+2. Peak files are inputs too. The legacy script checked `os.path.exists(peaks)`
+   and wrote `NA` if the file was not there, so running it before
+   `04_call_peaks.sh` (or after MACS3 failed for one sample) gave a table with
+   NA in it and exit status 0. Here a missing peak file means the rule waits for
+   `call_peaks`, or stops with an error.
+3. The script still needs to know which file is which sample. `params:` passes
+   the names in the same order as the inputs.
+4. A `script:` path is relative to the file the rule is in (`rules/`), hence `../`.
+
+```{.python filename="answers/snakemakeify/scripts/qc_summary.py"}
+"""One QC table for all samples: reads after filtering, peaks, FRiP.
+
+Called by the qc_summary rule with script:, so every file name comes
+from the rule (snakemake.input, snakemake.params, snakemake.output).
+"""
+import subprocess
+
+samples = snakemake.params.samples  # <1>
+peak_files = dict(zip(snakemake.params.peak_samples, snakemake.input.peaks))
+
+rows = []
+for sample, bam, flagstat in zip(samples, snakemake.input.bams,
+                                 snakemake.input.flagstats):
+    # first line of flagstat is "<n> + 0 in total ..."
+    with open(flagstat) as fh:
+        n_reads = int(fh.readline().split()[0])
+
+    peaks = peak_files.get(sample)
+    if peaks is None:
+        n_peaks, frip = "NA", "NA"   # a control: no peaks by design  # <2>
+    else:
+        with open(peaks) as fh:
+            n_peaks = sum(1 for _ in fh)
+        out = subprocess.run(["samtools", "view", "-c", "-L", peaks, bam],
+                             capture_output=True, text=True, check=True)
+        frip = f"{int(out.stdout) / n_reads:.4f}"
+
+    rows.append((sample, n_reads, n_peaks, frip))
+
+with open(snakemake.output[0], "w") as out:  # <3>
+    out.write("sample\treads_filtered\tn_peaks\tfrip\n")
+    for row in sorted(rows):
+        out.write("\t".join(str(x) for x in row) + "\n")
+```
+1. `snakemake` is an object Snakemake puts into the script. No imports, no
+   `argparse`, no paths.
+2. `NA` now means one thing only: the sample is a control. In the legacy script
+   it also meant "peaks missing for any reason".
+3. Sorting by sample name keeps the row order of the legacy table (which came
+   from the sorted glob), so the two files can be compared with `cmp`.
+
+**Check.** 50 jobs from scratch. `results/qc/qc_summary.tsv` is byte-for-byte
+identical to `legacy/qc_summary.tsv`. FRiP ranges from 0.0447 (HCT116_CTCF_1)
+to 0.5327 (HCT116_H3K27ac_1).
+
+## Exercise S7: Overlaps and a file that lies {#ex-s7}
+
+```{.python filename="answers/snakemakeify/rules/overlap.smk"}
+# Exercise 7: 07_overlap.sh
+rule consensus_peaks:
+    input:
+        lambda wc: expand("results/peaks/{sample}_peaks.narrowPeak",
+                          sample=reps_of(wc.target)),  # <1>
+    output:
+        "results/overlap/{target}_consensus.bed",
+    params:
+        rep1=lambda wc, input: input[0],  # <2>
+        others=lambda wc, input: input[1:],
+    shell:
+        # replicate 1 peaks that overlap a peak in any other replicate
+        "bedtools intersect -u -a {params.rep1} -b {params.others} > {output}"  # <3>
+
+
+rule ctcf_rad21_overlap:
+    input:
+        ctcf="results/overlap/CTCF_consensus.bed",
+        rad21=f"{DATA}/peaks/RAD21_ENCFF391AAM.bed.gz",
+    output:
+        "results/overlap/CTCF_with_RAD21.bed",
+    shell:
+        "bedtools intersect -u -a {input.ctcf} -b {input.rad21} > {output}"
+
+
+rule ctcf_summit_windows:
+    input:
+        summits=lambda wc: f"results/peaks/{reps_of('CTCF')[0]}_summits.bed",
+        fai=rules.reference.output.fai,  # <4>
+    output:
+        "results/overlap/CTCF_summits_200bp.bed",
+    shell:
+        "bedtools slop -b 100 -g {input.fai} -i {input.summits} > {output}"
+
+
+rule overlap_counts:
+    input:
+        expand("results/overlap/{target}_consensus.bed", target=TARGETS),
+        rules.ctcf_rad21_overlap.output,
+        rules.ctcf_summit_windows.output,
+    output:
+        "results/overlap/counts.txt",
+    shell:
+        "wc -l {input} > {output}"
+```
+1. `{target}` is a wildcard that is not a sample. The input function asks the
+   samplesheet for that target's replicates, so the targets and the
+   `HCT116_${t}_1` / `_2` file names are no longer typed in.
+2. Shell placeholders cannot slice a list (`{input[1:]}` does not work), so
+   the first replicate and the rest go through `params:` functions.
+3. With two replicates this is the legacy command exactly. With three it keeps
+   rep 1 peaks found in either other replicate, which is a looser rule than
+   "in all replicates"; RegPipe's `consensus_peaks` shows a stricter version.
+4. The `.fai` is an input, made by the `reference` rule from S2. In the legacy
+   version it was a side effect of `02_align.sh`.
+
+**The file that lies.** In the legacy script, `bedtools ... > overlap/X.bed`
+creates `X.bed` before bedtools runs. If bedtools fails (peaks not called yet,
+or the `.fai` missing), the empty file stays, and the `if [ ! -f ... ]` check
+treats it as done from then on. Running `07_overlap.sh` in an empty folder,
+then copying in the peaks and the `.fai` and running it again, gives 0 lines
+in all five files both times. Snakemake prevents this twice: it never starts a
+job before its inputs exist, and when a job fails it deletes that job's
+outputs, so a later run tries again.
+
+**Check.** 45 jobs from scratch. All five BED files are byte-for-byte
+identical to the legacy ones: 24 CTCF consensus peaks, 19 of them with a
+RAD21 peak, 127 H3K27ac and 198 DNase consensus peaks, 24 summit windows.
+
+## Exercise S8: An R figure with hard-coded files {#ex-s8}
+
+```{.python filename="answers/snakemakeify/rules/plot.smk"}
+# Exercise 8: 08_locus_plot.R
+rule locus_plot:
+    input:
+        bigwigs=expand("results/tracks/{sample}.bw", sample=PEAK_SAMPLES),  # <1>
+        consensus=expand("results/overlap/{target}_consensus.bed", target=TARGETS),
+        rad21=f"{DATA}/peaks/RAD21_ENCFF391AAM.bed.gz",
+    output:
+        pdf="results/figures/MYC_locus.pdf",
+        tsv="results/figures/MYC_locus_CTCF_peaks.tsv",
+    params:
+        track_names=PEAK_SAMPLES,  # <2>
+        peak_names=TARGETS,
+        chrom=config["locus"]["chrom"],  # <3>
+        start=config["locus"]["start"],
+        end=config["locus"]["end"],
+    log:
+        "results/logs/locus_plot.log",
+    script:
+        "../scripts/locus_plot.R"
+```
+1. The six `bigwigs <- c(CTCF_1 = "tracks/...", ...)` lines become one
+   `expand()`. A new sample in the samplesheet shows up in the figure without
+   touching the R code.
+2. Labels travel with the files, in the same order.
+3. The region is in `config.yaml` (`locus: chrom, start, end`), not in the code.
+
+The changed lines of the R script (the plotting code is the same as the legacy
+version):
+
+```{.r filename="answers/snakemakeify/scripts/locus_plot.R (top)"}
+log <- file(snakemake@log[[1]], open = "wt")  # <1>
+sink(log, type = "message")
+
+suppressPackageStartupMessages({
+  library(GenomicRanges)
+  library(rtracklayer)
+})
+
+p <- snakemake@params
+region <- GRanges(p$chrom, IRanges(p$start, p$end))  # <2>
+
+bigwigs   <- setNames(unlist(snakemake@input$bigwigs), unlist(p$track_names))  # <3>
+consensus <- setNames(unlist(snakemake@input$consensus), unlist(p$peak_names))
+```
+1. Messages and warnings go to the rule's log file instead of the terminal.
+2. `snakemake@params` is a list with the names from the rule.
+3. A named input with several files comes into R as a list. `unlist()` makes it
+   a character vector; `setNames()` gives it the labels so the rest of the
+   script (which loops over `names(signal)`) did not have to change. The
+   output paths further down are `snakemake@output$pdf` and
+   `snakemake@output$tsv`, and the RAD21 file is `snakemake@input$rad21`
+   instead of the `~/snakemake-course/...` path.
+
+**Check.** 49 jobs from scratch. `MYC_locus_CTCF_peaks.tsv` is byte-for-byte
+identical to the legacy one (one CTCF consensus peak in chr8:127.3-127.8 Mb).
+The PDF has the same six tracks and four peak rows; it is not byte-identical
+because PDFs store their creation time, and the track labels are now the full
+sample names.
+
+## Exercise S9: TT-seq over enhancers {#ex-s9}
+
+```{.python filename="answers/snakemakeify/rules/ttseq.smk"}
+# Exercise 9: 09_ttseq_enhancers.R
+TT = config["ttseq"]
+
+
+wildcard_constraints:
+    rep=r"\d+",
+    strand="|".join(TT["strands"]),
+
+
+rule ttseq_signal:
+    input:
+        bigwig=f"{DATA}/{TT['bigwig']}",  # <1>
+        enhancers=f"{DATA}/{TT['enhancers']}",
+    output:
+        "results/ttseq/rep{rep}_{strand}.tsv",  # <2>
+    log:
+        "results/logs/ttseq/rep{rep}_{strand}.log",
+    script:
+        "../scripts/ttseq_signal.R"
+
+
+rule ttseq_tables:
+    input:
+        expand("results/ttseq/rep{rep}_{strand}.tsv",
+               rep=TT["reps"], strand=TT["strands"]),  # <3>
+    output:
+        reps=expand("results/ttseq/ttseq_enhancers_rep{rep}.tsv", rep=TT["reps"]),  # <4>
+        combined="results/ttseq/ttseq_enhancers_all.tsv",
+    params:
+        reps=TT["reps"],
+        strands=TT["strands"],
+    log:
+        "results/logs/ttseq/tables.log",
+    script:
+        "../scripts/ttseq_tables.R"
+```
+1. The config holds the file pattern `geo/TTseq_HCT116_{rep}_{strand}.bw`.
+   The value is pasted into the f-string, so its braces survive as wildcards.
+   This replaces `paste0("TTseq_HCT116_", rep, "_", strand, ".bw")`.
+2. One job per bigWig. The four jobs are independent and run in parallel; the
+   legacy script read them one after another.
+3. The joining rule needs all four. `expand()` with two lists gives
+   rep1_plus, rep1_minus, rep2_plus, rep2_minus, in that order.
+4. An output can be a list. In R it arrives as `snakemake@output$reps`.
+
+```{.r filename="answers/snakemakeify/scripts/ttseq_signal.R"}
+# Mean TT-seq coverage over each enhancer, for one replicate and one strand.
+# Called by the ttseq_signal rule: one bigWig in, one TSV out.
+
+log <- file(snakemake@log[[1]], open = "wt")
+sink(log, type = "message")
+
+suppressPackageStartupMessages({
+  library(GenomicRanges)
+  library(rtracklayer)
+})
+
+enhancers <- import(snakemake@input$enhancers)
+cov <- import(snakemake@input$bigwig, as = "RleList")  # <1>
+
+# one Views per chromosome, so this works for any chromosome in the GTF
+means <- numeric(length(enhancers))
+for (chrom in unique(as.character(seqnames(enhancers)))) {  # <2>
+  idx <- which(seqnames(enhancers) == chrom)
+  means[idx] <- Views(cov[[chrom]], ranges(enhancers[idx])) |>
+    viewMeans() |>
+    round(4)
+}
+
+data.frame(enhancer = enhancers$ID,
+           chrom = as.character(seqnames(enhancers)),
+           start = start(enhancers),
+           end = end(enhancers),
+           signal = means) |>
+  write.table(snakemake@output[[1]], sep = "\t", quote = FALSE, row.names = FALSE)  # <3>
+```
+1. The bigWig as per-base coverage, one `Rle` per chromosome.
+2. The legacy script used `cov[["chr8"]]` directly. Looping over the
+   chromosomes in the annotation means the same rule works for a genome-wide run.
+3. One small table per bigWig, with a plain `signal` column. Which strand and
+   replicate it is lives in the file name, where the wildcards put it.
+
+```{.r filename="answers/snakemakeify/scripts/ttseq_tables.R"}
+# Join the per-strand tables into one table per replicate (plus and minus
+# columns), and stack the replicates into one combined table.
+# Called by the ttseq_tables rule. Input order comes from expand():
+# rep1_plus, rep1_minus, rep2_plus, rep2_minus.
+
+log <- file(snakemake@log[[1]], open = "wt")
+sink(log, type = "message")
+
+reps    <- unlist(snakemake@params$reps)
+strands <- unlist(snakemake@params$strands)
+inputs  <- matrix(unlist(snakemake@input), nrow = length(strands),
+                  dimnames = list(strands, reps))  # <1>
+
+read_tsv <- \(f) read.delim(f, check.names = FALSE)
+
+all_reps <- list()
+for (i in seq_along(reps)) {
+  per_strand <- lapply(strands, \(s) read_tsv(inputs[s, reps[i]]))
+  tab <- per_strand[[1]][, c("enhancer", "chrom", "start", "end")]
+  for (j in seq_along(strands)) {
+    tab[[strands[j]]] <- per_strand[[j]]$signal
+  }
+  write.table(tab, snakemake@output$reps[[i]],  # <2>
+              sep = "\t", quote = FALSE, row.names = FALSE)
+  all_reps[[i]] <- cbind(rep = reps[i], tab)
+}
+
+do.call(rbind, all_reps) |>
+  write.table(snakemake@output$combined, sep = "\t", quote = FALSE, row.names = FALSE)
+```
+1. Because `expand()` loops over the last list (strands) fastest, the inputs
+   fill a strands x reps matrix column by column. `inputs["minus", "2"]` is
+   replicate 2, minus strand.
+2. The i-th file of the `reps` output list is replicate i's table.
+
+**Check.** 6 jobs. All three tables (118 enhancers each, 236 rows in the
+combined one) are byte-for-byte identical to the legacy output. A third
+replicate is one more entry in `ttseq: reps:` and two more `ttseq_signal` jobs.
+
+## Exercise S10: The whole of run_all.sh {#ex-s10}
+
+`answers/snakemakeify/Snakefile` is every rule from S1-S9 in one file, with
+the contents of `common.smk` at the top and this target rule:
+
+```{.python filename="answers/snakemakeify/Snakefile (excerpt)"}
+import pandas as pd
+
+
+configfile: f"{workflow.basedir}/config.yaml"  # <1>
+
+# ... samplesheet and sample lists, as in common.smk ...
+
+rule all:  # <2>
+    input:
+        expand("results/fastqc/{sample}_fastqc.html", sample=SAMPLES),
+        expand("results/tracks/{sample}.bw", sample=SAMPLES),  # <3>
+        "results/qc/qc_summary.tsv",
+        "results/sweep/sweep_counts.tsv",
+        "results/overlap/counts.txt",
+        "results/figures/MYC_locus.pdf",
+        "results/ttseq/ttseq_enhancers_all.tsv",
+```
+1. `workflow.basedir` is the folder the Snakefile is in, so the config is found
+   wherever you run from. A plain `configfile: "config.yaml"` is looked up in
+   the folder you run Snakemake from.
+2. `rule all` lists only the ends of the chains. The BAMs, peaks and index are
+   pulled in because something on this list needs them. The order of the steps,
+   which `run_all.sh` spelled out, is now worked out from the inputs and outputs.
+3. The legacy filter step made a bigWig for every sample, controls included,
+   but only the six peak samples feed the figure. To keep all ten, ask for them
+   here. Leave this line out and Snakemake makes six.
+
+**What changed compared with `run_all.sh`.**
+
+| | `run_all.sh` | `Snakefile` |
+|---|---|---|
+| Step order | written by hand | from the inputs and outputs |
+| A step fails | the next steps run anyway, on missing or empty files | Snakemake stops, deletes that job's outputs, and keeps the rest |
+| Second run | 01-05 and 07 skip by file existence; 06, 08 and 09 always rerun (about 20 s) | `Nothing to be done` |
+| An input changes | nothing notices | the jobs downstream of it rerun |
+| Parallel | one command at a time | independent jobs side by side up to `-c` |
+| Settings | at the top of nine files | `config.yaml` |
+
+**Check.** In a fresh folder, `snakemake -s Snakefile -n` shows 91 jobs. The
+real run with `-c 4` finished in 74 seconds; the legacy `run_all.sh` took 96
+seconds. Every output matches the per-exercise runs. A second `-n` prints
+`Nothing to be done (all requested files are present and up to date).` After
+`touch results/filter/HCT116_CTCF_1.filt.bam`, the dry run shows 15 jobs:
+the flagstat, bigWig and peaks of that sample, its four sweep jobs, and
+everything that summarizes across samples (`sweep_counts`, `qc_summary`, the
+three overlap rules, `consensus_peaks` for CTCF, `locus_plot`, `all`).
+
+From here, the steps that turn this into a lab pipeline (a samplesheet and
+config next to the launcher, `profiles/`, `envs/`, `workflows/rules/`, a dry-run
+test) are the ones RegPipe takes in modules 5-8, and the ones the
+[capstone](../capstone.qmd) asks for.
