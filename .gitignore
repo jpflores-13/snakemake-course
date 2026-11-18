@@ -1,2 +1,28 @@
+# Quarto build output (the site is built by CI; see .github/workflows/publish.yml)
+/_site/
 /.quarto/
+/**/*.quarto_ipynb
+# Quarto's per-page support folders, only where they are build output
+/*_files/
+/lessons/*_files/
+/answers/*_files/
+/exercises/*_files/
+/field-guide/*_files/
+# keep: _freeze/ (frozen computations) and _generated/ (command output for the pages)
+
+# Snakemake runs anywhere in the course (learners' runs, tests)
+.snakemake/
+output/
+output_*/
+*.pyc
+__pycache__/
+.pytest_cache/
+
+# editors and OS
+.DS_Store
+.Rproj.user/
+.Rhistory
+.vscode/
+*.swp
+
 **/*.quarto_ipynb

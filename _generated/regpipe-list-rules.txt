@@ -1,0 +1,12 @@
+align
+all
+bigwig
+bowtie2_index
+call_peaks
+consensus_peaks
+ctcf_rad21_overlap
+fastqc
+filter
+frip
+locus_plot
+qc_table

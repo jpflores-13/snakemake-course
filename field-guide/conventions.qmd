@@ -204,20 +204,30 @@ repositories.
 We ran `snakemake --lint` (Snakemake 8.27.1) from each pipeline's root at the pinned commits. MicroCPipe
 and TTpipe were given their dry-run test configs so they parse without data; ChromSimPipe parses
 with its shipped config, because linting does not build the job graph and so does not need the
-input files. All three exit with status 1 (lints found).
+input files. All three exit with status 1 (lints found). The full output is long (MicroCPipe's is about
+860 lines, TTpipe's about 1,900), so here is ChromSimPipe's in full and the rule-level part of the
+other two:
 
-<!-- GENERATE: microcpipe-lint | pipelines/microcpipe | snakemake --lint -s workflows/MicroCPipe.snakefile --configfile config/MicroCConfig.yaml tests/dryrun/config.yaml -->
-<!-- GENERATE: ttpipe-lint | pipelines/ttpipe | snakemake --lint -s workflows/TTpipe.snakefile --configfile config/TTpipeConfig.yaml tests/dryrun/config.yaml -->
-<!-- GENERATE: chromsimpipe-lint | pipelines/chromsimpipe | snakemake --lint -s workflows/ChromSimPipe.snakefile -->
+{{< generated name="chromsimpipe-lint" >}}
+
+{{< generated name="microcpipe-lint" tail="46" >}}
+
+{{< generated name="ttpipe-lint" tail="137" >}}
+
+The counts below are from the whole output.
+
+<!-- GENERATE: microcpipe-lint | pipelines/microcpipe | snakemake --lint -s workflows/MicroCPipe.snakefile --configfile config/MicroCConfig.yaml tests/dryrun/config.yaml || true -->
+<!-- GENERATE: ttpipe-lint | pipelines/ttpipe | snakemake --lint -s workflows/TTpipe.snakefile --configfile config/TTpipeConfig.yaml tests/dryrun/config.yaml || true -->
+<!-- GENERATE: chromsimpipe-lint | pipelines/chromsimpipe | snakemake --lint -s workflows/ChromSimPipe.snakefile || true -->
 
 | Lint | MicroCPipe | TTpipe | ChromSimPipe |
 |---|---:|---:|---:|
-| Absolute path | 40 | 151 | 0 |
-| Path composition with `+` | 34 | 131 | 0 |
-| Mixed rules and functions in same snakefile | 1 | 5 | 1 |
-| Shell command uses a variable from outside the rule | 0 | 8 (`PY` 4, `SCRIPTS` 4) | 0 |
-| Param is a prefix of an input or output but hardcoded | 0 | 6 | 0 |
-| No log directive | 0 | 1 (`sample_table`) | 0 |
+| Absolute path | 70 | 151 | 0 |
+| Path composition with `+` | 60 | 131 | 0 |
+| Mixed rules and functions in same snakefile | 3 | 5 | 1 |
+| Shell command uses a variable from outside the rule | 3 (`workflow`) | 8 (`PY` 4, `SCRIPTS` 4) | 0 |
+| Param is a prefix of an input or output but hardcoded | 2 | 6 | 0 |
+| No log directive | 1 (`benchmark_summary`) | 1 (`sample_table`) | 0 |
 | Long `run:` block, move to a script | 0 | 1 (`sample_table`) | 0 |
 | Environment variable used without `envvars:` | 0 | 0 | 1 (`CHROMSIM_CONFIG`) |
 
@@ -227,16 +237,17 @@ How to read this:
   write `OUT + "/{group}/logs/..."`. The linter sees a string that starts with `/` and calls it
   absolute; it also dislikes building paths with `+`. `OUT` comes from the config, so nothing is
   really hard-coded. ChromSimPipe writes the same paths as f-strings
-  (`f"{LOG_DIR}/{{locus}}/..."`) and gets neither lint. Switching to f-strings would remove 356 of
-  the 380 findings across the three pipelines and make the rest easy to see.
+  (`f"{LOG_DIR}/{{locus}}/..."`) and gets neither lint. Switching to f-strings would remove 412 of
+  the 444 findings across the three pipelines and make the rest easy to see.
 - **Shell variables from outside the rule** (`{PY}`, `{SCRIPTS}` in TTpipe) work, because
   Snakemake fills shell placeholders from global variables too, but a reader cannot see them in the
-  rule. Pass them as `params:`.
+  rule. Pass them as `params:`. MicroCPipe's three are `{workflow.basedir}`, which is Snakemake's own
+  object; that one is a false alarm.
 - **Hardcoded param prefixes** are params like `outdir = OUT + "/qc/fastqc"` that repeat part of an
   output path. If the output moves, the param does not. Deriving it from the output
   (`lambda w, output: os.path.dirname(output.zip)`) keeps them in step.
-- **`sample_table`** is the only `run:` block and the only rule without a log. Both lints are fair
-  and both are small.
+- **No log**: TTpipe's `sample_table` (also the only `run:` block) and MicroCPipe's
+  `benchmark_summary`. Both are fair and both are small.
 - **`envvars:`** is half right for ChromSimPipe: the Snakefile *sets* `CHROMSIM_CONFIG` rather than
   reading it, so asserting it would not help. The lint does point at something real, though: the
   scripts depend on environment variables that Snakemake does not track.

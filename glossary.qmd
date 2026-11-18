@@ -1,0 +1,175 @@
+---
+title: "Glossary"
+description: "Snakemake terms used in the course, each in a sentence or two, with the module that teaches it."
+---
+
+Terms are in the order the course introduces them. Each links to the module
+that teaches it; the [cheat sheet](cheatsheet.qmd) has the syntax.
+
+::: {.glossary}
+
+Rule
+: A recipe for making output files from input files: `input:`, `output:` and
+  a `shell:`, `run:` or `script:` that does the work. A rule is a template;
+  it does nothing until some target needs its output.
+  [Module 1](lessons/01-rules.qmd)
+
+Target
+: The file (or rule) you ask Snakemake to produce, on the command line or in
+  the first rule of the Snakefile (by convention `rule all`). Snakemake works
+  backward from the targets to decide what to run.
+  [Module 1](lessons/01-rules.qmd)
+
+Job
+: One run of a rule for one set of wildcard values, for example `align` for
+  `HCT116_CTCF_1`. A dry run lists the jobs and counts them per rule.
+  [Module 1](lessons/01-rules.qmd)
+
+Dry run
+: `snakemake -n`: build the DAG, check that inputs exist and print the jobs
+  that would run, without running any of them. Do one before every real run.
+  [Module 1](lessons/01-rules.qmd)
+
+Wildcard
+: A `{name}` in an output path that matches any text, like `{sample}` in
+  `output/{sample}/{sample}.bam`. Snakemake fills it in from the file it needs
+  and uses the same value in the input and the command.
+  [Module 2](lessons/02-wildcards.qmd)
+
+`expand()`
+: Builds a list of file names from a pattern and lists of values, for example
+  every sample's BAM. Mostly used in `rule all` and other aggregating rules.
+  [Module 2](lessons/02-wildcards.qmd)
+
+DAG
+: The directed acyclic graph of jobs: which job needs which other job's
+  output. `snakemake --dag | dot -Tsvg > dag.svg` draws it;
+  `--rulegraph` draws one box per rule instead of per job.
+  [Module 2](lessons/02-wildcards.qmd)
+
+Config
+: A YAML file of settings (paths, thresholds, which steps to run) read with
+  `configfile:` into the `config` dictionary, so nothing that changes between
+  runs is written into the rules.
+  [Module 3](lessons/03-config.qmd)
+
+Samplesheet
+: A table with one row per sample that the Snakefile reads (with pandas) to
+  get sample names, files and metadata such as each ChIP sample's control.
+  [Module 3](lessons/03-config.qmd)
+
+Input function
+: A Python function (or `lambda`) in `input:` that receives the job's
+  `wildcards` and returns its input files. Use it when the input depends on a
+  lookup, such as the control that belongs to a ChIP sample.
+  [Module 3](lessons/03-config.qmd)
+
+`params`
+: Values passed to the command that are not files, such as a MAPQ cutoff.
+  They can be computed from wildcards or config, and changing them can trigger
+  a rerun.
+  [Module 4](lessons/04-rules-that-behave.qmd)
+
+`log` and `benchmark`
+: Per-job files for the tool's messages (`log:`) and for the time and memory
+  the job used (`benchmark:`). Both take wildcards, like outputs.
+  [Module 4](lessons/04-rules-that-behave.qmd)
+
+`threads` and `resources`
+: How many cores a job uses and what else it needs (memory, runtime). Snakemake
+  uses them to fit jobs into `--cores` locally and to request them from the
+  scheduler on a cluster.
+  [Module 4](lessons/04-rules-that-behave.qmd), [Module 5](lessons/05-cluster.qmd)
+
+Temporary and protected files
+: `temp()` marks an output Snakemake deletes once no job needs it (an
+  unsorted BAM); `protected()` makes an output read-only so it is not
+  overwritten by accident (a reference index).
+  [Module 4](lessons/04-rules-that-behave.qmd)
+
+Conda directive
+: `conda: "envs/align.yml"` gives a rule its own software environment.
+  With `--software-deployment-method conda` (or `--sdm conda`) Snakemake builds
+  it once and runs the job inside it.
+  [Module 4](lessons/04-rules-that-behave.qmd)
+
+Profile
+: A folder with a `config.yaml` of command-line options (executor, number of
+  jobs, default resources) for one place where the pipeline runs. Select it
+  with `--profile profiles/longleaf`, so the Snakefile stays the same
+  everywhere.
+  [Module 5](lessons/05-cluster.qmd)
+
+Executor
+: The part of Snakemake that starts jobs: the default runs them on this
+  machine; the SLURM executor plugin submits each job with `sbatch` and
+  watches it.
+  [Module 5](lessons/05-cluster.qmd)
+
+Launcher script
+: The lab's `<Pipeline>.sh` wrapper: it picks the profile, loads the site's
+  software and calls `snakemake` with the right options, and can itself be
+  submitted with `sbatch`.
+  [Module 5](lessons/05-cluster.qmd)
+
+`include:`
+: Pulls another file of rules (`rules/align.smk`) into the Snakefile, so a
+  long workflow is split by topic.
+  [Module 6](lessons/06-structure.qmd)
+
+Script directive
+: `script: "scripts/frip.py"` runs a Python or R script with a `snakemake`
+  object that holds the job's input, output, params and log, instead of a
+  shell command.
+  [Module 6](lessons/06-structure.qmd)
+
+Switch
+: A config value (`True`/`False` or a list of steps) that turns a part of the
+  pipeline on or off, usually by changing what `rule all` asks for.
+  [Module 6](lessons/06-structure.qmd)
+
+`onsuccess` / `onerror`
+: Blocks of Python that run once when the whole workflow finishes or fails,
+  for example to send an email.
+  [Module 6](lessons/06-structure.qmd)
+
+Checkpoint
+: A rule whose outputs are not known until it has run (how many chunks, which
+  clusters). Rules downstream of it use an input function that asks the
+  checkpoint for its outputs, and Snakemake re-evaluates the DAG after it
+  finishes.
+  [Module 7](lessons/07-beyond-files.qmd)
+
+Scatter-gather
+: Split one input into N pieces, process the pieces in parallel, merge the
+  results. `scattergather:` and the `scatter`/`gather` helpers set this up
+  with N in one place.
+  [Module 7](lessons/07-beyond-files.qmd)
+
+Sentinel
+: An empty file (`touch()` output, often `name.done`) that records that a
+  step finished, when the step's real output is a folder or many files.
+  Compare with `directory()`, which makes the folder itself the output.
+  [Module 7](lessons/07-beyond-files.qmd)
+
+Dry-run test
+: A pytest test that runs `snakemake -n` on a small fixture and checks the job
+  counts. Fast, needs no tools, and catches broken rules and samplesheets.
+  [Module 8](lessons/08-testing.qmd)
+
+Rerun triggers
+: What makes Snakemake decide a job must run again: a missing or older output
+  (`mtime`), or changed `params`, `input` set, software environment or code.
+  `--list-changes` shows which. See the [cheat sheet](cheatsheet.qmd).
+  [Module 4](lessons/04-rules-that-behave.qmd)
+
+Wildcard constraints
+: A regular expression that limits what a wildcard may match, for example
+  `sample="[^/]+"`, so two rules do not both claim the same file.
+  [Module 2](lessons/02-wildcards.qmd)
+
+`ruleorder`
+: Tells Snakemake which rule wins when two rules could make the same file.
+  [Module 7](lessons/07-beyond-files.qmd)
+
+:::

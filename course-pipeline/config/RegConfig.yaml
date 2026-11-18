@@ -104,7 +104,13 @@ make_locus_plot: true
 locusPlot:
   name: 'MYC'                         # output: figures/<name>_locus.pdf
   targets: ['CTCF', 'H3K27ac', 'DNase']
-  assembly: 'hg38'                    # plotgardener assembly (genes from TxDb/org.Hs.eg.db)
+  ## Gene track. With genesGtf empty, genes come from plotgardener's `assembly`: for
+  ## hg38 the TxDb.Hsapiens.UCSC.hg38.knownGene and org.Hs.eg.db packages, which conda
+  ## downloads from bioconductor.org while it builds envs/regpipe_r.yml.
+  ## Or give a GTF file (relative to dataDir, or absolute), e.g. UCSC's
+  ## hg38.ncbiRefSeq.gtf.gz, whose gene_id is the gene name; only the window is used.
+  assembly: 'hg38'
+  genesGtf: ''
 
 ## ---- Email notifications ---------------------------------------------------
 ## One email when the workflow starts, one when it finishes, one if a job fails.

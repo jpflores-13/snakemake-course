@@ -1,0 +1,130 @@
+---
+title: "Snakemake for genomics"
+subtitle: "A hands-on course in two half days"
+description: "Learn Snakemake by building a real ChIP-seq and DNase-seq pipeline on public HCT116 data, then read the lab's own pipelines with confidence."
+page-layout: full
+toc: false
+title-block-banner: false
+---
+
+::: {.hero}
+::: {.lead}
+You can already write Python, R and bash. This course teaches you to tie those
+scripts into a pipeline that knows what to rerun, runs the same way on your
+laptop and on the cluster, and that someone else in the lab can pick up next
+year.
+:::
+
+[Set up your laptop](setup.qmd){.btn .btn-primary .me-2}
+[See the schedule](schedule.qmd){.btn .btn-outline-primary .me-2}
+[Start with module 0](lessons/00-why.qmd){.btn .btn-outline-secondary}
+:::
+
+## Who this is for
+
+Lab members who code but have never used Snakemake. You should be able to run
+commands in a terminal, read a short Python function and know what a BAM file
+is. You do not need cluster experience: day 1 runs entirely on your laptop
+(macOS, Linux, or Windows through WSL2), and day 2 shows how the same pipeline
+moves to SLURM.
+
+We use Snakemake **8.27.1**, the version the lab's pipelines pin.
+
+## What you build
+
+Over the two days you write **RegPipe**, a small pipeline for regulatory
+genomics. It aligns ChIP-seq and DNase-seq reads, filters them, calls peaks,
+builds consensus peaks and coverage tracks, measures how many reads land in
+peaks, and draws the *MYC* locus with plotgardener. Every module adds one idea
+to it, and you can check your work against a finished copy at four stopping
+points.
+
+The finished RegPipe follows the same layout as the lab's three production
+pipelines, so the last part of the course is reading those.
+
+::: {.pipeline-cards}
+::: {.course-pipeline}
+**RegPipe** (this course)\
+ChIP-seq and DNase-seq: align, filter, peaks, consensus, bigWigs, FRiP, a
+locus figure. [Code](https://github.com/jpflores-13/snakemake-course/tree/main/course-pipeline)
+:::
+
+::: {}
+**MicroCPipe**\
+Micro-C from FASTQ to `.pairs`, `.mcool` and `.hic`, with a QC report.
+[Field guide](field-guide/microcpipe.qmd)
+:::
+
+::: {}
+**TTpipe**\
+TT-seq processing and analysis: STAR alignment, strand-split tracks,
+DESeq2. [Field guide](field-guide/ttpipe.qmd)
+:::
+
+::: {}
+**ChromSimPipe**\
+Cohesin loop-extrusion simulations compared with Hi-C, one GPU job per
+shard. [Field guide](field-guide/chromsimpipe.qmd)
+:::
+:::
+
+## The data
+
+The course data are real, public reads from HCT116 colorectal cancer cells:
+ENCODE ChIP-seq for CTCF and H3K27ac (each with its input control) and
+DNase-seq, two biological replicates each, plus ENCODE's RAD21 peaks as a
+reference set. To keep everything laptop-sized, we kept only the reads that
+ENCODE's GRCh38 alignments place in a 5 Mb window, chr8:125,000,000-130,000,000.
+That window holds *MYC* and the gene desert upstream of it, where the
+colorectal cancer risk enhancers sit. Every step that made the subset is in
+`data/prepare/`, and [`data/README.md`](https://github.com/jpflores-13/snakemake-course/blob/main/data/README.md)
+lists each file's source.
+
+## Two-day schedule
+
+Each day is about four hours with breaks. The [schedule](schedule.qmd) has
+clock times and what to do if you stop early.
+
+::: {.schedule}
+| Day | Module | Time | You leave with |
+|:---|:---|---:|:---|
+| 1 | [0. Why Snakemake](lessons/00-why.qmd) | 20 min | why a pipeline beats a folder of scripts |
+| 1 | [1. Rules](lessons/01-rules.qmd) | 40 min | your first rules, a dry run |
+| 1 | [2. Wildcards](lessons/02-wildcards.qmd) | 45 min | one rule for every sample |
+| 1 | **Stopping point A** | | `stopping-points/stopA/` |
+| 1 | *Break* | 15 min | |
+| 1 | [3. Config and samplesheets](lessons/03-config.qmd) | 45 min | samples from a samplesheet, input functions |
+| 1 | [4. Rules that behave](lessons/04-rules-that-behave.qmd) | 50 min | logs, benchmarks, threads, conda, peaks |
+| 1 | **Stopping point B** | | `stopping-points/stopB/` |
+| 2 | [5. Running on a cluster](lessons/05-cluster.qmd) | 40 min | profiles, SLURM, a launcher script |
+| 2 | [6. Structuring a pipeline](lessons/06-structure.qmd) | 50 min | rules split into files, switches, scripts |
+| 2 | **Stopping point C** | | `stopping-points/stopC/` |
+| 2 | *Break* | 15 min | |
+| 2 | [7. Beyond files](lessons/07-beyond-files.qmd) | 45 min | checkpoints, scatter-gather, sentinels |
+| 2 | [8. Testing](lessons/08-testing.qmd) | 35 min | dry-run tests with pytest |
+| 2 | **Stopping point D** | | `stopping-points/stopD/` = the finished RegPipe |
+| 2 | [Capstone](capstone.qmd) kickoff | 30 min | a plan for your own pipeline |
+:::
+
+## How to use this site
+
+Each lesson exists in three forms, all made from one source file:
+
+- **The page** (what you are reading now): the full text with every
+  explanation, for working on your own or reading after the workshop.
+- **The slides**: the same lesson as reveal.js slides, for the instructor and
+  for following along in the room. Find them under *Also as: Slides* on each
+  lesson page. Press `s` for speaker notes, `f` for full screen.
+- **The answers**: every exercise links to a worked answer that explains
+  *why*, not only *what*. The answer keys are public. Try the exercise first:
+  most take five minutes, and the mistakes are where you learn.
+
+If you fall behind, copy the folder of the last stopping point and carry on
+from there. Nobody needs to finish every exercise to follow the next module.
+
+After the lessons, the [field guide](field-guide/index.qmd) walks through the
+lab's pipelines, the [Snakemake-ify exercise](exercises/snakemakeify.qmd)
+turns a folder of shell scripts into a workflow, and the
+[capstone](capstone.qmd) is a pipeline of your own. Keep the
+[cheat sheet](cheatsheet.qmd) open while you work (it also prints on two
+pages).

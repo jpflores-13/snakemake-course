@@ -7,8 +7,8 @@ description: "An annotated tour of the lab's Micro-C pipeline: from FASTQ to con
 MicroCPipe is the smallest of the three pipelines and the one closest to what you build in the
 course. If you only read one field guide page, read this one.
 
-Code on this page is pulled from the repository at the pinned commit (253a6cc). Every block has a
-link to the same lines on GitHub.
+Code on this page is pulled from the repository at the pinned commit (253a6cc), and each
+block links to the same lines on GitHub. Line numbers in the text are the file's own line numbers.
 
 ## What the pipeline does {#mc-biology}
 
@@ -29,7 +29,6 @@ cis/trans fractions, a preseq library-complexity curve) and one static HTML dash
 
 {{< generated name="microcpipe-rulegraph" >}}
 
-<!-- GENERATE: microcpipe-rulegraph | pipelines/microcpipe | snakemake -s workflows/MicroCPipe.snakefile --configfile config/MicroCConfig.yaml tests/dryrun/config.yaml --cores 1 --rulegraph -->
 
 Read it top to bottom. `align` feeds `dedup`; `dedup` feeds `split` and `qc_summary`; `split` feeds
 `cool`, `hic` and `sort_bam`; `cool` feeds `mcool`; `sort_bam` feeds `library_complexity`. The maps
@@ -185,7 +184,7 @@ enough; nobody has to remember to change a second number.
   If a venv's `bin/` were first on `PATH` inside jobs, that line would find the venv's Python, which
   does not have the tool's packages, and the job would fail with `No module named ...`. Calling
   `env/bin/python3 -m snakemake` directly keeps the venv off `PATH`.
-- Line 78-82 add SLURM log and rate-limit flags only when the profile uses the SLURM executor.
+- Lines 78-82 add SLURM log and rate-limit flags only when the profile uses the SLURM executor.
 - Line 85: `--rerun-incomplete --keep-going -p` are always on. After a crash, half-written files are
   redone; one failed library does not stop the others; and the log shows each shell command.
 

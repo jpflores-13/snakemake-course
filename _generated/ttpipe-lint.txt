@@ -1,0 +1,1896 @@
+Config file config/TTpipeConfig.yaml is extended by additional config specified via the command line.
+Lints for snakefile workflows/TTpipe.snakefile:
+    * Path composition with '+' in line 13:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+
+Lints for snakefile workflows/rules/common.smk:
+    * Absolute path "/reference/star_index" in line 99:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/reference/host_spike.fa" in line 253:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/reference/host_spike.gtf" in line 254:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/reference/spike_contigs.tsv" in line 255:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/reference/spike_genes.tsv" in line 256:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/{sample}/stats/{sample}_idxstats.txt" in line 257:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/spike/spike_counts.tsv" in line 258:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/spike/spike_contig_counts.tsv" in line 259:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/spike/size_factors.tsv" in line 260:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/spike/control_genes.txt" in line 261:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/counts/counts_spike.txt" in line 263:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/qc/fastqc/{sample}_R{mate}_fastqc.zip" in line 269:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/{sample}/trim/{sample}_R{mate}.fastq.gz" in line 270:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/{sample}/stats/{sample}_fastp.json" in line 271:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/{sample}/star/{sample}_Aligned.sortedByCoord.out.bam" in line 272:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/{sample}/stats/{sample}_Log.final.out" in line 273:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/{sample}/stats/{sample}_ReadsPerGene.out.tab" in line 274:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/{sample}/{sample}_mapq.bam" in line 275:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/{sample}/stats/{sample}_mapq.txt" in line 276:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/{sample}/stats/{sample}_dedupMetrics.txt" in line 277:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/{sample}/{sample}.bam" in line 278:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/{sample}/{sample}_{strand}.bam" in line 280:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/{sample}/stats/{sample}_final_pairs.txt" in line 282:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/{sample}/counts/{sample}_{strand}.counts.txt" in line 283:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/merged/{condition}.bam" in line 285:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/merged/{condition}_{strand}.bam" in line 286:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/tracks/scale_factors.tsv" in line 287:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/tracks/{condition}.bw" in line 288:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/tracks/{condition}_{strand}.bw" in line 289:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/tracks/samples/{sample}.bw" in line 290:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/tracks/samples/{sample}_{strand}.bw" in line 291:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/counts/gene_info.tsv" in line 293:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/counts/counts_forward.txt" in line 294:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/counts/counts_reverse.txt" in line 295:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/counts/counts_deseq2.txt" in line 296:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/counts/samples_deseq2.txt" in line 297:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/analysis/deseq2" in line 303:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/degs_{comparison}.csv" in line 304:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/deg_summary.tsv" in line 305:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/normalized_counts.tsv" in line 306:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/vst.tsv" in line 307:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/deseq2_size_factors.tsv" in line 308:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/analysis/figures/pca.pdf" in line 309:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/analysis/gsea" in line 310:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/{comparison}.rnk" in line 311:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/{collection}_{comparison}.tsv" in line 312:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/analysis/figures/sankey.pdf" in line 313:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/analysis/deseq2/sankey_categories.tsv" in line 314:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/qc/sample_qc.tsv" in line 316:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/qc/TTpipe_qc_report.html" in line 317:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/qc/TTpipe_multiqc.html" in line 318:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/analysis/TTpipe_results_explorer.html" in line 320:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/analysis/TTpipe_stranded_signal.html" in line 322:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Path composition with '+' in line 99:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 253:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 254:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 255:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 256:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 257:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 258:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 259:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 260:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 261:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 263:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 269:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 270:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 271:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 272:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 273:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 274:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 275:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 276:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 277:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 278:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 279:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 281:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 283:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 285:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 286:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 287:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 288:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 289:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 290:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 291:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 293:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 294:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 295:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 296:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 297:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 303:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 304:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 306:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 308:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 310:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 311:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 313:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 314:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 316:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 317:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 318:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 320:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 322:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 14:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+
+Lints for snakefile workflows/rules/processing.smk:
+    * Absolute path "/{sample}/logs/fastqc_R{mate}.log" in line 52:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/{sample}/benchmarks/fastqc_R{mate}.tsv" in line 54:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/ttpipe_align.yml" in line 56:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/qc/fastqc" in line 58:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/qc/fastqc/tmp_{sample}_R{mate}" in line 59:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/{sample}/stats/{sample}_fastp.html" in line 78:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/{sample}/logs/fastp.log" in line 80:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/{sample}/benchmarks/fastp.tsv" in line 82:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/ttpipe_align.yml" in line 84:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/SA" in line 101:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/chrNameLength.txt" in line 102:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/logs/star_index.log" in line 104:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/benchmarks/star_index.tsv" in line 106:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/ttpipe_align.yml" in line 108:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/logs/star_index_" in line 112:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/SA" in line 128:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/{sample}/logs/star_align.log" in line 134:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/{sample}/benchmarks/star_align.tsv" in line 136:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/ttpipe_align.yml" in line 138:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/{sample}/star/{sample}_" in line 141:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/{sample}/star/{sample}_STARtmp" in line 142:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/{sample}/logs/mapq_filter.log" in line 165:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/{sample}/benchmarks/mapq_filter.tsv" in line 167:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/ttpipe_align.yml" in line 169:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/{sample}/logs/mark_duplicates.log" in line 191:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/{sample}/benchmarks/mark_duplicates.tsv" in line 193:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/ttpipe_align.yml" in line 195:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/{sample}/tmp_picard" in line 199:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/{sample}/logs/split_strands_{strand}.log" in line 222:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/{sample}/benchmarks/split_strands_{strand}.tsv" in line 224:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/ttpipe_align.yml" in line 226:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/{sample}/tmp_split_{strand}" in line 230:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/merged/{condition}{suffix}.bam" in line 251:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/merged/{condition}{suffix}.bam.bai" in line 252:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/logs/merge_bams_{condition}{suffix}.log" in line 256:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/benchmarks/merge_bams_{condition}{suffix}.tsv" in line 258:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/ttpipe_tracks.yml" in line 260:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/merged/{condition}.bam" in line 277:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/logs/scale_factors.log" in line 281:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/benchmarks/scale_factors.tsv" in line 283:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/ttpipe_tracks.yml" in line 285:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/scale_factors.py" in line 289:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/tracks/scale_factors_pairs.tmp" in line 290:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/merged/{condition}{suffix}.bam" in line 307:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/merged/{condition}{suffix}.bam.bai" in line 308:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/tracks/{condition}{suffix}.bw" in line 311:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/logs/bigwig_{condition}{suffix}.log" in line 315:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/benchmarks/bigwig_{condition}{suffix}.tsv" in line 317:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/ttpipe_tracks.yml" in line 319:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/tracks/samples/{sample}{suffix}.bw" in line 342:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/{sample}/logs/bigwig_sample{suffix}.log" in line 346:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/{sample}/benchmarks/bigwig_sample{suffix}.tsv" in line 348:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/ttpipe_tracks.yml" in line 350:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/scale_factors.py" in line 354:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/{sample}/logs/htseq_count_{strand}.log" in line 375:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/{sample}/benchmarks/htseq_count_{strand}.tsv" in line 377:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/ttpipe_count.yml" in line 379:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/logs/count_matrix.log" in line 403:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/benchmarks/count_matrix.tsv" in line 405:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/ttpipe_count.yml" in line 407:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/make_count_matrix.py" in line 411:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/logs/gene_info.log" in line 427:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/benchmarks/gene_info.tsv" in line 429:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/ttpipe_count.yml" in line 431:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/gene_info.py" in line 434:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Mixed rules and functions in same snakefile.:
+      Small one-liner functions used only once should be defined as lambda
+      expressions. Other functions should be collected in a common module, e.g.
+      'rules/common.smk'. This makes the workflow steps more readable.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/modularization.html#includes
+    * Path composition with '+' in line 52:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 54:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 56:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 59:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 78:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 80:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 82:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 84:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 102:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 106:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 108:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 128:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 136:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 138:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 142:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 165:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 167:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 169:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 191:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 193:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 195:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 222:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 224:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 226:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 251:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 252:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 256:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 258:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 260:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 281:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 283:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 285:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 289:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 307:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 308:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 311:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 315:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 317:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 319:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 342:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 346:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 348:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 350:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 375:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 377:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 379:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 403:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 405:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 407:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 427:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 429:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 431:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 8:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+
+Lints for snakefile workflows/rules/analysis.smk:
+    * Absolute path "/run_deseq2.R" in line 33:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/logs/deseq2.log" in line 35:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/benchmarks/deseq2.txt" in line 37:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/ttpipe_r.yml" in line 40:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/make_rnk.R" in line 68:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/logs/rnk_{comparison}.log" in line 70:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/benchmarks/rnk_{comparison}.txt" in line 72:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/ttpipe_r.yml" in line 75:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/run_fgsea.R" in line 90:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/logs/fgsea_{collection}_{comparison}.log" in line 92:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/benchmarks/fgsea_{collection}_{comparison}.txt" in line 94:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/ttpipe_r.yml" in line 97:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/make_sankey.R" in line 117:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/logs/sankey.log" in line 119:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/benchmarks/sankey.txt" in line 121:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/ttpipe_r.yml" in line 124:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Mixed rules and functions in same snakefile.:
+      Small one-liner functions used only once should be defined as lambda
+      expressions. Other functions should be collected in a common module, e.g.
+      'rules/common.smk'. This makes the workflow steps more readable.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/modularization.html#includes
+    * Path composition with '+' in line 33:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 37:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 40:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 70:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 72:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 75:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 92:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 94:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 97:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 119:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 121:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+
+Lints for snakefile workflows/rules/explorer.smk:
+    * Absolute path "/logs/results_explorer.log" in line 24:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/benchmarks/results_explorer.tsv" in line 26:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/ttpipe_qc.yml" in line 28:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Path composition with '+' in line 24:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 26:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 28:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+
+Lints for snakefile workflows/rules/stranded.smk:
+    * Absolute path "/logs/stranded_signal.log" in line 64:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/benchmarks/stranded_signal.tsv" in line 66:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/ttpipe_plots.yml" in line 68:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Mixed rules and functions in same snakefile.:
+      Small one-liner functions used only once should be defined as lambda
+      expressions. Other functions should be collected in a common module, e.g.
+      'rules/common.smk'. This makes the workflow steps more readable.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/modularization.html#includes
+    * Path composition with '+' in line 64:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 66:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 68:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+
+Lints for snakefile workflows/rules/report.smk:
+    * Absolute path "/logs/qc_summary.log" in line 53:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/benchmarks/qc_summary.tsv" in line 55:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/ttpipe_qc.yml" in line 57:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/logs/qc_report.log" in line 76:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/benchmarks/qc_report.tsv" in line 78:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/ttpipe_qc.yml" in line 80:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Mixed rules and functions in same snakefile.:
+      Small one-liner functions used only once should be defined as lambda
+      expressions. Other functions should be collected in a common module, e.g.
+      'rules/common.smk'. This makes the workflow steps more readable.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/modularization.html#includes
+    * Path composition with '+' in line 53:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 55:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 57:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 76:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 78:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 80:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+
+Lints for snakefile workflows/rules/multiqc.smk:
+    * Absolute path "/logs/multiqc.log" in line 25:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/benchmarks/multiqc.tsv" in line 27:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/ttpipe_multiqc.yml" in line 29:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/qc" in line 31:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Absolute path "/qc/multiqc_files.txt" in line 33:
+      Do not define absolute paths inside of the workflow, since this renders
+      your workflow irreproducible on other machines. Use path relative to the
+      working directory instead, or make the path configurable via a config
+      file.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#configuration
+    * Mixed rules and functions in same snakefile.:
+      Small one-liner functions used only once should be defined as lambda
+      expressions. Other functions should be collected in a common module, e.g.
+      'rules/common.smk'. This makes the workflow steps more readable.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/modularization.html#includes
+    * Path composition with '+' in line 25:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 27:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 29:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+    * Path composition with '+' in line 33:
+      This becomes quickly unreadable. Usually, it is better to endure some
+      redundancy against having a more readable workflow. Hence, just repeat
+      common prefixes. If path composition is unavoidable, use pathlib or
+      (python >= 3.6) string formatting with f"...".
+
+Lints for rule sample_table (line 39, workflows/TTpipe.snakefile):
+    * No log directive defined:
+      Without a log directive, all output will be printed to the terminal. In
+      distributed environments, this means that errors are harder to discover.
+      In local environments, output of concurrent jobs will be mixed and become
+      unreadable.
+      Also see:
+      https://snakemake.readthedocs.io/en/stable/snakefiles/rules.html#log-files
+    * Migrate long run directives into scripts or notebooks:
+      Long run directives hamper workflow readability. Use the script or
+      notebook directive instead. Note that the script or notebook directive
+      does not involve boilerplate. Similar to run, you will have direct access
+      to params, input, output, and wildcards.Only use the run directive for a
+      handful of lines.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/rules.html#external-scripts
+      https://snakemake.readthedocs.io/en/latest/snakefiles/rules.html#jupyter-notebook-integration
+
+Lints for rule fastqc (line 46, workflows/rules/processing.smk):
+    * Param outdir is a prefix of input or output file but hardcoded:
+      If this is meant to represent a file path prefix, it will fail when
+      running workflow in environments without a shared filesystem. Instead,
+      provide a function that infers the appropriate prefix from the input or
+      output file, e.g.: lambda w, input: os.path.splitext(input[0])[0]
+      Also see:
+      https://snakemake.readthedocs.io/en/stable/snakefiles/rules.html#non-file-parameters-for-rules
+      https://snakemake.readthedocs.io/en/stable/tutorial/advanced.html#tutorial-input-functions
+
+Lints for rule star_align (line 125, workflows/rules/processing.smk):
+    * Param index is a prefix of input or output file but hardcoded:
+      If this is meant to represent a file path prefix, it will fail when
+      running workflow in environments without a shared filesystem. Instead,
+      provide a function that infers the appropriate prefix from the input or
+      output file, e.g.: lambda w, input: os.path.splitext(input[0])[0]
+      Also see:
+      https://snakemake.readthedocs.io/en/stable/snakefiles/rules.html#non-file-parameters-for-rules
+      https://snakemake.readthedocs.io/en/stable/tutorial/advanced.html#tutorial-input-functions
+
+Lints for rule scale_factors (line 275, workflows/rules/processing.smk):
+    * Shell command directly uses variable PY from outside of the rule:
+      It is recommended to pass all files as input and output, and non-file
+      parameters via the params directive. Otherwise, provenance tracking is
+      less accurate.
+      Also see:
+      https://snakemake.readthedocs.io/en/stable/snakefiles/rules.html#non-file-parameters-for-rules
+
+Lints for rule bigwig_sample (line 336, workflows/rules/processing.smk):
+    * Shell command directly uses variable PY from outside of the rule:
+      It is recommended to pass all files as input and output, and non-file
+      parameters via the params directive. Otherwise, provenance tracking is
+      less accurate.
+      Also see:
+      https://snakemake.readthedocs.io/en/stable/snakefiles/rules.html#non-file-parameters-for-rules
+
+Lints for rule count_matrix (line 393, workflows/rules/processing.smk):
+    * Shell command directly uses variable PY from outside of the rule:
+      It is recommended to pass all files as input and output, and non-file
+      parameters via the params directive. Otherwise, provenance tracking is
+      less accurate.
+      Also see:
+      https://snakemake.readthedocs.io/en/stable/snakefiles/rules.html#non-file-parameters-for-rules
+
+Lints for rule gene_info (line 421, workflows/rules/processing.smk):
+    * Shell command directly uses variable PY from outside of the rule:
+      It is recommended to pass all files as input and output, and non-file
+      parameters via the params directive. Otherwise, provenance tracking is
+      less accurate.
+      Also see:
+      https://snakemake.readthedocs.io/en/stable/snakefiles/rules.html#non-file-parameters-for-rules
+
+Lints for rule sankey (line 106, workflows/rules/analysis.smk):
+    * Param degs is a prefix of input or output file but hardcoded:
+      If this is meant to represent a file path prefix, it will fail when
+      running workflow in environments without a shared filesystem. Instead,
+      provide a function that infers the appropriate prefix from the input or
+      output file, e.g.: lambda w, input: os.path.splitext(input[0])[0]
+      Also see:
+      https://snakemake.readthedocs.io/en/stable/snakefiles/rules.html#non-file-parameters-for-rules
+      https://snakemake.readthedocs.io/en/stable/tutorial/advanced.html#tutorial-input-functions
+
+Lints for rule results_explorer (line 13, workflows/rules/explorer.smk):
+    * Shell command directly uses variable SCRIPTS from outside of the rule:
+      It is recommended to pass all files as input and output, and non-file
+      parameters via the params directive. Otherwise, provenance tracking is
+      less accurate.
+      Also see:
+      https://snakemake.readthedocs.io/en/stable/snakefiles/rules.html#non-file-parameters-for-rules
+
+Lints for rule stranded_signal (line 58, workflows/rules/stranded.smk):
+    * Shell command directly uses variable SCRIPTS from outside of the rule:
+      It is recommended to pass all files as input and output, and non-file
+      parameters via the params directive. Otherwise, provenance tracking is
+      less accurate.
+      Also see:
+      https://snakemake.readthedocs.io/en/stable/snakefiles/rules.html#non-file-parameters-for-rules
+
+Lints for rule qc_summary (line 47, workflows/rules/report.smk):
+    * Shell command directly uses variable SCRIPTS from outside of the rule:
+      It is recommended to pass all files as input and output, and non-file
+      parameters via the params directive. Otherwise, provenance tracking is
+      less accurate.
+      Also see:
+      https://snakemake.readthedocs.io/en/stable/snakefiles/rules.html#non-file-parameters-for-rules
+    * Param outdir is a prefix of input or output file but hardcoded:
+      If this is meant to represent a file path prefix, it will fail when
+      running workflow in environments without a shared filesystem. Instead,
+      provide a function that infers the appropriate prefix from the input or
+      output file, e.g.: lambda w, input: os.path.splitext(input[0])[0]
+      Also see:
+      https://snakemake.readthedocs.io/en/stable/snakefiles/rules.html#non-file-parameters-for-rules
+      https://snakemake.readthedocs.io/en/stable/tutorial/advanced.html#tutorial-input-functions
+
+Lints for rule qc_report (line 70, workflows/rules/report.smk):
+    * Shell command directly uses variable SCRIPTS from outside of the rule:
+      It is recommended to pass all files as input and output, and non-file
+      parameters via the params directive. Otherwise, provenance tracking is
+      less accurate.
+      Also see:
+      https://snakemake.readthedocs.io/en/stable/snakefiles/rules.html#non-file-parameters-for-rules
+    * Param outdir is a prefix of input or output file but hardcoded:
+      If this is meant to represent a file path prefix, it will fail when
+      running workflow in environments without a shared filesystem. Instead,
+      provide a function that infers the appropriate prefix from the input or
+      output file, e.g.: lambda w, input: os.path.splitext(input[0])[0]
+      Also see:
+      https://snakemake.readthedocs.io/en/stable/snakefiles/rules.html#non-file-parameters-for-rules
+      https://snakemake.readthedocs.io/en/stable/tutorial/advanced.html#tutorial-input-functions
+
+Lints for rule multiqc (line 19, workflows/rules/multiqc.smk):
+    * Param outdir is a prefix of input or output file but hardcoded:
+      If this is meant to represent a file path prefix, it will fail when
+      running workflow in environments without a shared filesystem. Instead,
+      provide a function that infers the appropriate prefix from the input or
+      output file, e.g.: lambda w, input: os.path.splitext(input[0])[0]
+      Also see:
+      https://snakemake.readthedocs.io/en/stable/snakefiles/rules.html#non-file-parameters-for-rules
+      https://snakemake.readthedocs.io/en/stable/tutorial/advanced.html#tutorial-input-functions

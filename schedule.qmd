@@ -1,0 +1,80 @@
+---
+title: "Schedule"
+description: "Clock times for the two half-day workshops, with breaks and the four stopping points."
+---
+
+The course runs as two half days of about four hours each. Times below assume
+a 9:00 start; shift them to fit your session. Module times include the
+exercises. The [setup](setup.qmd) should be done **before** day 1: the first
+ten minutes are only for checking it, not for installing.
+
+## Day 1: from a script to a pipeline (laptop)
+
+::: {.schedule}
+| Time | Module | Length | What happens |
+|:---|:---|---:|:---|
+| 9:00-9:10 | Welcome and setup check | 10 min | `snakemake --version` prints 8.27.1 for everyone |
+| 9:10-9:30 | [0. Why Snakemake](lessons/00-why.qmd) | 20 min | what goes wrong with a folder of scripts; how Snakemake thinks backward from outputs |
+| 9:30-10:10 | [1. Rules](lessons/01-rules.qmd) | 40 min | `input`, `output`, `shell`; dry runs; FastQC and the bowtie2 index |
+| 10:10-10:55 | [2. Wildcards](lessons/02-wildcards.qmd) | 45 min | `{sample}`, `expand`, aligning and filtering every sample |
+| 10:55 | **Stopping point A** | | `stopping-points/stopA/` |
+| 10:55-11:10 | *Break* | 15 min | |
+| 11:10-11:55 | [3. Config and samplesheets](lessons/03-config.qmd) | 45 min | sample names from `data/samplesheet.txt`, a config file, input functions for controls |
+| 11:55-12:45 | [4. Rules that behave](lessons/04-rules-that-behave.qmd) | 50 min | logs, benchmarks, threads, params, `temp`, conda envs; peaks, consensus, bigWigs |
+| 12:45 | **Stopping point B** | | `stopping-points/stopB/` |
+| 12:45-13:00 | Questions, what to read before day 2 | 15 min | |
+:::
+
+## Day 2: a pipeline the lab can use (laptop and cluster)
+
+::: {.schedule}
+| Time | Module | Length | What happens |
+|:---|:---|---:|:---|
+| 9:00-9:10 | Recap, everyone on stopping point B | 10 min | copy `stopping-points/stopB/` if your own copy does not run |
+| 9:10-9:50 | [5. Running on a cluster](lessons/05-cluster.qmd) | 40 min | profiles, the SLURM executor, a launcher script, `resources` |
+| 9:50-10:40 | [6. Structuring a pipeline](lessons/06-structure.qmd) | 50 min | `include:` and `rules/*.smk`, config switches, `script:` for R and Python, `onsuccess`/`onerror` |
+| 10:40 | **Stopping point C** | | `stopping-points/stopC/` |
+| 10:40-10:55 | *Break* | 15 min | |
+| 10:55-11:40 | [7. Beyond files](lessons/07-beyond-files.qmd) | 45 min | when outputs are not known in advance: checkpoints, scatter-gather, `directory()` versus a `.done` sentinel |
+| 11:40-12:15 | [8. Testing](lessons/08-testing.qmd) | 35 min | dry-run tests with pytest, the same way the lab pipelines test themselves |
+| 12:15 | **Stopping point D** | | `stopping-points/stopD/` (the finished RegPipe) |
+| 12:15-12:45 | [Capstone](capstone.qmd) kickoff | 30 min | sketch the DAG of a pipeline you need, pick a first rule |
+| 12:45-13:00 | Wrap-up | 15 min | where to get help, the [field guide](field-guide/index.qmd) |
+:::
+
+## Ending at a stopping point
+
+The stopping points exist so a session can end cleanly wherever time runs
+out. Each one is a folder you can run on its own:
+
+| Folder | State after | What it adds |
+|:---|:---|:---|
+| `stopping-points/stopA/` | module 2 | one Snakefile: FastQC, index, align, filter, with `{sample}` wildcards and `expand` |
+| `stopping-points/stopB/` | module 4 | samplesheet and config, input functions for controls, peaks, consensus, bigWigs, logs, benchmarks, threads, conda |
+| `stopping-points/stopC/` | module 6 | profiles and a launcher, rules split into files, switches, `script:` rules, `onsuccess`/`onerror` |
+| `stopping-points/stopD/` | module 8 | the finished pipeline with tests (same as `course-pipeline/`) |
+
+If you run short on time:
+
+- **Instructors:** stop at the last stopping point you reached, not halfway
+  through a module. Start the next session from that folder, so everyone
+  begins from the same code.
+- **Learners who fell behind:** you do not need to catch up before the next
+  module. Copy the stopping point into your work folder and keep going:
+
+  ```bash
+  cp -r stopping-points/stopB my-regpipe
+  cd my-regpipe
+  snakemake -n
+  ```
+
+- **Learners working alone:** a stopping point is a good place to take a
+  break of a day or more. The next module's first slide tells you which
+  folder it starts from.
+
+## Running it as one day
+
+With experienced Python users you can fit modules 0-6 into one long day by
+skipping module 0 (assign it as reading) and the second half of module 4
+(peaks and bigWigs come from stopping point B). Leave modules 7 and 8 for a
+follow-up session.

@@ -1,11 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://jpflores-13.github.io/snakemake-course/zz-infra-test.html</loc>
-    <lastmod>2026-11-18T00:02:04.372Z</lastmod>
+    <loc>https://jpflores-13.github.io/snakemake-course/field-guide/conventions.html</loc>
+    <lastmod>2026-11-18T00:10:39.794Z</lastmod>
   </url>
   <url>
-    <loc>https://jpflores-13.github.io/snakemake-course/zz-infra-test-slides.html</loc>
-    <lastmod>2026-11-18T00:02:04.372Z</lastmod>
+    <loc>https://jpflores-13.github.io/snakemake-course/field-guide/chromsimpipe.html</loc>
+    <lastmod>2026-11-18T00:10:39.794Z</lastmod>
+  </url>
+  <url>
+    <loc>https://jpflores-13.github.io/snakemake-course/field-guide/ttpipe.html</loc>
+    <lastmod>2026-11-18T00:09:19.401Z</lastmod>
   </url>
 </urlset>

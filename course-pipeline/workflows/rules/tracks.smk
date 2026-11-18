@@ -33,12 +33,15 @@ if MAKE_LOCUS_PLOT:
 
     PLOT_TARGETS = config["locusPlot"]["targets"]
     PLOT_SAMPLES = [s for t in PLOT_TARGETS for s in SAMPLES_BY_TARGET[t]]
+    GENES_GTF = config["locusPlot"].get("genesGtf", "")
 
     rule locus_plot:
         input:
             bigwigs = [bigwig_file(s) for s in PLOT_SAMPLES],
             consensus = [consensus_file(t) for t in PLOT_TARGETS],
             rad21 = data_path(config["encodePeaks"]["rad21"]),
+            ## optional: an empty list when genes come from the assembly's packages
+            genes_gtf = [data_path(GENES_GTF)] if GENES_GTF else [],
         output:
             pdf = LOCUS_PLOT,
         log:

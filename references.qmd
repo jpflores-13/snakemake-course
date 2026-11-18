@@ -1,0 +1,79 @@
+---
+title: "References"
+description: "Snakemake documentation, papers, other courses, and the lab pipelines this course draws on."
+---
+
+## Snakemake documentation (version 8)
+
+The course uses Snakemake 8.27.1. These links go to the documentation for
+that exact version; the `latest` docs describe version 9, which differs in a
+few places ([module 5](lessons/05-cluster.qmd) has a note on what changed).
+
+- [Snakemake 8.27.1 documentation](https://snakemake.readthedocs.io/en/v8.27.1/), home page
+- [Tutorial](https://snakemake.readthedocs.io/en/v8.27.1/tutorial/tutorial.html), the official one, a good second pass after this course
+- [Rules](https://snakemake.readthedocs.io/en/v8.27.1/snakefiles/rules.html): wildcards, input functions, params, log, threads, resources, `temp`/`protected`/`directory`, checkpoints, scatter-gather
+- [Configuration](https://snakemake.readthedocs.io/en/v8.27.1/snakefiles/configuration.html): config files, validation, samplesheets
+- [Command line interface](https://snakemake.readthedocs.io/en/v8.27.1/executing/cli.html): every option, and profiles
+- [Modularization](https://snakemake.readthedocs.io/en/v8.27.1/snakefiles/modularization.html): `include:`, modules, wrappers
+- [Distribution and reproducibility](https://snakemake.readthedocs.io/en/v8.27.1/snakefiles/deployment.html): conda environments, containers, the standard folder layout
+- [Best practices](https://snakemake.readthedocs.io/en/v8.27.1/snakefiles/best_practices.html)
+- [Testing](https://snakemake.readthedocs.io/en/v8.27.1/snakefiles/testing.html)
+- [Reports](https://snakemake.readthedocs.io/en/v8.27.1/snakefiles/reporting.html)
+- [Migrating between versions](https://snakemake.readthedocs.io/en/v8.27.1/getting_started/migration.html), for when you meet a Snakemake 7 pipeline
+- [Snakemake plugin catalog](https://snakemake.github.io/snakemake-plugin-catalog/): executors (SLURM and others) and storage plugins
+
+## Papers
+
+When you use Snakemake in a publication, cite the first paper below; the
+Snakemake authors keep it updated as the software changes.
+
+Mölder F, Jablonski KP, Letcher B, Hall MB, Tomkins-Tinch CH, Sochat V, Forster J, Lee S, Twardziok SO, Kanitz A, Wilm A, Holtgrewe M, Rahmann S, Nahnsen S, Köster J (2021).
+Sustainable data analysis with Snakemake. *F1000Research* 10:33.
+[doi:10.12688/f1000research.29032.1](https://doi.org/10.12688/f1000research.29032.1)
+
+Köster J, Rahmann S (2012). Snakemake: a scalable bioinformatics workflow
+engine. *Bioinformatics* 28(19):2520-2522.
+[doi:10.1093/bioinformatics/bts480](https://doi.org/10.1093/bioinformatics/bts480)
+
+## Other courses
+
+- [HBC training](https://hbctraining.github.io/main/): the Harvard Chan
+  Bioinformatics Core's open lessons. Their format (learning objectives, time
+  estimates, public answer keys) is the model for this course.
+- [The Carpentries](https://carpentries.org/): open lessons on the shell, git,
+  Python and R, and on how to teach them. If the terminal is new to you, their
+  [Unix shell lesson](https://swcarpentry.github.io/shell-novice/) is the
+  best preparation for day 1.
+- [Snakemake for Bioinformatics](https://carpentries-incubator.github.io/snakemake-novice-bioinformatics/),
+  a Carpentries Incubator lesson that covers similar ground with RNA-seq data.
+
+## Tools used in RegPipe
+
+- [Bowtie 2](https://bowtie-bio.sourceforge.net/bowtie2/manual.shtml)
+- [SAMtools](https://www.htslib.org/doc/samtools.html)
+- [MACS3](https://macs3-project.github.io/MACS/)
+- [BEDTools](https://bedtools.readthedocs.io/)
+- [deepTools](https://deeptools.readthedocs.io/)
+- [FastQC](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/)
+- [plotgardener](https://bioconductor.org/packages/plotgardener/) and
+  [rtracklayer](https://bioconductor.org/packages/rtracklayer/) (Bioconductor)
+
+## Course data
+
+- ENCODE experiments [ENCSR000BSE](https://www.encodeproject.org/experiments/ENCSR000BSE/) (CTCF),
+  [ENCSR661KMA](https://www.encodeproject.org/experiments/ENCSR661KMA/) (H3K27ac),
+  [ENCSR000ENM](https://www.encodeproject.org/experiments/ENCSR000ENM/) (DNase-seq) and their controls;
+  every file accession is in [`data/README.md`](https://github.com/jpflores-13/snakemake-course/blob/main/data/README.md).
+- The selection follows the public data cited in the HCT116 Mediator/cohesin
+  preprint, bioRxiv [doi:10.64898/2026.11.10.765568](https://doi.org/10.64898/2026.11.10.765568).
+
+## The lab pipelines
+
+The [field guide](field-guide/index.qmd) reads these with you. Each has its own
+documentation site.
+
+| Pipeline | What it does | Code | Docs |
+|:--|:--|:--|:--|
+| MicroCPipe | Micro-C processing, from FASTQ to `.mcool`/`.hic` with QC | [GitHub](https://github.com/jpflores-13/MicroCPipe) | [site](https://jpflores-13.github.io/MicroCPipe) |
+| TTpipe | TT-seq processing and analysis | [GitHub](https://github.com/jpflores-13/TTpipe) | [site](https://jpflores-13.github.io/TTpipe) |
+| ChromSimPipe | cohesin loop-extrusion simulations compared with Hi-C | [GitHub](https://github.com/jpflores-13/ChromSimPipe) | [site](https://jpflores-13.github.io/ChromSimPipe) |

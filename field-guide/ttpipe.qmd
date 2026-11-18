@@ -8,7 +8,8 @@ TTpipe is the largest of the three pipelines: seven rule files plus `common.smk`
 definitions (a few are two variants of one rule), and a config with switches that turn whole halves of the workflow on and off. It is the place to see module 6
 (structure) and module 8 (testing) at full size.
 
-Code on this page is pulled from the repository at the pinned commit (ebdc210).
+Code on this page is pulled from the repository at the pinned commit (ebdc210), and each
+block links to the same lines on GitHub. Line numbers in the text are the file's own line numbers.
 
 ## What the pipeline does {#tt-biology}
 
@@ -32,7 +33,6 @@ unchanged across the comparisons. Reports summarize QC, strandedness and replica
 
 {{< generated name="ttpipe-rulegraph" >}}
 
-<!-- GENERATE: ttpipe-rulegraph | pipelines/ttpipe | snakemake -s workflows/TTpipe.snakefile --configfile config/TTpipeConfig.yaml tests/dryrun/config.yaml --cores 1 --rulegraph -->
 
 The graph has two halves joined at the count matrix. Processing runs from `fastqc` and `star_align`
 down to `bigwig` and `count_matrix`; analysis runs from `count_matrix` (or a matrix you supply) and
@@ -92,7 +92,7 @@ Python with no tool to call, which is the case `run:` is for.
 
 {{< snippet repo="ttpipe" file="workflows/rules/common.smk" lines="13-25" >}}
 
-Three booleans decide which parts of the workflow exist. Note the guard on line 17: a config with
+Three booleans decide which parts of the workflow exist. Note the guard right after them: a config with
 every switch off is an error, not a run that does nothing. The two string settings are checked
 against their allowed values immediately, so `strandedness: dUTp` fails at parse time with the
 allowed values in the message.
@@ -126,7 +126,7 @@ The same trick gives *variants* of a rule. `processing.smk` defines `scale_facto
 the same names for the spike-in case. Exactly one version exists in any run. Profiles key on rule
 names, so one `set-resources: scale_factors:` entry covers both.
 
-{{< snippet repo="ttpipe" file="workflows/rules/spike.smk" lines="88-113" >}}
+{{< snippet repo="ttpipe" file="workflows/rules/spike.smk" lines="90-113" >}}
 
 Compare its input (the spike-in counts table) with the plain version's (the merged BAMs). The two
 variants need different inputs, which is why this is two rules and not one rule with an `if` inside
@@ -213,7 +213,7 @@ fgsea result has `{collection}` and `{comparison}`. So the ranked list gets its 
 
 ### Inputs that depend on the run mode {#tt-run-mode}
 
-{{< snippet repo="ttpipe" file="workflows/rules/report.smk" lines="145-173" >}}
+{{< snippet repo="ttpipe" file="workflows/rules/report.smk" lines="16-44" >}}
 
 The QC report reads different files in a processing-only, analysis-only or full run. Its input
 function returns a dictionary, and `qc_report` uses `unpack(qc_report_inputs)` so each key becomes a

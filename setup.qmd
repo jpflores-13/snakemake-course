@@ -1,0 +1,227 @@
+---
+title: "Setup"
+description: "Install Miniforge, create the course environment, and get the course files onto your laptop before day 1."
+---
+
+Do this **before** the first session. It takes 15-30 minutes, most of it
+waiting for downloads. If something fails, bring the error message to the
+setup check at the start of day 1.
+
+You need:
+
+- a laptop with macOS, Linux, or Windows 10/11 (through WSL2)
+- about 5 GB of free disk space (the environment is most of it)
+- `git`, a terminal, and a text editor you like (VS Code, RStudio, vim, ...)
+
+## 1. Install Miniforge
+
+Miniforge is a small conda installer that uses the conda-forge channel by
+default. If you already have Miniforge, Mambaforge or Miniconda, skip to step 2.
+
+::: {.panel-tabset group="os"}
+
+### macOS
+
+Open Terminal and run:
+
+```bash
+curl -L -O "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh"
+bash Miniforge3-$(uname)-$(uname -m).sh
+```
+
+Accept the license, keep the default location (`~/miniforge3`), and answer
+`yes` when it asks to initialize conda. Close the terminal and open a new one.
+
+On an Apple-silicon Mac (M1 and later), read the
+[Apple-silicon note](#apple-silicon) before step 3.
+
+### Linux
+
+```bash
+curl -L -O "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh"
+bash Miniforge3-$(uname)-$(uname -m).sh
+```
+
+Accept the license, keep the default location (`~/miniforge3`), and answer
+`yes` when it asks to initialize conda. Open a new terminal.
+
+### Windows (WSL2)
+
+Bioconda tools do not run on Windows directly, so you work inside Linux
+through WSL2. In PowerShell **as administrator**:
+
+```powershell
+wsl --install -d Ubuntu
+```
+
+Restart when asked, open **Ubuntu** from the Start menu, and pick a Linux user
+name and password. From now on, run every command of the course in that
+Ubuntu window, then follow the Linux steps:
+
+```bash
+sudo apt update && sudo apt install -y git curl
+curl -L -O "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh"
+bash Miniforge3-$(uname)-$(uname -m).sh
+```
+
+Keep the course files in your Linux home folder (`~/`), not under `/mnt/c/`:
+Snakemake checks file times constantly, and the Windows drive is many times
+slower from inside WSL. VS Code with the *WSL* extension edits files in the
+Linux home directly.
+
+:::
+
+Check that conda works:
+
+```bash
+conda --version
+```
+
+## 2. Get the course files
+
+```bash
+git clone --recurse-submodules https://github.com/jpflores-13/snakemake-course.git
+cd snakemake-course
+```
+
+`--recurse-submodules` also fetches the lab pipelines (MicroCPipe, TTpipe,
+ChromSimPipe) into `pipelines/`, which the field guide reads. If you cloned
+without it:
+
+```bash
+git submodule update --init --depth 1
+```
+
+The course data in `data/` are small (a 5 Mb window of chr8) and come with the
+repository.
+
+## 3. Create the course environment
+
+One environment holds Snakemake and every tool the lessons use:
+[`envs/course.yml`](envs/course.yml).
+
+```bash
+conda env create -f envs/course.yml
+conda activate snakemake-course
+```
+
+Run `conda activate snakemake-course` in every new terminal you use for the
+course.
+
+### Apple silicon {#apple-silicon}
+
+We checked every package in `envs/course.yml` against the bioconda and
+conda-forge package indexes (November 2026). All of them have native Apple
+silicon (`osx-arm64`) builds **except `bioconductor-plotgardener`**, which
+bioconda builds only for Intel Macs (`osx-64`) and Linux. So on an M1/M2/M3/M4
+Mac, `conda env create -f envs/course.yml` stops with
+`bioconductor-plotgardener does not exist`.
+
+Build the whole environment for Intel instead. It runs through Rosetta 2,
+which is a little slower but fine for the course data:
+
+```bash
+softwareupdate --install-rosetta --agree-to-license   # once per Mac
+CONDA_SUBDIR=osx-64 conda env create -f envs/course.yml
+conda activate snakemake-course
+conda config --env --set subdir osx-64   # later installs into this env stay Intel too
+```
+
+Only the `locus_plot` rule needs plotgardener. Everything else in the course
+would also run in a native environment, so if you prefer native tools, you can
+create the environment from a copy of `envs/course.yml` without the
+plotgardener line and run the locus plot on Linux or the cluster.
+
+## 4. Check the versions
+
+```bash
+snakemake --version          # 8.27.1
+python --version             # Python 3.12.x
+samtools --version | head -1
+bowtie2 --version | head -1
+macs3 --version
+bedtools --version
+bamCoverage --version
+fastqc --version
+dot -V                       # Graphviz, draws the DAG
+Rscript -e 'suppressMessages(library(plotgardener)); packageVersion("plotgardener")'
+```
+
+The only version that has to match exactly is Snakemake's. Then do a dry run
+of the finished course pipeline. It reads the samplesheet and checks that all
+inputs exist, without running any tool:
+
+```bash
+cd course-pipeline
+snakemake -n --cores 1 -s workflows/RegPipe.snakefile
+```
+
+The last line should be `This was a dry-run (flag -n). The order of jobs does
+not reflect the order of execution.` If you get there, you are ready.
+
+## Cluster users
+
+Day 1 runs on your laptop. Module 5 moves the pipeline to a SLURM cluster; you
+only need this part if you want to follow along there.
+
+::: {.panel-tabset group="cluster"}
+
+### Longleaf (SLURM)
+
+The lab pipelines' `profiles/longleaf/` assume your own Miniforge in your home
+directory, the same way as on a laptop. Log in, then:
+
+```bash
+curl -L -O "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh"
+bash Miniforge3-$(uname)-$(uname -m).sh
+git clone --recurse-submodules https://github.com/jpflores-13/snakemake-course.git
+cd snakemake-course
+conda env create -f envs/course.yml
+conda activate snakemake-course
+conda install -c conda-forge -c bioconda "snakemake-executor-plugin-slurm>=1.0"
+```
+
+The SLURM executor plugin is what lets Snakemake submit each job with
+`sbatch`. Module 5 sets up the profile in `course-pipeline/profiles/longleaf/`.
+
+### Your own cluster
+
+Any SLURM cluster works the same way: Miniforge in your home directory, the
+course environment, and the executor plugin.
+
+```bash
+conda activate snakemake-course
+conda install -c conda-forge -c bioconda "snakemake-executor-plugin-slurm>=1.0"
+```
+
+What changes between clusters is the account, partition names and limits.
+Those live in a profile, not in the pipeline: module 5 starts from
+`course-pipeline/profiles/slurm-template/` and shows you which lines to fill
+in. Ask your cluster's documentation or admins for the partition names and
+whether jobs need an account. For a scheduler other than SLURM, see the
+[executor plugin catalog](https://snakemake.github.io/snakemake-plugin-catalog/).
+
+:::
+
+[Module 5: Running on a cluster](lessons/05-cluster.qmd) covers profiles,
+resources, and the launcher script.
+
+## If something goes wrong
+
+`conda env create` is slow or seems stuck
+: Solving an environment with R and Bioconductor takes a few minutes. If it
+  runs for more than 15, make sure you are on a recent conda
+  (`conda update -n base conda`) and that `~/.condarc` does not add the
+  `defaults` channel.
+
+`snakemake: command not found`
+: The environment is not active. Run `conda activate snakemake-course`.
+
+`snakemake --version` prints something other than 8.27.1
+: Another Snakemake comes first on your `PATH` (for example from `pip install
+  --user`). `which snakemake` should point into
+  `.../envs/snakemake-course/bin/`.
+
+The dry run says `MissingInputException`
+: Something in `data/` is missing. Run `git status` and `git pull` in the
+  course folder and try again.

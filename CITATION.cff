@@ -1,0 +1,24 @@
+cff-version: 1.2.0
+message: "If you use or adapt this course, please cite it as below."
+type: software
+title: "Snakemake for genomics: a hands-on course"
+version: 0.1.0
+date-released: 2026-11-18
+authors:
+  - family-names: Flores
+    given-names: JP
+license: CC-BY-4.0
+repository-code: "https://github.com/jpflores-13/snakemake-course"
+url: "https://jpflores-13.github.io/snakemake-course"
+abstract: >-
+  A two-day, hands-on course on writing genomics pipelines with Snakemake 8.
+  Learners build a ChIP-seq and DNase-seq pipeline (RegPipe) on public HCT116
+  data, then read the lab's production pipelines. Lessons render as web pages
+  and slides from one Quarto source, with exercises and public answer keys.
+keywords:
+  - Snakemake
+  - workflow
+  - genomics
+  - ChIP-seq
+  - training
+  - Quarto

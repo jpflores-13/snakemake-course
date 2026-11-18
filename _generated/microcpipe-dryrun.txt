@@ -20,7 +20,7 @@ split                      2
 total                     26
 
 
-[Wed Nov 18 00:03:11 2026]
+[Wed Nov 18 00:11:00 2026]
 rule align:
     input: tests/dryrun/R1.fastq.gz, tests/dryrun/R2.fastq.gz, tests/dryrun/tiny.chrom.sizes
     output: output_ci/CI_CellA_1_1/aligned/CI_CellA_1_1_run1.pairsam.gz
@@ -32,7 +32,7 @@ rule align:
     resources: tmpdir=<TBD>
 
 
-[Wed Nov 18 00:03:11 2026]
+[Wed Nov 18 00:11:00 2026]
 rule align:
     input: tests/dryrun/R1.fastq.gz, tests/dryrun/R2.fastq.gz, tests/dryrun/tiny.chrom.sizes
     output: output_ci/CI_CellA_1_1/aligned/CI_CellA_1_1_run2.pairsam.gz
@@ -44,7 +44,7 @@ rule align:
     resources: tmpdir=<TBD>
 
 
-[Wed Nov 18 00:03:11 2026]
+[Wed Nov 18 00:11:00 2026]
 rule align:
     input: tests/dryrun/R1.fastq.gz, tests/dryrun/R2.fastq.gz, tests/dryrun/tiny.chrom.sizes
     output: output_ci/CI_CellA_1_2/aligned/CI_CellA_1_2_run1.pairsam.gz
@@ -56,7 +56,7 @@ rule align:
     resources: tmpdir=<TBD>
 
 
-[Wed Nov 18 00:03:11 2026]
+[Wed Nov 18 00:11:00 2026]
 rule dedup:
     input: output_ci/CI_CellA_1_1/aligned/CI_CellA_1_1_run1.pairsam.gz, output_ci/CI_CellA_1_1/aligned/CI_CellA_1_1_run2.pairsam.gz
     output: output_ci/CI_CellA_1_1/CI_CellA_1_1_dedup.pairsam.gz, output_ci/CI_CellA_1_1/CI_CellA_1_1_dedup_stats.txt
@@ -68,7 +68,7 @@ rule dedup:
     resources: tmpdir=<TBD>
 
 
-[Wed Nov 18 00:03:11 2026]
+[Wed Nov 18 00:11:00 2026]
 rule dedup:
     input: output_ci/CI_CellA_1_2/aligned/CI_CellA_1_2_run1.pairsam.gz
     output: output_ci/CI_CellA_1_2/CI_CellA_1_2_dedup.pairsam.gz, output_ci/CI_CellA_1_2/CI_CellA_1_2_dedup_stats.txt
@@ -83,31 +83,19 @@ Would remove temporary output output_ci/CI_CellA_1_1/aligned/CI_CellA_1_1_run1.p
 Would remove temporary output output_ci/CI_CellA_1_1/aligned/CI_CellA_1_1_run2.pairsam.gz
 Would remove temporary output output_ci/CI_CellA_1_2/aligned/CI_CellA_1_2_run1.pairsam.gz
 
-[Wed Nov 18 00:03:11 2026]
+[Wed Nov 18 00:11:00 2026]
 rule split:
     input: output_ci/CI_CellA_1_1/CI_CellA_1_1_dedup.pairsam.gz
     output: output_ci/CI_CellA_1_1/CI_CellA_1_1.pairs.gz, output_ci/CI_CellA_1_1/CI_CellA_1_1_unsorted.bam
     log: output_ci/CI_CellA_1_1/logs/CI_CellA_1_1_split.log
     jobid: 2
     benchmark: output_ci/CI_CellA_1_1/benchmarks/CI_CellA_1_1_split.tsv
-    reason: Missing output files: output_ci/CI_CellA_1_1/CI_CellA_1_1_unsorted.bam, output_ci/CI_CellA_1_1/CI_CellA_1_1.pairs.gz; Input files updated by another job: output_ci/CI_CellA_1_1/CI_CellA_1_1_dedup.pairsam.gz
+    reason: Missing output files: output_ci/CI_CellA_1_1/CI_CellA_1_1.pairs.gz, output_ci/CI_CellA_1_1/CI_CellA_1_1_unsorted.bam; Input files updated by another job: output_ci/CI_CellA_1_1/CI_CellA_1_1_dedup.pairsam.gz
     wildcards: group=CI_CellA_1_1
     resources: tmpdir=<TBD>
 
 
-[Wed Nov 18 00:03:11 2026]
-rule qc_summary:
-    input: output_ci/CI_CellA_1_1/CI_CellA_1_1_dedup_stats.txt
-    output: output_ci/CI_CellA_1_1/CI_CellA_1_1_qc_summary.txt
-    log: output_ci/CI_CellA_1_1/logs/CI_CellA_1_1_qc_summary.log
-    jobid: 18
-    benchmark: output_ci/CI_CellA_1_1/benchmarks/CI_CellA_1_1_qc_summary.tsv
-    reason: Missing output files: output_ci/CI_CellA_1_1/CI_CellA_1_1_qc_summary.txt; Input files updated by another job: output_ci/CI_CellA_1_1/CI_CellA_1_1_dedup_stats.txt
-    wildcards: group=CI_CellA_1_1
-    resources: tmpdir=<TBD>
-
-
-[Wed Nov 18 00:03:11 2026]
+[Wed Nov 18 00:11:00 2026]
 rule qc_summary:
     input: output_ci/CI_CellA_1_2/CI_CellA_1_2_dedup_stats.txt
     output: output_ci/CI_CellA_1_2/CI_CellA_1_2_qc_summary.txt
@@ -119,21 +107,33 @@ rule qc_summary:
     resources: tmpdir=<TBD>
 
 
-[Wed Nov 18 00:03:11 2026]
+[Wed Nov 18 00:11:00 2026]
 rule split:
     input: output_ci/CI_CellA_1_2/CI_CellA_1_2_dedup.pairsam.gz
     output: output_ci/CI_CellA_1_2/CI_CellA_1_2.pairs.gz, output_ci/CI_CellA_1_2/CI_CellA_1_2_unsorted.bam
     log: output_ci/CI_CellA_1_2/logs/CI_CellA_1_2_split.log
     jobid: 9
     benchmark: output_ci/CI_CellA_1_2/benchmarks/CI_CellA_1_2_split.tsv
-    reason: Missing output files: output_ci/CI_CellA_1_2/CI_CellA_1_2.pairs.gz, output_ci/CI_CellA_1_2/CI_CellA_1_2_unsorted.bam; Input files updated by another job: output_ci/CI_CellA_1_2/CI_CellA_1_2_dedup.pairsam.gz
+    reason: Missing output files: output_ci/CI_CellA_1_2/CI_CellA_1_2_unsorted.bam, output_ci/CI_CellA_1_2/CI_CellA_1_2.pairs.gz; Input files updated by another job: output_ci/CI_CellA_1_2/CI_CellA_1_2_dedup.pairsam.gz
     wildcards: group=CI_CellA_1_2
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:11:00 2026]
+rule qc_summary:
+    input: output_ci/CI_CellA_1_1/CI_CellA_1_1_dedup_stats.txt
+    output: output_ci/CI_CellA_1_1/CI_CellA_1_1_qc_summary.txt
+    log: output_ci/CI_CellA_1_1/logs/CI_CellA_1_1_qc_summary.log
+    jobid: 18
+    benchmark: output_ci/CI_CellA_1_1/benchmarks/CI_CellA_1_1_qc_summary.tsv
+    reason: Missing output files: output_ci/CI_CellA_1_1/CI_CellA_1_1_qc_summary.txt; Input files updated by another job: output_ci/CI_CellA_1_1/CI_CellA_1_1_dedup_stats.txt
+    wildcards: group=CI_CellA_1_1
     resources: tmpdir=<TBD>
 
 Would remove temporary output output_ci/CI_CellA_1_1/CI_CellA_1_1_dedup.pairsam.gz
 Would remove temporary output output_ci/CI_CellA_1_2/CI_CellA_1_2_dedup.pairsam.gz
 
-[Wed Nov 18 00:03:11 2026]
+[Wed Nov 18 00:11:00 2026]
 rule cool:
     input: output_ci/CI_CellA_1_2/CI_CellA_1_2.pairs.gz, tests/dryrun/tiny.chrom.sizes
     output: output_ci/CI_CellA_1_2/CI_CellA_1_2.cool
@@ -145,7 +145,7 @@ rule cool:
     resources: tmpdir=<TBD>
 
 
-[Wed Nov 18 00:03:11 2026]
+[Wed Nov 18 00:11:00 2026]
 rule hic:
     input: output_ci/CI_CellA_1_2/CI_CellA_1_2.pairs.gz, tests/dryrun/tiny.chrom.sizes
     output: output_ci/CI_CellA_1_2/CI_CellA_1_2.hic
@@ -157,7 +157,7 @@ rule hic:
     resources: tmpdir=<TBD>
 
 
-[Wed Nov 18 00:03:11 2026]
+[Wed Nov 18 00:11:00 2026]
 rule sort_bam:
     input: output_ci/CI_CellA_1_1/CI_CellA_1_1_unsorted.bam
     output: output_ci/CI_CellA_1_1/CI_CellA_1_1_mapped.PT.bam, output_ci/CI_CellA_1_1/CI_CellA_1_1_mapped.PT.bam.bai
@@ -169,7 +169,7 @@ rule sort_bam:
     resources: tmpdir=<TBD>
 
 
-[Wed Nov 18 00:03:11 2026]
+[Wed Nov 18 00:11:00 2026]
 rule cool:
     input: output_ci/CI_CellA_1_1/CI_CellA_1_1.pairs.gz, tests/dryrun/tiny.chrom.sizes
     output: output_ci/CI_CellA_1_1/CI_CellA_1_1.cool
@@ -181,7 +181,7 @@ rule cool:
     resources: tmpdir=<TBD>
 
 
-[Wed Nov 18 00:03:11 2026]
+[Wed Nov 18 00:11:00 2026]
 rule hic:
     input: output_ci/CI_CellA_1_1/CI_CellA_1_1.pairs.gz, tests/dryrun/tiny.chrom.sizes
     output: output_ci/CI_CellA_1_1/CI_CellA_1_1.hic
@@ -193,7 +193,7 @@ rule hic:
     resources: tmpdir=<TBD>
 
 
-[Wed Nov 18 00:03:11 2026]
+[Wed Nov 18 00:11:00 2026]
 rule sort_bam:
     input: output_ci/CI_CellA_1_2/CI_CellA_1_2_unsorted.bam
     output: output_ci/CI_CellA_1_2/CI_CellA_1_2_mapped.PT.bam, output_ci/CI_CellA_1_2/CI_CellA_1_2_mapped.PT.bam.bai
@@ -207,7 +207,7 @@ rule sort_bam:
 Would remove temporary output output_ci/CI_CellA_1_1/CI_CellA_1_1_unsorted.bam
 Would remove temporary output output_ci/CI_CellA_1_2/CI_CellA_1_2_unsorted.bam
 
-[Wed Nov 18 00:03:11 2026]
+[Wed Nov 18 00:11:00 2026]
 rule mcool:
     input: output_ci/CI_CellA_1_2/CI_CellA_1_2.cool
     output: output_ci/CI_CellA_1_2/CI_CellA_1_2.mcool
@@ -219,7 +219,7 @@ rule mcool:
     resources: tmpdir=<TBD>
 
 
-[Wed Nov 18 00:03:11 2026]
+[Wed Nov 18 00:11:00 2026]
 rule library_complexity:
     input: output_ci/CI_CellA_1_1/CI_CellA_1_1_mapped.PT.bam
     output: output_ci/CI_CellA_1_1/CI_CellA_1_1_libraryComplexity.txt
@@ -231,7 +231,7 @@ rule library_complexity:
     resources: tmpdir=<TBD>
 
 
-[Wed Nov 18 00:03:11 2026]
+[Wed Nov 18 00:11:00 2026]
 rule mcool:
     input: output_ci/CI_CellA_1_1/CI_CellA_1_1.cool
     output: output_ci/CI_CellA_1_1/CI_CellA_1_1.mcool
@@ -243,7 +243,7 @@ rule mcool:
     resources: tmpdir=<TBD>
 
 
-[Wed Nov 18 00:03:11 2026]
+[Wed Nov 18 00:11:00 2026]
 rule library_complexity:
     input: output_ci/CI_CellA_1_2/CI_CellA_1_2_mapped.PT.bam
     output: output_ci/CI_CellA_1_2/CI_CellA_1_2_libraryComplexity.txt
@@ -255,7 +255,7 @@ rule library_complexity:
     resources: tmpdir=<TBD>
 
 
-[Wed Nov 18 00:03:11 2026]
+[Wed Nov 18 00:11:00 2026]
 rule analysis_expected:
     input: output_ci/CI_CellA_1_2/CI_CellA_1_2.mcool
     output: output_ci/CI_CellA_1_2/analysis/CI_CellA_1_2_expected.tsv, output_ci/CI_CellA_1_2/analysis/CI_CellA_1_2_expected.done
@@ -266,16 +266,16 @@ rule analysis_expected:
     resources: tmpdir=<TBD>
 
 
-[Wed Nov 18 00:03:11 2026]
+[Wed Nov 18 00:11:00 2026]
 rule benchmark_summary:
     input: output_ci/CI_CellA_1_1/CI_CellA_1_1.cool, output_ci/CI_CellA_1_1/CI_CellA_1_1.mcool, output_ci/CI_CellA_1_1/CI_CellA_1_1.hic, output_ci/CI_CellA_1_2/CI_CellA_1_2.cool, output_ci/CI_CellA_1_2/CI_CellA_1_2.mcool, output_ci/CI_CellA_1_2/CI_CellA_1_2.hic, output_ci/CI_CellA_1_1/CI_CellA_1_1_qc_summary.txt, output_ci/CI_CellA_1_2/CI_CellA_1_2_qc_summary.txt, output_ci/CI_CellA_1_1/CI_CellA_1_1_libraryComplexity.txt, output_ci/CI_CellA_1_2/CI_CellA_1_2_libraryComplexity.txt
     output: output_ci/benchmarking.tsv
     jobid: 25
-    reason: Missing output files: output_ci/benchmarking.tsv; Input files updated by another job: output_ci/CI_CellA_1_1/CI_CellA_1_1_libraryComplexity.txt, output_ci/CI_CellA_1_1/CI_CellA_1_1.hic, output_ci/CI_CellA_1_1/CI_CellA_1_1_qc_summary.txt, output_ci/CI_CellA_1_2/CI_CellA_1_2_libraryComplexity.txt, output_ci/CI_CellA_1_2/CI_CellA_1_2_qc_summary.txt, output_ci/CI_CellA_1_2/CI_CellA_1_2.mcool, output_ci/CI_CellA_1_2/CI_CellA_1_2.cool, output_ci/CI_CellA_1_1/CI_CellA_1_1.mcool, output_ci/CI_CellA_1_1/CI_CellA_1_1.cool, output_ci/CI_CellA_1_2/CI_CellA_1_2.hic
+    reason: Missing output files: output_ci/benchmarking.tsv; Input files updated by another job: output_ci/CI_CellA_1_1/CI_CellA_1_1.hic, output_ci/CI_CellA_1_1/CI_CellA_1_1_libraryComplexity.txt, output_ci/CI_CellA_1_2/CI_CellA_1_2.mcool, output_ci/CI_CellA_1_1/CI_CellA_1_1_qc_summary.txt, output_ci/CI_CellA_1_2/CI_CellA_1_2_libraryComplexity.txt, output_ci/CI_CellA_1_2/CI_CellA_1_2.hic, output_ci/CI_CellA_1_1/CI_CellA_1_1.mcool, output_ci/CI_CellA_1_1/CI_CellA_1_1.cool, output_ci/CI_CellA_1_2/CI_CellA_1_2_qc_summary.txt, output_ci/CI_CellA_1_2/CI_CellA_1_2.cool
     resources: tmpdir=<TBD>
 
 
-[Wed Nov 18 00:03:11 2026]
+[Wed Nov 18 00:11:00 2026]
 rule analysis_expected:
     input: output_ci/CI_CellA_1_1/CI_CellA_1_1.mcool
     output: output_ci/CI_CellA_1_1/analysis/CI_CellA_1_1_expected.tsv, output_ci/CI_CellA_1_1/analysis/CI_CellA_1_1_expected.done
@@ -286,7 +286,7 @@ rule analysis_expected:
     resources: tmpdir=<TBD>
 
 
-[Wed Nov 18 00:03:11 2026]
+[Wed Nov 18 00:11:00 2026]
 rule analysis_insulation:
     input: output_ci/CI_CellA_1_2/CI_CellA_1_2.mcool
     output: output_ci/CI_CellA_1_2/analysis/CI_CellA_1_2_insulation.tsv, output_ci/CI_CellA_1_2/analysis/CI_CellA_1_2_insulation.done
@@ -297,7 +297,7 @@ rule analysis_insulation:
     resources: tmpdir=<TBD>
 
 
-[Wed Nov 18 00:03:11 2026]
+[Wed Nov 18 00:11:00 2026]
 rule analysis_insulation:
     input: output_ci/CI_CellA_1_1/CI_CellA_1_1.mcool
     output: output_ci/CI_CellA_1_1/analysis/CI_CellA_1_1_insulation.tsv, output_ci/CI_CellA_1_1/analysis/CI_CellA_1_1_insulation.done
@@ -308,21 +308,21 @@ rule analysis_insulation:
     resources: tmpdir=<TBD>
 
 
-[Wed Nov 18 00:03:11 2026]
+[Wed Nov 18 00:11:00 2026]
 rule qc_report:
     input: output_ci/CI_CellA_1_1/CI_CellA_1_1_dedup_stats.txt, output_ci/CI_CellA_1_2/CI_CellA_1_2_dedup_stats.txt, output_ci/CI_CellA_1_1/CI_CellA_1_1_libraryComplexity.txt, output_ci/CI_CellA_1_2/CI_CellA_1_2_libraryComplexity.txt, output_ci/CI_CellA_1_1/CI_CellA_1_1.cool, output_ci/CI_CellA_1_1/CI_CellA_1_1.mcool, output_ci/CI_CellA_1_1/CI_CellA_1_1.hic, output_ci/CI_CellA_1_2/CI_CellA_1_2.cool, output_ci/CI_CellA_1_2/CI_CellA_1_2.mcool, output_ci/CI_CellA_1_2/CI_CellA_1_2.hic, output_ci/benchmarking.tsv
     output: output_ci/qc/MicroC_qc_report.html
     log: output_ci/qc/qc_report.log
     jobid: 24
-    reason: Missing output files: output_ci/qc/MicroC_qc_report.html; Input files updated by another job: output_ci/CI_CellA_1_1/CI_CellA_1_1_libraryComplexity.txt, output_ci/CI_CellA_1_1/CI_CellA_1_1.hic, output_ci/CI_CellA_1_2/CI_CellA_1_2_libraryComplexity.txt, output_ci/CI_CellA_1_1/CI_CellA_1_1_dedup_stats.txt, output_ci/CI_CellA_1_2/CI_CellA_1_2.mcool, output_ci/CI_CellA_1_2/CI_CellA_1_2.cool, output_ci/benchmarking.tsv, output_ci/CI_CellA_1_1/CI_CellA_1_1.mcool, output_ci/CI_CellA_1_1/CI_CellA_1_1.cool, output_ci/CI_CellA_1_2/CI_CellA_1_2_dedup_stats.txt, output_ci/CI_CellA_1_2/CI_CellA_1_2.hic
+    reason: Missing output files: output_ci/qc/MicroC_qc_report.html; Input files updated by another job: output_ci/CI_CellA_1_1/CI_CellA_1_1.hic, output_ci/CI_CellA_1_1/CI_CellA_1_1_libraryComplexity.txt, output_ci/CI_CellA_1_2/CI_CellA_1_2.mcool, output_ci/CI_CellA_1_2/CI_CellA_1_2_libraryComplexity.txt, output_ci/CI_CellA_1_2/CI_CellA_1_2.hic, output_ci/benchmarking.tsv, output_ci/CI_CellA_1_1/CI_CellA_1_1.mcool, output_ci/CI_CellA_1_1/CI_CellA_1_1_dedup_stats.txt, output_ci/CI_CellA_1_2/CI_CellA_1_2_dedup_stats.txt, output_ci/CI_CellA_1_1/CI_CellA_1_1.cool, output_ci/CI_CellA_1_2/CI_CellA_1_2.cool
     resources: tmpdir=<TBD>
 
 
-[Wed Nov 18 00:03:11 2026]
+[Wed Nov 18 00:11:00 2026]
 rule all:
     input: output_ci/CI_CellA_1_1/CI_CellA_1_1.cool, output_ci/CI_CellA_1_1/CI_CellA_1_1.mcool, output_ci/CI_CellA_1_1/CI_CellA_1_1.hic, output_ci/CI_CellA_1_2/CI_CellA_1_2.cool, output_ci/CI_CellA_1_2/CI_CellA_1_2.mcool, output_ci/CI_CellA_1_2/CI_CellA_1_2.hic, output_ci/CI_CellA_1_1/analysis/CI_CellA_1_1_expected.done, output_ci/CI_CellA_1_1/analysis/CI_CellA_1_1_insulation.done, output_ci/CI_CellA_1_2/analysis/CI_CellA_1_2_expected.done, output_ci/CI_CellA_1_2/analysis/CI_CellA_1_2_insulation.done, output_ci/CI_CellA_1_1/CI_CellA_1_1_qc_summary.txt, output_ci/CI_CellA_1_1/CI_CellA_1_1_libraryComplexity.txt, output_ci/CI_CellA_1_1/CI_CellA_1_1_mapped.PT.bam, output_ci/CI_CellA_1_2/CI_CellA_1_2_qc_summary.txt, output_ci/CI_CellA_1_2/CI_CellA_1_2_libraryComplexity.txt, output_ci/CI_CellA_1_2/CI_CellA_1_2_mapped.PT.bam, output_ci/qc/MicroC_qc_report.html, output_ci/benchmarking.tsv
     jobid: 0
-    reason: Input files updated by another job: output_ci/CI_CellA_1_1/CI_CellA_1_1_libraryComplexity.txt, output_ci/CI_CellA_1_2/analysis/CI_CellA_1_2_insulation.done, output_ci/CI_CellA_1_1/CI_CellA_1_1.hic, output_ci/CI_CellA_1_1/analysis/CI_CellA_1_1_expected.done, output_ci/qc/MicroC_qc_report.html, output_ci/CI_CellA_1_2/CI_CellA_1_2_qc_summary.txt, output_ci/benchmarking.tsv, output_ci/CI_CellA_1_1/CI_CellA_1_1.mcool, output_ci/CI_CellA_1_1/CI_CellA_1_1.cool, output_ci/CI_CellA_1_2/CI_CellA_1_2.cool, output_ci/CI_CellA_1_1/CI_CellA_1_1_mapped.PT.bam, output_ci/CI_CellA_1_1/analysis/CI_CellA_1_1_insulation.done, output_ci/CI_CellA_1_2/analysis/CI_CellA_1_2_expected.done, output_ci/CI_CellA_1_1/CI_CellA_1_1_qc_summary.txt, output_ci/CI_CellA_1_2/CI_CellA_1_2_libraryComplexity.txt, output_ci/CI_CellA_1_2/CI_CellA_1_2_mapped.PT.bam, output_ci/CI_CellA_1_2/CI_CellA_1_2.mcool, output_ci/CI_CellA_1_2/CI_CellA_1_2.hic
+    reason: Input files updated by another job: output_ci/CI_CellA_1_1/CI_CellA_1_1.hic, output_ci/CI_CellA_1_2/CI_CellA_1_2_mapped.PT.bam, output_ci/CI_CellA_1_2/CI_CellA_1_2.mcool, output_ci/CI_CellA_1_1/CI_CellA_1_1_qc_summary.txt, output_ci/CI_CellA_1_1/analysis/CI_CellA_1_1_insulation.done, output_ci/CI_CellA_1_2/CI_CellA_1_2.hic, output_ci/CI_CellA_1_2/CI_CellA_1_2_libraryComplexity.txt, output_ci/CI_CellA_1_2/analysis/CI_CellA_1_2_insulation.done, output_ci/CI_CellA_1_1/CI_CellA_1_1.mcool, output_ci/CI_CellA_1_2/analysis/CI_CellA_1_2_expected.done, output_ci/benchmarking.tsv, output_ci/CI_CellA_1_1/CI_CellA_1_1.cool, output_ci/CI_CellA_1_2/CI_CellA_1_2.cool, output_ci/CI_CellA_1_1/CI_CellA_1_1_libraryComplexity.txt, output_ci/CI_CellA_1_1/CI_CellA_1_1_mapped.PT.bam, output_ci/CI_CellA_1_1/analysis/CI_CellA_1_1_expected.done, output_ci/CI_CellA_1_2/CI_CellA_1_2_qc_summary.txt, output_ci/qc/MicroC_qc_report.html
     resources: tmpdir=<TBD>
 
 Job stats:

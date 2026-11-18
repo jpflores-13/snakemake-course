@@ -1,0 +1,14 @@
+Lints for snakefile workflows/ChromSimPipe.snakefile:
+    * Environment variable CHROMSIM_CONFIG used but not asserted with envvars directive in line 37.:
+      Asserting existence of environment variables with the envvars directive
+      ensures proper error messages if the user fails to invoke a workflow with
+      all required environment variables defined. Further, it allows snakemake
+      to pass them on in case of distributed execution.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/configuration.html#environment-variables
+    * Mixed rules and functions in same snakefile.:
+      Small one-liner functions used only once should be defined as lambda
+      expressions. Other functions should be collected in a common module, e.g.
+      'rules/common.smk'. This makes the workflow steps more readable.
+      Also see:
+      https://snakemake.readthedocs.io/en/latest/snakefiles/modularization.html#includes

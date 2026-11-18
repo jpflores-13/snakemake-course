@@ -1,0 +1,182 @@
+---
+title: "Snakemake cheat sheet"
+subtitle: "Snakemake 8.27.1 · Snakemake for genomics"
+description: "Commands, rule directives and helper functions on two printable pages."
+toc: false
+format:
+  html:
+    page-layout: full
+  typst:
+    output-file: snakemake-cheatsheet.pdf
+    papersize: us-letter
+    margin:
+      x: 1.2cm
+      y: 1.1cm
+    columns: 2
+    fontsize: 8pt
+    mainfont: "Libertinus Serif"
+    toc: false
+    keep-typ: false
+    include-in-header:
+      text: |
+        #show heading.where(level: 2): it => block(above: 0.9em, below: 0.4em, text(size: 10pt, fill: rgb("#2c7bb6"), it.body))
+        #show heading.where(level: 3): it => block(above: 0.7em, below: 0.3em, text(size: 8.5pt, it.body))
+        #show raw: set text(size: 7pt)
+        #show table: set text(size: 7.4pt)
+        #set table(inset: (x: 3pt, y: 2pt), stroke: 0.4pt + luma(200))
+        #set par(spacing: 0.55em)
+---
+
+::: {.content-visible when-format="html"}
+One page of commands, one of rule syntax. The PDF version prints on two
+letter or A4 pages (*Also as: PDF*, right). Everything here is Snakemake
+8.27.1; see the [glossary](glossary.qmd) for terms.
+:::
+
+::: {.cheatsheet-columns}
+
+## Running
+
+| Command | Does |
+|:--|:--|
+| `snakemake -n` | dry run: list jobs, run nothing |
+| `snakemake -n -p` | dry run and print each shell command |
+| `snakemake -c 4` | run with up to 4 cores (`-c` is required) |
+| `snakemake -c 4 out/a.bam` | make one target (file or rule name) |
+| `snakemake -c 4 --keep-going` | carry on with independent jobs after a failure |
+| `snakemake --until filter` | run only up to rule `filter` (and what it needs) |
+| `snakemake --forcerun align` | rerun `align` and everything after it |
+| `snakemake -R $(snakemake --list-changes params)` | rerun outputs whose params changed |
+| `snakemake --rerun-incomplete` | redo jobs that were killed halfway |
+| `snakemake --unlock` | remove a stale lock after a crash |
+| `snakemake --touch` | mark outputs up to date without running |
+| `snakemake --delete-temp-output -n` | list `temp()` files that would be removed |
+
+## Config and profiles
+
+| Command | Does |
+|:--|:--|
+| `--configfile config/test.yaml` | load (or overlay) a config file |
+| `--config minMapq=20 outputDir=out2` | set single config values |
+| `--profile profiles/longleaf` | options from `profiles/longleaf/config.yaml` |
+| `--sdm conda` | build and use each rule's `conda:` env |
+| `-s workflows/RegPipe.snakefile` | use a Snakefile not named `Snakefile` |
+| `-d /path/to/run` | run in another working directory |
+
+## Looking inside
+
+| Command | Shows |
+|:--|:--|
+| `--dag \| dot -Tsvg > dag.svg` | the graph of jobs |
+| `--rulegraph \| dot -Tsvg > rules.svg` | the graph of rules (one box each) |
+| `--list-rules` | every rule name |
+| `--summary` | every output: date, rule, status, plan |
+| `--list-changes code` | outputs whose rule code changed |
+| `--list-changes params` | outputs whose `params` changed |
+| `--list-changes input` | outputs whose input file set changed |
+| `--lint` | style and correctness suggestions |
+| `--debug-dag` | why each job was (not) chosen |
+| `--show-failed-logs` | print the log of a failed job |
+
+## Why did it rerun?
+
+A job runs when an output is **missing**, **older** than an input, or when its
+**code**, **params**, **input set** or **software env** changed
+(`--rerun-triggers` picks which count). The `reason:` line of a dry run says
+which one. To accept a change without rerunning: `snakemake --touch`.
+
+## A rule
+
+```python
+rule align:
+    input:
+        fq="data/fastq/{sample}.fastq.gz",
+        idx="output/index/chr8.1.bt2",
+    output:
+        temp("output/{sample}/{sample}.unsorted.bam"),
+    params:
+        idx=lambda wc, input: input.idx[:-6],
+    log:
+        "output/logs/align/{sample}.log",
+    benchmark:
+        "output/benchmarks/align/{sample}.tsv"
+    threads: 4
+    resources:
+        mem_mb=8000, runtime=120,
+    conda:
+        "../envs/regpipe_align.yml"
+    shell:
+        "bowtie2 -p {threads} -x {params.idx} "
+        "-U {input.fq} 2> {log} "
+        "| samtools view -b -o {output} -"
+```
+
+## Directives
+
+| Directive | Holds |
+|:--|:--|
+| `input:` / `output:` | files; named (`fq=`) or positional |
+| `params:` | non-file values; may use `wildcards`, `config` |
+| `log:` | per-job log file(s); redirect to `{log}` |
+| `benchmark:` | per-job time and memory (TSV) |
+| `threads:` | cores per job, capped by `-c` |
+| `resources:` | `mem_mb`, `runtime`, `slurm_partition`, ... |
+| `conda:` | env file (relative to the rule file) |
+| `shell:` | a shell command; `{input}`, `{output}`, ... |
+| `run:` | Python code, with `input`, `output`, ... in scope |
+| `script:` | `.py` or `.R` with a `snakemake` object |
+| `wildcard_constraints:` | regex per wildcard (rule or global) |
+| `localrules: all, qc_table` | run these on the head node, not as jobs |
+| `ruleorder: a > b` | which rule wins when both make a file |
+
+## Helpers
+
+| Function | Use |
+|:--|:--|
+| `expand("{s}.bam", s=SAMPLES)` | list of files from a pattern |
+| `temp(f)` | delete once no job needs it |
+| `protected(f)` | write-protect after creation |
+| `directory("idx/")` | output is a whole folder |
+| `touch("x.done")` | create an empty sentinel |
+| `ancient(f)` | ignore this input's time stamp |
+| `multiext("idx", ".1.bt2", ".2.bt2")` | one prefix, many endings |
+| `glob_wildcards("data/{s}.fq.gz").s` | values found on disk |
+
+## Wildcards and input functions
+
+```python
+SAMPLES = sheet["sample"].tolist()
+
+def control_bam(wc):
+    ctrl = sheet.loc[wc.sample, "Control"]
+    return [] if ctrl == "NA" else f"output/{ctrl}/{ctrl}.bam"
+
+rule call_peaks:
+    input:
+        chip="output/{sample}/{sample}.bam",
+        ctrl=control_bam,
+    ...
+```
+
+In `shell:`, double the braces for literal ones: `awk '{{print $1}}'`.
+
+## Config and script
+
+```yaml
+# config/RegConfig.yaml
+samplesheet: "RegSamplesheet.txt"
+minMapq: 30
+```
+
+```python
+configfile: "config/RegConfig.yaml"
+MAPQ = config["minMapq"]
+```
+
+```r
+# scripts/locus_plot.R, called by script:
+bw <- snakemake@input[["bigwigs"]]
+out <- snakemake@output[[1]]
+```
+
+:::

@@ -42,6 +42,27 @@ consensus <- lapply(snakemake@input$consensus, \(f) import(f, format = "BED"))
 names(consensus) <- targets
 rad21 <- import(snakemake@input$rad21, format = "BED") |> subsetByOverlaps(window)
 
+## Gene models. Default: the assembly's annotation packages (for hg38,
+## TxDb.Hsapiens.UCSC.hg38.knownGene and org.Hs.eg.db). plotgardener only finds
+## them once they are loaded, so library() them here.
+## With a GTF (locusPlot: genesGtf:), build a small TxDb from the window's lines;
+## the GTF's gene_id is used as the label, so no org.*.eg.db package is needed.
+genes_gtf <- unlist(snakemake@input$genes_gtf)
+if (length(genes_gtf) > 0) {
+  gtf <- import(genes_gtf, format = "gtf", which = window)
+  txdb <- suppressWarnings(txdbmaker::makeTxDbFromGRanges(gtf))
+  genes_assembly <- assembly(Genome = p$assembly, TxDb = txdb, OrgDb = NULL,
+                             gene.id.column = "GENEID", display.column = "GENEID")
+} else {
+  ## for another assembly, load its TxDb/OrgDb packages here instead
+  stopifnot(p$assembly == "hg38")
+  suppressPackageStartupMessages({
+    library(TxDb.Hsapiens.UCSC.hg38.knownGene)
+    library(org.Hs.eg.db)
+  })
+  genes_assembly <- p$assembly
+}
+
 message("Signal tracks: ", length(signals), "; consensus peaks: ",
         paste(names(consensus), lengths(consensus), sep = "=", collapse = ", "),
         "; RAD21 peaks in window: ", length(rad21))
@@ -59,7 +80,7 @@ pdf(snakemake@output$pdf, width = 7.5, height = page_h)
 pageCreate(width = 7.5, height = page_h, default.units = "inches", showGuides = FALSE)
 
 region <- pgParams(chrom = p$chrom, chromstart = p$start, chromend = p$end,
-                   assembly = p$assembly, x = x0, width = width, just = c("left", "top"),
+                   assembly = genes_assembly, x = x0, width = width, just = c("left", "top"),
                    default.units = "inches")
 
 plotText(label = paste0(p$title, " locus, ", p$chrom, ":",
@@ -100,7 +121,7 @@ y <- y + peak_h + 2 * gap
 ## plotGenes takes gene models from the assembly's TxDb and gene names from org.Hs.eg.db
 plotGenes(params = region, y = y, height = 0.9, fontsize = 6)
 y <- y + 0.9 + gap
-plotGenomeLabel(params = region, y = y, scale = "Mb", fontsize = 7)
+plotGenomeLabel(params = region, y = y, length = width, scale = "Mb", fontsize = 7)
 
 invisible(dev.off())
 message("Wrote ", snakemake@output$pdf)

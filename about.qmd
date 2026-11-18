@@ -1,0 +1,71 @@
+---
+title: "About"
+description: "Who wrote the course, how it is licensed, how to cite it, and how to contribute."
+---
+
+*Snakemake for genomics* is a two-day course on writing data pipelines with
+Snakemake, built around real public ChIP-seq and DNase-seq data and the lab's
+own pipelines. It is written by **JP Flores**.
+
+The course follows the format of the
+[HBC training modules](https://hbctraining.github.io/main/): a page per
+topic with learning objectives and time estimates, exercises with public
+answer keys, and an open license. Each lesson is one
+[Quarto](https://quarto.org) file that renders both as a web page and as
+reveal.js slides.
+
+## License {#license}
+
+| What | License | File |
+|:--|:--|:--|
+| Lessons, slides, figures and other text | [Creative Commons Attribution 4.0 International (CC BY 4.0)](https://creativecommons.org/licenses/by/4.0/) | [`LICENSE`](LICENSE) |
+| Code: RegPipe, the stopping points, scripts, the site's extensions | [MIT](https://opensource.org/license/mit) | [`LICENSE-code`](LICENSE-code) |
+| Lab pipelines in `pipelines/` | their own licenses, in each repository | |
+| Course data in `data/` | public ENCODE, UCSC and GEO data under their own terms | [`data/README.md`](https://github.com/jpflores-13/snakemake-course/blob/main/data/README.md) |
+
+Under CC BY 4.0 you may copy, adapt and teach from these lessons, including
+in paid courses, as long as you credit the original and link to the license.
+A line such as this is enough:
+
+> Adapted from *Snakemake for genomics* by JP Flores,
+> <https://jpflores-13.github.io/snakemake-course>, CC BY 4.0.
+
+## How to cite {#how-to-cite}
+
+The repository has a [`CITATION.cff`](CITATION.cff) file, so GitHub shows a
+*Cite this repository* button with APA and BibTeX. In text:
+
+> Flores JP. *Snakemake for genomics: a hands-on course* (version 0.1.0).
+> <https://github.com/jpflores-13/snakemake-course>
+
+If you use Snakemake in your own work, also cite the Snakemake paper (see
+[References](references.qmd)).
+
+## Contributing
+
+Corrections and improvements are welcome, from a typo to a new exercise.
+
+- **Found a mistake or something unclear?** Open an
+  [issue](https://github.com/jpflores-13/snakemake-course/issues), or use
+  *Report an issue* at the right of any page.
+- **Want to fix it yourself?** Use *Edit this page*, or fork the repository
+  and open a pull request. The [README](https://github.com/jpflores-13/snakemake-course#readme)
+  explains how to build the site locally with `quarto preview`.
+- **Teaching the course?** We would like to hear how it went: which modules ran
+  long, which exercises confused people.
+
+A few conventions keep the lessons consistent:
+
+- Real pipeline code is never pasted into a page. Pages pull it from the
+  pipelines with the `snippet` shortcode, so it cannot drift from the code.
+- Command output on the pages (dry runs, DAGs) comes from real runs made when
+  the site is built, not typed by hand.
+- Every exercise links to an answer that explains *why*.
+- Plain language, second person, short sentences.
+
+## Acknowledgments
+
+The course data come from the [ENCODE](https://www.encodeproject.org/)
+project, the [UCSC Genome Browser](https://genome.ucsc.edu/) and
+[GEO](https://www.ncbi.nlm.nih.gov/geo/). Snakemake is developed by Johannes
+Köster and many contributors.

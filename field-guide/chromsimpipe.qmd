@@ -8,7 +8,8 @@ ChromSimPipe is the odd one out. It does not process sequencing reads; it runs p
 simulations on GPUs and compares them with Hi-C. That makes it the best place to see module 7:
 outputs that are not single files, scatter-gather, and GPU resources.
 
-Code on this page is pulled from the repository at the pinned commit (e32dd36).
+Code on this page is pulled from the repository at the pinned commit (e32dd36), and each
+block links to the same lines on GitHub. Line numbers in the text are the file's own line numbers.
 
 ## What the pipeline does {#cs-biology}
 
@@ -32,8 +33,11 @@ it with the experimental map (contact probability versus distance, loop pileups,
 
 <!-- GENERATE: chromsimpipe-rulegraph | pipelines/chromsimpipe | snakemake -s workflows/ChromSimPipe.snakefile --cores 1 --rulegraph -->
 
-If the graph is missing above, it is because building it needs the input files (`data/` is empty
-in the repository). In text, the order is the one in the header of the Snakefile:
+
+If there is no graph above, or only a `MissingInputException`, that is the honest answer:
+Snakemake builds the graph from the job graph, the job graph needs the input files, and `data/` is
+empty in the repository (each cluster links its own files into it). In text, the order is the one
+in the header of the Snakefile:
 
 {{< snippet repo="chromsimpipe" file="workflows/ChromSimPipe.snakefile" lines="4-24" >}}
 

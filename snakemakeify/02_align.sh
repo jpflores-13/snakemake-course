@@ -6,7 +6,9 @@
 DATA=~/snakemake-course/data
 REF=$DATA/reference/chr8_course.fa.gz
 THREADS=4
-SAMPLES="HCT116_CTCF_1 HCT116_CTCF_2 HCT116_H3K27ac_1 HCT116_H3K27ac_2 HCT116_DNase_1 HCT116_DNase_2 HCT116_input-CTCF_1 HCT116_input-H3K27ac_1"
+SAMPLES="HCT116_CTCF_1 HCT116_CTCF_2 HCT116_input-CTCF_1 HCT116_input-CTCF_2
+         HCT116_H3K27ac_1 HCT116_H3K27ac_2 HCT116_input-H3K27ac_1 HCT116_input-H3K27ac_2
+         HCT116_DNase_1 HCT116_DNase_2"
 
 # index takes a few minutes, so only build it once
 if [ ! -f chr8_course.1.bt2 ]; then

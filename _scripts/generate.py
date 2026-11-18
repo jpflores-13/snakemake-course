@@ -156,8 +156,9 @@ def task_hash(task: dict) -> str:
             tree_hash(cwd, h)
     elif top:
         tree_hash(ROOT / top, h)
-    # data/: names and sizes only (the FASTQs are large)
-    tree_hash(ROOT / "data", h, with_content=False)
+    if top != "pipelines":
+        # data/: names and sizes only (the FASTQs are large)
+        tree_hash(ROOT / "data", h, with_content=False)
     return h.hexdigest()
 
 
@@ -208,11 +209,10 @@ def pipeline_tasks() -> list[dict]:
 def regpipe_tasks() -> list[dict]:
     cp = ROOT / "course-pipeline"
     snakefile = cp / "workflows/RegPipe.snakefile"
-    if not (cp.is_dir() and (ROOT / "data/samplesheet.txt").exists() and snakefile.exists()):
+    has_sheet = (ROOT / "data/samplesheet.txt").exists() or (cp / "RegSamplesheet.txt").exists()
+    if not (snakefile.exists() and has_sheet and any((ROOT / "data/fastq").glob("*.fastq.gz"))):
         return []
-    base = "-s workflows/RegPipe.snakefile --cores 1"
-    if (cp / "config/RegConfig.yaml").exists():
-        base += " --configfile config/RegConfig.yaml"
+    base = "-s workflows/RegPipe.snakefile --cores 1"  # the Snakefile names its own configfile
     flags = {"dryrun": "-n", "dryrun-p": "-n -p", "dag": "--dag", "rulegraph": "--rulegraph",
              "list-rules": "--list-rules", "summary": "--summary"}
     return [{"name": f"regpipe-{k}", "cwd": "course-pipeline", "command": f"{sm(f)} {base}",
@@ -410,6 +410,9 @@ def main() -> int:
         digest = task_hash(task)
         old = manifest.get(name, {})
         have = [f for f in old.get("files", []) if (OUT / f).exists()]
+        if not force and old.get("failed_hash") == digest and not have:
+            failed += 1  # failed last time with these same inputs; logged then
+            continue
         if not force and old.get("hash") == digest and have:
             # redraw a graph if dot became available since
             if old.get("kind") == "dot" and DOT and not (OUT / f"{name}.svg").exists():
@@ -435,7 +438,13 @@ def main() -> int:
             old_ok = (old.get("returncode") == 0) == expected_ok
             if have and old_ok:
                 log(f"{name}: keeping the earlier output")
-                continue
+            else:
+                log(f"{name}: not saved (to show an error on purpose, end the command with `|| true`)")
+                for f in have:  # an earlier failed output must not show up as a result
+                    (OUT / f).unlink(missing_ok=True)
+                manifest[name] = {"command": task["command"], "cwd": task["cwd"], "source": task["source"],
+                                  "returncode": result["returncode"], "files": [], "failed_hash": digest}
+            continue
         files = write_output(name, result)
         manifest[name] = {"command": task["command"], "cwd": task["cwd"], "source": task["source"],
                           "returncode": result["returncode"], "kind": result["kind"], "files": files,

@@ -1,0 +1,89 @@
+## RegPipe, stopping point A (end of module 2).
+##
+## FASTQ -> FastQC, bowtie2 index, alignment and filtered BAMs for every sample.
+## One Snakefile, the samples in a Python list. Run it from this folder:
+##   snakemake -n            # dry run: what would run?
+##   snakemake --cores 4     # run it
+## The tools (fastqc, bowtie2, samtools, bedtools) come from the course conda env.
+
+DATA = "../../data"       # the course data, relative to this folder
+OUT = "output"            # everything this workflow writes goes here
+
+SAMPLES = [
+    "HCT116_CTCF_1", "HCT116_CTCF_2",
+    "HCT116_input-CTCF_1", "HCT116_input-CTCF_2",
+    "HCT116_H3K27ac_1", "HCT116_H3K27ac_2",
+    "HCT116_input-H3K27ac_1", "HCT116_input-H3K27ac_2",
+    "HCT116_DNase_1", "HCT116_DNase_2",
+]
+
+## Filtering settings (they move to a config file in module 3)
+MIN_MAPQ = 30
+EXCLUDE_FLAGS = 1804      # unmapped, mate unmapped, secondary, QC fail, duplicate
+
+## The first rule is the default target: it lists the files we want at the end.
+rule all:
+    input:
+        expand(OUT + "/{sample}/fastqc/{sample}_fastqc.html", sample=SAMPLES),
+        expand(OUT + "/{sample}/{sample}_filtered.bam", sample=SAMPLES),
+
+
+rule fastqc:
+    input:
+        fastq = DATA + "/fastq/{sample}.fastq.gz",
+    output:
+        html = OUT + "/{sample}/fastqc/{sample}_fastqc.html",
+        zip = OUT + "/{sample}/fastqc/{sample}_fastqc.zip",
+    shell:
+        "fastqc --outdir {OUT}/{wildcards.sample}/fastqc {input.fastq}"
+
+
+## bowtie2-build writes six index files that share one prefix; multiext() lists them.
+rule bowtie2_index:
+    input:
+        fasta = DATA + "/reference/chr8_course.fa.gz",
+    output:
+        multiext(OUT + "/reference/bowtie2_index/genome",
+                 ".1.bt2", ".2.bt2", ".3.bt2", ".4.bt2", ".rev.1.bt2", ".rev.2.bt2"),
+    shell:
+        "bowtie2-build {input.fasta} {OUT}/reference/bowtie2_index/genome"
+
+
+## bowtie2 writes SAM to stdout; samtools sort reads it from the pipe.
+rule align:
+    input:
+        fastq = DATA + "/fastq/{sample}.fastq.gz",
+        index = rules.bowtie2_index.output,
+    output:
+        bam = OUT + "/{sample}/{sample}_aligned.bam",
+    shell:
+        """
+        bowtie2 -x {OUT}/reference/bowtie2_index/genome -U {input.fastq} \
+            | samtools sort -o {output.bam} -
+        """
+
+
+## 1. flagstat of everything bowtie2 wrote (unaligned reads included)
+## 2. keep reads with MAPQ >= MIN_MAPQ and none of EXCLUDE_FLAGS
+## 3. drop reads in ENCODE blacklist regions
+## 4. remove duplicates (single-end reads: no `samtools fixmate` needed)
+rule filter:
+    input:
+        bam = OUT + "/{sample}/{sample}_aligned.bam",
+        blacklist = DATA + "/reference/blacklist.bed.gz",
+    output:
+        bam = OUT + "/{sample}/{sample}_filtered.bam",
+        bai = OUT + "/{sample}/{sample}_filtered.bam.bai",
+        flagstat = OUT + "/{sample}/{sample}_aligned_flagstat.tsv",
+        markdup = OUT + "/{sample}/{sample}_markdup.txt",
+    params:
+        mapq = MIN_MAPQ,
+        flags = EXCLUDE_FLAGS,
+    shell:
+        """
+        samtools flagstat -O tsv {input.bam} > {output.flagstat}
+        samtools view -u -q {params.mapq} -F {params.flags} {input.bam} \
+            | bedtools intersect -v -abam stdin -b {input.blacklist} \
+            | samtools markdup -r -f {output.markdup} - {output.bam}
+        samtools index {output.bam}
+        """
