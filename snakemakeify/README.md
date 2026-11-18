@@ -48,7 +48,7 @@ filtered BAMs, 06 needs 03 and 04, 07 needs 04 (and 02's `.fai`), 08 needs
 03 and 07, 09 needs only the files in `data/geo/`. `run_all.sh` does not stop
 when a step fails.
 
-The whole run takes about a minute and a half on a 4-core laptop. Running it
+The whole run takes about a minute and a half on a 4-core machine. Running it
 again takes about 20 seconds, because 06, 08 and 09 have no skip check and
 always run.
 
