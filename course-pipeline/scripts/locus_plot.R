@@ -40,7 +40,8 @@ target_max <- vapply(targets, \(t) {
 
 consensus <- lapply(snakemake@input$consensus, \(f) import(f, format = "BED"))
 names(consensus) <- targets
-rad21 <- import(snakemake@input$rad21, format = "BED") |> subsetByOverlaps(window)
+## ENCODE peak files are narrowPeak: read as plain BED, their decimal columns fail to parse
+rad21 <- import(snakemake@input$rad21, format = "narrowPeak") |> subsetByOverlaps(window)
 
 ## Gene models. Default: the assembly's annotation packages (for hg38,
 ## TxDb.Hsapiens.UCSC.hg38.knownGene and org.Hs.eg.db). plotgardener only finds
