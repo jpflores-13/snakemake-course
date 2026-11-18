@@ -1,0 +1,114 @@
+Building DAG of jobs...
+output_file	date	rule	log-file(s)	status	plan
+output/HCT116_CTCF_1/fastqc/HCT116_CTCF_1_fastqc.html	-	fastqc	-	missing	update pending
+output/HCT116_CTCF_1/fastqc/HCT116_CTCF_1_fastqc.zip	-	fastqc	-	missing	update pending
+output/HCT116_CTCF_2/fastqc/HCT116_CTCF_2_fastqc.html	-	fastqc	-	missing	update pending
+output/HCT116_CTCF_2/fastqc/HCT116_CTCF_2_fastqc.zip	-	fastqc	-	missing	update pending
+output/HCT116_H3K27ac_1/fastqc/HCT116_H3K27ac_1_fastqc.html	-	fastqc	-	missing	update pending
+output/HCT116_H3K27ac_1/fastqc/HCT116_H3K27ac_1_fastqc.zip	-	fastqc	-	missing	update pending
+output/HCT116_H3K27ac_2/fastqc/HCT116_H3K27ac_2_fastqc.html	-	fastqc	-	missing	update pending
+output/HCT116_H3K27ac_2/fastqc/HCT116_H3K27ac_2_fastqc.zip	-	fastqc	-	missing	update pending
+output/HCT116_input-CTCF_1/fastqc/HCT116_input-CTCF_1_fastqc.html	-	fastqc	-	missing	update pending
+output/HCT116_input-CTCF_1/fastqc/HCT116_input-CTCF_1_fastqc.zip	-	fastqc	-	missing	update pending
+output/HCT116_input-CTCF_2/fastqc/HCT116_input-CTCF_2_fastqc.html	-	fastqc	-	missing	update pending
+output/HCT116_input-CTCF_2/fastqc/HCT116_input-CTCF_2_fastqc.zip	-	fastqc	-	missing	update pending
+output/HCT116_input-H3K27ac_1/fastqc/HCT116_input-H3K27ac_1_fastqc.html	-	fastqc	-	missing	update pending
+output/HCT116_input-H3K27ac_1/fastqc/HCT116_input-H3K27ac_1_fastqc.zip	-	fastqc	-	missing	update pending
+output/HCT116_input-H3K27ac_2/fastqc/HCT116_input-H3K27ac_2_fastqc.html	-	fastqc	-	missing	update pending
+output/HCT116_input-H3K27ac_2/fastqc/HCT116_input-H3K27ac_2_fastqc.zip	-	fastqc	-	missing	update pending
+output/HCT116_DNase_1/fastqc/HCT116_DNase_1_fastqc.html	-	fastqc	-	missing	update pending
+output/HCT116_DNase_1/fastqc/HCT116_DNase_1_fastqc.zip	-	fastqc	-	missing	update pending
+output/HCT116_DNase_2/fastqc/HCT116_DNase_2_fastqc.html	-	fastqc	-	missing	update pending
+output/HCT116_DNase_2/fastqc/HCT116_DNase_2_fastqc.zip	-	fastqc	-	missing	update pending
+output/HCT116_CTCF_1/HCT116_CTCF_1_filtered.bam	-	filter	-	missing	update pending
+output/HCT116_CTCF_1/HCT116_CTCF_1_filtered.bam.bai	-	filter	-	missing	update pending
+output/HCT116_CTCF_1/HCT116_CTCF_1_aligned_flagstat.tsv	-	filter	-	missing	update pending
+output/HCT116_CTCF_1/HCT116_CTCF_1_markdup.txt	-	filter	-	missing	update pending
+output/HCT116_CTCF_1/HCT116_CTCF_1_aligned.bam	-	align	-	removed temp file	update pending
+output/reference/bowtie2_index	-	bowtie2_index	-	missing	update pending
+output/HCT116_CTCF_2/HCT116_CTCF_2_filtered.bam	-	filter	-	missing	update pending
+output/HCT116_CTCF_2/HCT116_CTCF_2_filtered.bam.bai	-	filter	-	missing	update pending
+output/HCT116_CTCF_2/HCT116_CTCF_2_aligned_flagstat.tsv	-	filter	-	missing	update pending
+output/HCT116_CTCF_2/HCT116_CTCF_2_markdup.txt	-	filter	-	missing	update pending
+output/HCT116_CTCF_2/HCT116_CTCF_2_aligned.bam	-	align	-	removed temp file	update pending
+output/HCT116_H3K27ac_1/HCT116_H3K27ac_1_filtered.bam	-	filter	-	missing	update pending
+output/HCT116_H3K27ac_1/HCT116_H3K27ac_1_filtered.bam.bai	-	filter	-	missing	update pending
+output/HCT116_H3K27ac_1/HCT116_H3K27ac_1_aligned_flagstat.tsv	-	filter	-	missing	update pending
+output/HCT116_H3K27ac_1/HCT116_H3K27ac_1_markdup.txt	-	filter	-	missing	update pending
+output/HCT116_H3K27ac_1/HCT116_H3K27ac_1_aligned.bam	-	align	-	removed temp file	update pending
+output/HCT116_H3K27ac_2/HCT116_H3K27ac_2_filtered.bam	-	filter	-	missing	update pending
+output/HCT116_H3K27ac_2/HCT116_H3K27ac_2_filtered.bam.bai	-	filter	-	missing	update pending
+output/HCT116_H3K27ac_2/HCT116_H3K27ac_2_aligned_flagstat.tsv	-	filter	-	missing	update pending
+output/HCT116_H3K27ac_2/HCT116_H3K27ac_2_markdup.txt	-	filter	-	missing	update pending
+output/HCT116_H3K27ac_2/HCT116_H3K27ac_2_aligned.bam	-	align	-	removed temp file	update pending
+output/HCT116_input-CTCF_1/HCT116_input-CTCF_1_filtered.bam	-	filter	-	missing	update pending
+output/HCT116_input-CTCF_1/HCT116_input-CTCF_1_filtered.bam.bai	-	filter	-	missing	update pending
+output/HCT116_input-CTCF_1/HCT116_input-CTCF_1_aligned_flagstat.tsv	-	filter	-	missing	update pending
+output/HCT116_input-CTCF_1/HCT116_input-CTCF_1_markdup.txt	-	filter	-	missing	update pending
+output/HCT116_input-CTCF_1/HCT116_input-CTCF_1_aligned.bam	-	align	-	removed temp file	update pending
+output/HCT116_input-CTCF_2/HCT116_input-CTCF_2_filtered.bam	-	filter	-	missing	update pending
+output/HCT116_input-CTCF_2/HCT116_input-CTCF_2_filtered.bam.bai	-	filter	-	missing	update pending
+output/HCT116_input-CTCF_2/HCT116_input-CTCF_2_aligned_flagstat.tsv	-	filter	-	missing	update pending
+output/HCT116_input-CTCF_2/HCT116_input-CTCF_2_markdup.txt	-	filter	-	missing	update pending
+output/HCT116_input-CTCF_2/HCT116_input-CTCF_2_aligned.bam	-	align	-	removed temp file	update pending
+output/HCT116_input-H3K27ac_1/HCT116_input-H3K27ac_1_filtered.bam	-	filter	-	missing	update pending
+output/HCT116_input-H3K27ac_1/HCT116_input-H3K27ac_1_filtered.bam.bai	-	filter	-	missing	update pending
+output/HCT116_input-H3K27ac_1/HCT116_input-H3K27ac_1_aligned_flagstat.tsv	-	filter	-	missing	update pending
+output/HCT116_input-H3K27ac_1/HCT116_input-H3K27ac_1_markdup.txt	-	filter	-	missing	update pending
+output/HCT116_input-H3K27ac_1/HCT116_input-H3K27ac_1_aligned.bam	-	align	-	removed temp file	update pending
+output/HCT116_input-H3K27ac_2/HCT116_input-H3K27ac_2_filtered.bam	-	filter	-	missing	update pending
+output/HCT116_input-H3K27ac_2/HCT116_input-H3K27ac_2_filtered.bam.bai	-	filter	-	missing	update pending
+output/HCT116_input-H3K27ac_2/HCT116_input-H3K27ac_2_aligned_flagstat.tsv	-	filter	-	missing	update pending
+output/HCT116_input-H3K27ac_2/HCT116_input-H3K27ac_2_markdup.txt	-	filter	-	missing	update pending
+output/HCT116_input-H3K27ac_2/HCT116_input-H3K27ac_2_aligned.bam	-	align	-	removed temp file	update pending
+output/HCT116_DNase_1/HCT116_DNase_1_filtered.bam	-	filter	-	missing	update pending
+output/HCT116_DNase_1/HCT116_DNase_1_filtered.bam.bai	-	filter	-	missing	update pending
+output/HCT116_DNase_1/HCT116_DNase_1_aligned_flagstat.tsv	-	filter	-	missing	update pending
+output/HCT116_DNase_1/HCT116_DNase_1_markdup.txt	-	filter	-	missing	update pending
+output/HCT116_DNase_1/HCT116_DNase_1_aligned.bam	-	align	-	removed temp file	update pending
+output/HCT116_DNase_2/HCT116_DNase_2_filtered.bam	-	filter	-	missing	update pending
+output/HCT116_DNase_2/HCT116_DNase_2_filtered.bam.bai	-	filter	-	missing	update pending
+output/HCT116_DNase_2/HCT116_DNase_2_aligned_flagstat.tsv	-	filter	-	missing	update pending
+output/HCT116_DNase_2/HCT116_DNase_2_markdup.txt	-	filter	-	missing	update pending
+output/HCT116_DNase_2/HCT116_DNase_2_aligned.bam	-	align	-	removed temp file	update pending
+output/tracks/HCT116_CTCF_1.bw	-	bigwig	-	missing	update pending
+output/tracks/HCT116_CTCF_2.bw	-	bigwig	-	missing	update pending
+output/tracks/HCT116_H3K27ac_1.bw	-	bigwig	-	missing	update pending
+output/tracks/HCT116_H3K27ac_2.bw	-	bigwig	-	missing	update pending
+output/tracks/HCT116_input-CTCF_1.bw	-	bigwig	-	missing	update pending
+output/tracks/HCT116_input-CTCF_2.bw	-	bigwig	-	missing	update pending
+output/tracks/HCT116_input-H3K27ac_1.bw	-	bigwig	-	missing	update pending
+output/tracks/HCT116_input-H3K27ac_2.bw	-	bigwig	-	missing	update pending
+output/tracks/HCT116_DNase_1.bw	-	bigwig	-	missing	update pending
+output/tracks/HCT116_DNase_2.bw	-	bigwig	-	missing	update pending
+output/peaks/HCT116_CTCF_1_peaks.narrowPeak	-	call_peaks	-	missing	update pending
+output/peaks/HCT116_CTCF_1_peaks.xls	-	call_peaks	-	missing	update pending
+output/peaks/HCT116_CTCF_1_summits.bed	-	call_peaks	-	missing	update pending
+output/peaks/HCT116_CTCF_2_peaks.narrowPeak	-	call_peaks	-	missing	update pending
+output/peaks/HCT116_CTCF_2_peaks.xls	-	call_peaks	-	missing	update pending
+output/peaks/HCT116_CTCF_2_summits.bed	-	call_peaks	-	missing	update pending
+output/peaks/HCT116_H3K27ac_1_peaks.narrowPeak	-	call_peaks	-	missing	update pending
+output/peaks/HCT116_H3K27ac_1_peaks.xls	-	call_peaks	-	missing	update pending
+output/peaks/HCT116_H3K27ac_1_summits.bed	-	call_peaks	-	missing	update pending
+output/peaks/HCT116_H3K27ac_2_peaks.narrowPeak	-	call_peaks	-	missing	update pending
+output/peaks/HCT116_H3K27ac_2_peaks.xls	-	call_peaks	-	missing	update pending
+output/peaks/HCT116_H3K27ac_2_summits.bed	-	call_peaks	-	missing	update pending
+output/peaks/HCT116_DNase_1_peaks.narrowPeak	-	call_peaks	-	missing	update pending
+output/peaks/HCT116_DNase_1_peaks.xls	-	call_peaks	-	missing	update pending
+output/peaks/HCT116_DNase_1_summits.bed	-	call_peaks	-	missing	update pending
+output/peaks/HCT116_DNase_2_peaks.narrowPeak	-	call_peaks	-	missing	update pending
+output/peaks/HCT116_DNase_2_peaks.xls	-	call_peaks	-	missing	update pending
+output/peaks/HCT116_DNase_2_summits.bed	-	call_peaks	-	missing	update pending
+output/consensus/CTCF_consensus.bed	-	consensus_peaks	-	missing	update pending
+output/consensus/H3K27ac_consensus.bed	-	consensus_peaks	-	missing	update pending
+output/consensus/DNase_consensus.bed	-	consensus_peaks	-	missing	update pending
+output/qc/qc_table.tsv	-	qc_table	-	missing	update pending
+output/HCT116_CTCF_1/HCT116_CTCF_1_frip.tsv	-	frip	-	missing	update pending
+output/HCT116_CTCF_2/HCT116_CTCF_2_frip.tsv	-	frip	-	missing	update pending
+output/HCT116_H3K27ac_1/HCT116_H3K27ac_1_frip.tsv	-	frip	-	missing	update pending
+output/HCT116_H3K27ac_2/HCT116_H3K27ac_2_frip.tsv	-	frip	-	missing	update pending
+output/HCT116_DNase_1/HCT116_DNase_1_frip.tsv	-	frip	-	missing	update pending
+output/HCT116_DNase_2/HCT116_DNase_2_frip.tsv	-	frip	-	missing	update pending
+output/qc/ctcf_rad21_overlap.tsv	-	ctcf_rad21_overlap	-	missing	update pending
+output/figures/MYC_locus.pdf	-	locus_plot	-	missing	update pending
+output/qc/enhancer_activity.tsv	-	enhancer_activity	-	missing	update pending

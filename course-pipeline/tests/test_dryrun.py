@@ -61,6 +61,8 @@ def expected_jobs(scatter_chunks=0):
     }
     if CONFIG.get("make_locus_plot", True):
         jobs["locus_plot"] = 1
+    if CONFIG.get("ttseq", {}).get("enabled", False):
+        jobs["enhancer_activity"] = 1
     if scatter_chunks:
         jobs["split_fastq"] = n_samples
         jobs["align_chunk"] = n_samples * scatter_chunks

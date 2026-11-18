@@ -1,0 +1,7 @@
+---
+title: "test"
+---
+
+```{.bash filename="snakemakeify/01_fastqc.sh"}
+{{< include ../snakemakeify/01_fastqc.sh >}}
+```

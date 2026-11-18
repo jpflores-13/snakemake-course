@@ -124,25 +124,35 @@
     "command": "snakemake --dag -s workflows/RegPipe.snakefile --cores 1",
     "cwd": "course-pipeline",
     "source": "_scripts/generate.py",
-    "returncode": 1,
-    "files": [],
-    "failed_hash": "37120dafaa8613e393e34e2a52b52f94bdea1b0e5bb8b9089effdb487ea68ae7"
+    "returncode": 0,
+    "kind": "dot",
+    "files": [
+      "regpipe-dag.dot",
+      "regpipe-dag.svg"
+    ],
+    "hash": "d06951d0bdc1cbcad6897760863a855331dd579a7cb8a1d574c7674e0ee63e05"
   },
   "regpipe-dryrun": {
     "command": "snakemake -n -s workflows/RegPipe.snakefile --cores 1",
     "cwd": "course-pipeline",
     "source": "_scripts/generate.py",
-    "returncode": 1,
-    "files": [],
-    "failed_hash": "b62afad4d6d6508eec4ae3488b704a67ae441c7fe46d16408db0a8e3a03d35c2"
+    "returncode": 0,
+    "kind": "txt",
+    "files": [
+      "regpipe-dryrun.txt"
+    ],
+    "hash": "955b43ffd089b32af062ee70dd17e663ef8ed293af586023b8d94228b6d62e90"
   },
   "regpipe-dryrun-p": {
     "command": "snakemake -n -p -s workflows/RegPipe.snakefile --cores 1",
     "cwd": "course-pipeline",
     "source": "_scripts/generate.py",
-    "returncode": 1,
-    "files": [],
-    "failed_hash": "601475b333601d7c9e3c421331b5038672a50050444d8e8fb2bf195d00a03c7e"
+    "returncode": 0,
+    "kind": "txt",
+    "files": [
+      "regpipe-dryrun-p.txt"
+    ],
+    "hash": "d0799c2375269b46d3831365e173f25c12f771b9c2e732174ae96f782c202a11"
   },
   "regpipe-list-rules": {
     "command": "snakemake --list-rules -s workflows/RegPipe.snakefile --cores 1",
@@ -153,23 +163,30 @@
     "files": [
       "regpipe-list-rules.txt"
     ],
-    "hash": "36369a9eba9613bbd5af05ae35d391fa9ca6238b1d152eed1ef85a2cd9f076e1"
+    "hash": "127123916e96dd525d9b136d753bbdc916f04f7fb0be8e9c78a51d2ad415d4e3"
   },
   "regpipe-rulegraph": {
     "command": "snakemake --rulegraph -s workflows/RegPipe.snakefile --cores 1",
     "cwd": "course-pipeline",
     "source": "_scripts/generate.py",
-    "returncode": 1,
-    "files": [],
-    "failed_hash": "73257c800cc1c04caf2f36d87d139901edfb8460adf62288991fa8583f00ce7a"
+    "returncode": 0,
+    "kind": "dot",
+    "files": [
+      "regpipe-rulegraph.dot",
+      "regpipe-rulegraph.svg"
+    ],
+    "hash": "c6032c8102a0d8645fb52c05997786813a490bad464044bb3c77e67adee050cd"
   },
   "regpipe-summary": {
     "command": "snakemake --summary -s workflows/RegPipe.snakefile --cores 1",
     "cwd": "course-pipeline",
     "source": "_scripts/generate.py",
-    "returncode": 1,
-    "files": [],
-    "failed_hash": "c6167e309d663718b43864b68e4099d92d60b9245ad9c689001c1dc804645edd"
+    "returncode": 0,
+    "kind": "txt",
+    "files": [
+      "regpipe-summary.txt"
+    ],
+    "hash": "b9433230d95ba45942d6c1b3a38c8d5ca623c826761d4b4bcb36ea7a9e422307"
   },
   "ttpipe-dag": {
     "command": "snakemake --dag -s workflows/TTpipe.snakefile --cores 1 --configfile config/TTpipeConfig.yaml tests/dryrun/config.yaml",

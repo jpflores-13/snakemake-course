@@ -3,7 +3,7 @@
 Legacy analysis scripts for the Snakemake-ify exercises
 (`exercises/snakemakeify.qmd`). They are the kind of scripts a lab writes
 before it uses a workflow manager: they work, they run on the real course data
-(HCT116 CTCF and H3K27ac ChIP-seq, DNase-seq, chr8:125-130 Mb), and each has
+(HCT116 CTCF and H3K27ac ChIP-seq, DNase-seq and TT-seq, chr8:125-130 Mb), and each has
 habits that Snakemake replaces. Your job is to turn them into rules.
 
 Do not fix them here. They are meant to stay the way they are.
@@ -18,7 +18,8 @@ Do not fix them here. They are meant to stay the way they are.
 | `06_qc_summary.py` | reads, peaks and FRiP for every sample, in one table | `qc_summary.tsv` | `glob()` becomes explicit inputs; the script reads `snakemake.input` |
 | `07_overlap.sh` | replicate-consensus peaks per target, CTCF peaks with RAD21, CTCF summit windows | `overlap/*.bed`, `overlap/counts.txt` | a per-target wildcard; a hidden dependency on `chr8_course.fa.fai`; an empty file left behind by a failed command |
 | `08_locus_plot.R` | MYC locus figure from the bigWigs and consensus peaks (GenomicRanges, rtracklayer) | `MYC_locus.pdf`, `MYC_locus_CTCF_peaks.tsv` | hard-coded file names become `snakemake@input`, `@params`, `@output` |
-| `run_all.sh` | runs 01 to 08 in order | everything above | the whole thing becomes one Snakefile with `rule all` |
+| `09_ttseq_enhancers.R` | mean TT-seq signal on each strand over the published HCT116 enhancers (GEO GSE152291), per replicate | `ttseq_enhancers_rep{1,2}.tsv`, `ttseq_enhancers_all.tsv` | two nested loops (replicate, strand) become two wildcards; one R script becomes a per-file step plus a combining step |
+| `run_all.sh` | runs 01 to 09 in order | everything above | the whole thing becomes one Snakefile with `rule all` |
 
 ## Running the legacy version
 
@@ -32,7 +33,8 @@ Every script has the data folder at the top:
 DATA=~/snakemake-course/data
 ```
 
-(and `08_locus_plot.R` has the same path in `rad21_file`). If your copy of
+(`08_locus_plot.R` has the same path in `rad21_file`, and `09_ttseq_enhancers.R`
+in `geo`). If your copy of
 the course is somewhere else, edit those lines. Then run from an empty folder,
 because every script writes into the folder you run it from:
 
@@ -43,7 +45,12 @@ bash ~/snakemake-course/snakemakeify/run_all.sh 2>&1 | tee run_all.log
 
 The order matters: 02 needs nothing, 03 needs 02's BAMs, 04 and 05 need 03's
 filtered BAMs, 06 needs 03 and 04, 07 needs 04 (and 02's `.fai`), 08 needs
-03 and 07. `run_all.sh` does not stop when a step fails.
+03 and 07, 09 needs only the files in `data/geo/`. `run_all.sh` does not stop
+when a step fails.
+
+The whole run takes about a minute and a half on a 4-core laptop. Running it
+again takes about 20 seconds, because 06, 08 and 09 have no skip check and
+always run.
 
 To run one step, `cd` into the same folder and run that script, for example
 `bash ~/snakemake-course/snakemakeify/04_call_peaks.sh`.

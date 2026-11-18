@@ -1,0 +1,768 @@
+Building DAG of jobs...
+Job stats:
+job                   count
+------------------  -------
+align                    10
+all                       1
+bigwig                   10
+bowtie2_index             1
+call_peaks                6
+consensus_peaks           3
+ctcf_rad21_overlap        1
+enhancer_activity         1
+fastqc                   10
+filter                   10
+frip                      6
+locus_plot                1
+qc_table                  1
+total                    61
+
+
+[Wed Nov 18 00:59:42 2026]
+rule fastqc:
+    input: ../data/fastq/HCT116_input-CTCF_2.fastq.gz
+    output: output/HCT116_input-CTCF_2/fastqc/HCT116_input-CTCF_2_fastqc.html, output/HCT116_input-CTCF_2/fastqc/HCT116_input-CTCF_2_fastqc.zip
+    log: output/logs/fastqc/HCT116_input-CTCF_2.log
+    jobid: 6
+    benchmark: output/benchmarks/fastqc/HCT116_input-CTCF_2.tsv
+    reason: Missing output files: output/HCT116_input-CTCF_2/fastqc/HCT116_input-CTCF_2_fastqc.html
+    wildcards: sample=HCT116_input-CTCF_2
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:59:42 2026]
+rule fastqc:
+    input: ../data/fastq/HCT116_H3K27ac_2.fastq.gz
+    output: output/HCT116_H3K27ac_2/fastqc/HCT116_H3K27ac_2_fastqc.html, output/HCT116_H3K27ac_2/fastqc/HCT116_H3K27ac_2_fastqc.zip
+    log: output/logs/fastqc/HCT116_H3K27ac_2.log
+    jobid: 4
+    benchmark: output/benchmarks/fastqc/HCT116_H3K27ac_2.tsv
+    reason: Missing output files: output/HCT116_H3K27ac_2/fastqc/HCT116_H3K27ac_2_fastqc.html
+    wildcards: sample=HCT116_H3K27ac_2
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:59:42 2026]
+rule fastqc:
+    input: ../data/fastq/HCT116_CTCF_2.fastq.gz
+    output: output/HCT116_CTCF_2/fastqc/HCT116_CTCF_2_fastqc.html, output/HCT116_CTCF_2/fastqc/HCT116_CTCF_2_fastqc.zip
+    log: output/logs/fastqc/HCT116_CTCF_2.log
+    jobid: 2
+    benchmark: output/benchmarks/fastqc/HCT116_CTCF_2.tsv
+    reason: Missing output files: output/HCT116_CTCF_2/fastqc/HCT116_CTCF_2_fastqc.html
+    wildcards: sample=HCT116_CTCF_2
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:59:42 2026]
+rule fastqc:
+    input: ../data/fastq/HCT116_DNase_2.fastq.gz
+    output: output/HCT116_DNase_2/fastqc/HCT116_DNase_2_fastqc.html, output/HCT116_DNase_2/fastqc/HCT116_DNase_2_fastqc.zip
+    log: output/logs/fastqc/HCT116_DNase_2.log
+    jobid: 10
+    benchmark: output/benchmarks/fastqc/HCT116_DNase_2.tsv
+    reason: Missing output files: output/HCT116_DNase_2/fastqc/HCT116_DNase_2_fastqc.html
+    wildcards: sample=HCT116_DNase_2
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:59:42 2026]
+rule fastqc:
+    input: ../data/fastq/HCT116_input-H3K27ac_1.fastq.gz
+    output: output/HCT116_input-H3K27ac_1/fastqc/HCT116_input-H3K27ac_1_fastqc.html, output/HCT116_input-H3K27ac_1/fastqc/HCT116_input-H3K27ac_1_fastqc.zip
+    log: output/logs/fastqc/HCT116_input-H3K27ac_1.log
+    jobid: 7
+    benchmark: output/benchmarks/fastqc/HCT116_input-H3K27ac_1.tsv
+    reason: Missing output files: output/HCT116_input-H3K27ac_1/fastqc/HCT116_input-H3K27ac_1_fastqc.html
+    wildcards: sample=HCT116_input-H3K27ac_1
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:59:42 2026]
+rule fastqc:
+    input: ../data/fastq/HCT116_input-CTCF_1.fastq.gz
+    output: output/HCT116_input-CTCF_1/fastqc/HCT116_input-CTCF_1_fastqc.html, output/HCT116_input-CTCF_1/fastqc/HCT116_input-CTCF_1_fastqc.zip
+    log: output/logs/fastqc/HCT116_input-CTCF_1.log
+    jobid: 5
+    benchmark: output/benchmarks/fastqc/HCT116_input-CTCF_1.tsv
+    reason: Missing output files: output/HCT116_input-CTCF_1/fastqc/HCT116_input-CTCF_1_fastqc.html
+    wildcards: sample=HCT116_input-CTCF_1
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:59:42 2026]
+rule fastqc:
+    input: ../data/fastq/HCT116_H3K27ac_1.fastq.gz
+    output: output/HCT116_H3K27ac_1/fastqc/HCT116_H3K27ac_1_fastqc.html, output/HCT116_H3K27ac_1/fastqc/HCT116_H3K27ac_1_fastqc.zip
+    log: output/logs/fastqc/HCT116_H3K27ac_1.log
+    jobid: 3
+    benchmark: output/benchmarks/fastqc/HCT116_H3K27ac_1.tsv
+    reason: Missing output files: output/HCT116_H3K27ac_1/fastqc/HCT116_H3K27ac_1_fastqc.html
+    wildcards: sample=HCT116_H3K27ac_1
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:59:42 2026]
+rule fastqc:
+    input: ../data/fastq/HCT116_input-H3K27ac_2.fastq.gz
+    output: output/HCT116_input-H3K27ac_2/fastqc/HCT116_input-H3K27ac_2_fastqc.html, output/HCT116_input-H3K27ac_2/fastqc/HCT116_input-H3K27ac_2_fastqc.zip
+    log: output/logs/fastqc/HCT116_input-H3K27ac_2.log
+    jobid: 8
+    benchmark: output/benchmarks/fastqc/HCT116_input-H3K27ac_2.tsv
+    reason: Missing output files: output/HCT116_input-H3K27ac_2/fastqc/HCT116_input-H3K27ac_2_fastqc.html
+    wildcards: sample=HCT116_input-H3K27ac_2
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:59:42 2026]
+rule fastqc:
+    input: ../data/fastq/HCT116_CTCF_1.fastq.gz
+    output: output/HCT116_CTCF_1/fastqc/HCT116_CTCF_1_fastqc.html, output/HCT116_CTCF_1/fastqc/HCT116_CTCF_1_fastqc.zip
+    log: output/logs/fastqc/HCT116_CTCF_1.log
+    jobid: 1
+    benchmark: output/benchmarks/fastqc/HCT116_CTCF_1.tsv
+    reason: Missing output files: output/HCT116_CTCF_1/fastqc/HCT116_CTCF_1_fastqc.html
+    wildcards: sample=HCT116_CTCF_1
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:59:42 2026]
+rule fastqc:
+    input: ../data/fastq/HCT116_DNase_1.fastq.gz
+    output: output/HCT116_DNase_1/fastqc/HCT116_DNase_1_fastqc.html, output/HCT116_DNase_1/fastqc/HCT116_DNase_1_fastqc.zip
+    log: output/logs/fastqc/HCT116_DNase_1.log
+    jobid: 9
+    benchmark: output/benchmarks/fastqc/HCT116_DNase_1.tsv
+    reason: Missing output files: output/HCT116_DNase_1/fastqc/HCT116_DNase_1_fastqc.html
+    wildcards: sample=HCT116_DNase_1
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:59:42 2026]
+rule bowtie2_index:
+    input: ../data/reference/chr8_course.fa.gz
+    output: output/reference/bowtie2_index
+    log: output/logs/bowtie2_index/bowtie2_index.log
+    jobid: 13
+    benchmark: output/benchmarks/bowtie2_index/bowtie2_index.tsv
+    reason: Missing output files: output/reference/bowtie2_index
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:59:42 2026]
+rule align:
+    input: ../data/fastq/HCT116_H3K27ac_1.fastq.gz, output/reference/bowtie2_index
+    output: output/HCT116_H3K27ac_1/HCT116_H3K27ac_1_aligned.bam
+    log: output/logs/align/HCT116_H3K27ac_1.log
+    jobid: 17
+    benchmark: output/benchmarks/align/HCT116_H3K27ac_1.tsv
+    reason: Missing output files: output/HCT116_H3K27ac_1/HCT116_H3K27ac_1_aligned.bam; Input files updated by another job: output/reference/bowtie2_index
+    wildcards: sample=HCT116_H3K27ac_1
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:59:42 2026]
+rule align:
+    input: ../data/fastq/HCT116_input-CTCF_1.fastq.gz, output/reference/bowtie2_index
+    output: output/HCT116_input-CTCF_1/HCT116_input-CTCF_1_aligned.bam
+    log: output/logs/align/HCT116_input-CTCF_1.log
+    jobid: 21
+    benchmark: output/benchmarks/align/HCT116_input-CTCF_1.tsv
+    reason: Missing output files: output/HCT116_input-CTCF_1/HCT116_input-CTCF_1_aligned.bam; Input files updated by another job: output/reference/bowtie2_index
+    wildcards: sample=HCT116_input-CTCF_1
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:59:42 2026]
+rule align:
+    input: ../data/fastq/HCT116_input-H3K27ac_1.fastq.gz, output/reference/bowtie2_index
+    output: output/HCT116_input-H3K27ac_1/HCT116_input-H3K27ac_1_aligned.bam
+    log: output/logs/align/HCT116_input-H3K27ac_1.log
+    jobid: 25
+    benchmark: output/benchmarks/align/HCT116_input-H3K27ac_1.tsv
+    reason: Missing output files: output/HCT116_input-H3K27ac_1/HCT116_input-H3K27ac_1_aligned.bam; Input files updated by another job: output/reference/bowtie2_index
+    wildcards: sample=HCT116_input-H3K27ac_1
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:59:42 2026]
+rule align:
+    input: ../data/fastq/HCT116_DNase_1.fastq.gz, output/reference/bowtie2_index
+    output: output/HCT116_DNase_1/HCT116_DNase_1_aligned.bam
+    log: output/logs/align/HCT116_DNase_1.log
+    jobid: 29
+    benchmark: output/benchmarks/align/HCT116_DNase_1.tsv
+    reason: Missing output files: output/HCT116_DNase_1/HCT116_DNase_1_aligned.bam; Input files updated by another job: output/reference/bowtie2_index
+    wildcards: sample=HCT116_DNase_1
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:59:42 2026]
+rule align:
+    input: ../data/fastq/HCT116_CTCF_1.fastq.gz, output/reference/bowtie2_index
+    output: output/HCT116_CTCF_1/HCT116_CTCF_1_aligned.bam
+    log: output/logs/align/HCT116_CTCF_1.log
+    jobid: 12
+    benchmark: output/benchmarks/align/HCT116_CTCF_1.tsv
+    reason: Missing output files: output/HCT116_CTCF_1/HCT116_CTCF_1_aligned.bam; Input files updated by another job: output/reference/bowtie2_index
+    wildcards: sample=HCT116_CTCF_1
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:59:42 2026]
+rule align:
+    input: ../data/fastq/HCT116_CTCF_2.fastq.gz, output/reference/bowtie2_index
+    output: output/HCT116_CTCF_2/HCT116_CTCF_2_aligned.bam
+    log: output/logs/align/HCT116_CTCF_2.log
+    jobid: 15
+    benchmark: output/benchmarks/align/HCT116_CTCF_2.tsv
+    reason: Missing output files: output/HCT116_CTCF_2/HCT116_CTCF_2_aligned.bam; Input files updated by another job: output/reference/bowtie2_index
+    wildcards: sample=HCT116_CTCF_2
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:59:42 2026]
+rule align:
+    input: ../data/fastq/HCT116_H3K27ac_2.fastq.gz, output/reference/bowtie2_index
+    output: output/HCT116_H3K27ac_2/HCT116_H3K27ac_2_aligned.bam
+    log: output/logs/align/HCT116_H3K27ac_2.log
+    jobid: 19
+    benchmark: output/benchmarks/align/HCT116_H3K27ac_2.tsv
+    reason: Missing output files: output/HCT116_H3K27ac_2/HCT116_H3K27ac_2_aligned.bam; Input files updated by another job: output/reference/bowtie2_index
+    wildcards: sample=HCT116_H3K27ac_2
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:59:42 2026]
+rule align:
+    input: ../data/fastq/HCT116_input-CTCF_2.fastq.gz, output/reference/bowtie2_index
+    output: output/HCT116_input-CTCF_2/HCT116_input-CTCF_2_aligned.bam
+    log: output/logs/align/HCT116_input-CTCF_2.log
+    jobid: 23
+    benchmark: output/benchmarks/align/HCT116_input-CTCF_2.tsv
+    reason: Missing output files: output/HCT116_input-CTCF_2/HCT116_input-CTCF_2_aligned.bam; Input files updated by another job: output/reference/bowtie2_index
+    wildcards: sample=HCT116_input-CTCF_2
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:59:42 2026]
+rule align:
+    input: ../data/fastq/HCT116_input-H3K27ac_2.fastq.gz, output/reference/bowtie2_index
+    output: output/HCT116_input-H3K27ac_2/HCT116_input-H3K27ac_2_aligned.bam
+    log: output/logs/align/HCT116_input-H3K27ac_2.log
+    jobid: 27
+    benchmark: output/benchmarks/align/HCT116_input-H3K27ac_2.tsv
+    reason: Missing output files: output/HCT116_input-H3K27ac_2/HCT116_input-H3K27ac_2_aligned.bam; Input files updated by another job: output/reference/bowtie2_index
+    wildcards: sample=HCT116_input-H3K27ac_2
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:59:42 2026]
+rule align:
+    input: ../data/fastq/HCT116_DNase_2.fastq.gz, output/reference/bowtie2_index
+    output: output/HCT116_DNase_2/HCT116_DNase_2_aligned.bam
+    log: output/logs/align/HCT116_DNase_2.log
+    jobid: 31
+    benchmark: output/benchmarks/align/HCT116_DNase_2.tsv
+    reason: Missing output files: output/HCT116_DNase_2/HCT116_DNase_2_aligned.bam; Input files updated by another job: output/reference/bowtie2_index
+    wildcards: sample=HCT116_DNase_2
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:59:42 2026]
+rule filter:
+    input: output/HCT116_input-CTCF_1/HCT116_input-CTCF_1_aligned.bam, ../data/reference/blacklist.bed.gz
+    output: output/HCT116_input-CTCF_1/HCT116_input-CTCF_1_filtered.bam, output/HCT116_input-CTCF_1/HCT116_input-CTCF_1_filtered.bam.bai, output/HCT116_input-CTCF_1/HCT116_input-CTCF_1_aligned_flagstat.tsv, output/HCT116_input-CTCF_1/HCT116_input-CTCF_1_markdup.txt
+    log: output/logs/filter/HCT116_input-CTCF_1.log
+    jobid: 20
+    benchmark: output/benchmarks/filter/HCT116_input-CTCF_1.tsv
+    reason: Missing output files: output/HCT116_input-CTCF_1/HCT116_input-CTCF_1_filtered.bam, output/HCT116_input-CTCF_1/HCT116_input-CTCF_1_markdup.txt, output/HCT116_input-CTCF_1/HCT116_input-CTCF_1_aligned_flagstat.tsv; Input files updated by another job: output/HCT116_input-CTCF_1/HCT116_input-CTCF_1_aligned.bam
+    wildcards: sample=HCT116_input-CTCF_1
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:59:42 2026]
+rule filter:
+    input: output/HCT116_input-H3K27ac_1/HCT116_input-H3K27ac_1_aligned.bam, ../data/reference/blacklist.bed.gz
+    output: output/HCT116_input-H3K27ac_1/HCT116_input-H3K27ac_1_filtered.bam, output/HCT116_input-H3K27ac_1/HCT116_input-H3K27ac_1_filtered.bam.bai, output/HCT116_input-H3K27ac_1/HCT116_input-H3K27ac_1_aligned_flagstat.tsv, output/HCT116_input-H3K27ac_1/HCT116_input-H3K27ac_1_markdup.txt
+    log: output/logs/filter/HCT116_input-H3K27ac_1.log
+    jobid: 24
+    benchmark: output/benchmarks/filter/HCT116_input-H3K27ac_1.tsv
+    reason: Missing output files: output/HCT116_input-H3K27ac_1/HCT116_input-H3K27ac_1_filtered.bam, output/HCT116_input-H3K27ac_1/HCT116_input-H3K27ac_1_aligned_flagstat.tsv, output/HCT116_input-H3K27ac_1/HCT116_input-H3K27ac_1_markdup.txt; Input files updated by another job: output/HCT116_input-H3K27ac_1/HCT116_input-H3K27ac_1_aligned.bam
+    wildcards: sample=HCT116_input-H3K27ac_1
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:59:42 2026]
+rule filter:
+    input: output/HCT116_DNase_1/HCT116_DNase_1_aligned.bam, ../data/reference/blacklist.bed.gz
+    output: output/HCT116_DNase_1/HCT116_DNase_1_filtered.bam, output/HCT116_DNase_1/HCT116_DNase_1_filtered.bam.bai, output/HCT116_DNase_1/HCT116_DNase_1_aligned_flagstat.tsv, output/HCT116_DNase_1/HCT116_DNase_1_markdup.txt
+    log: output/logs/filter/HCT116_DNase_1.log
+    jobid: 28
+    benchmark: output/benchmarks/filter/HCT116_DNase_1.tsv
+    reason: Missing output files: output/HCT116_DNase_1/HCT116_DNase_1_markdup.txt, output/HCT116_DNase_1/HCT116_DNase_1_filtered.bam.bai, output/HCT116_DNase_1/HCT116_DNase_1_aligned_flagstat.tsv, output/HCT116_DNase_1/HCT116_DNase_1_filtered.bam; Input files updated by another job: output/HCT116_DNase_1/HCT116_DNase_1_aligned.bam
+    wildcards: sample=HCT116_DNase_1
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:59:42 2026]
+rule filter:
+    input: output/HCT116_CTCF_1/HCT116_CTCF_1_aligned.bam, ../data/reference/blacklist.bed.gz
+    output: output/HCT116_CTCF_1/HCT116_CTCF_1_filtered.bam, output/HCT116_CTCF_1/HCT116_CTCF_1_filtered.bam.bai, output/HCT116_CTCF_1/HCT116_CTCF_1_aligned_flagstat.tsv, output/HCT116_CTCF_1/HCT116_CTCF_1_markdup.txt
+    log: output/logs/filter/HCT116_CTCF_1.log
+    jobid: 11
+    benchmark: output/benchmarks/filter/HCT116_CTCF_1.tsv
+    reason: Missing output files: output/HCT116_CTCF_1/HCT116_CTCF_1_filtered.bam, output/HCT116_CTCF_1/HCT116_CTCF_1_markdup.txt, output/HCT116_CTCF_1/HCT116_CTCF_1_filtered.bam.bai, output/HCT116_CTCF_1/HCT116_CTCF_1_aligned_flagstat.tsv; Input files updated by another job: output/HCT116_CTCF_1/HCT116_CTCF_1_aligned.bam
+    wildcards: sample=HCT116_CTCF_1
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:59:42 2026]
+rule filter:
+    input: output/HCT116_H3K27ac_2/HCT116_H3K27ac_2_aligned.bam, ../data/reference/blacklist.bed.gz
+    output: output/HCT116_H3K27ac_2/HCT116_H3K27ac_2_filtered.bam, output/HCT116_H3K27ac_2/HCT116_H3K27ac_2_filtered.bam.bai, output/HCT116_H3K27ac_2/HCT116_H3K27ac_2_aligned_flagstat.tsv, output/HCT116_H3K27ac_2/HCT116_H3K27ac_2_markdup.txt
+    log: output/logs/filter/HCT116_H3K27ac_2.log
+    jobid: 18
+    benchmark: output/benchmarks/filter/HCT116_H3K27ac_2.tsv
+    reason: Missing output files: output/HCT116_H3K27ac_2/HCT116_H3K27ac_2_filtered.bam.bai, output/HCT116_H3K27ac_2/HCT116_H3K27ac_2_aligned_flagstat.tsv, output/HCT116_H3K27ac_2/HCT116_H3K27ac_2_filtered.bam, output/HCT116_H3K27ac_2/HCT116_H3K27ac_2_markdup.txt; Input files updated by another job: output/HCT116_H3K27ac_2/HCT116_H3K27ac_2_aligned.bam
+    wildcards: sample=HCT116_H3K27ac_2
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:59:42 2026]
+rule filter:
+    input: output/HCT116_input-CTCF_2/HCT116_input-CTCF_2_aligned.bam, ../data/reference/blacklist.bed.gz
+    output: output/HCT116_input-CTCF_2/HCT116_input-CTCF_2_filtered.bam, output/HCT116_input-CTCF_2/HCT116_input-CTCF_2_filtered.bam.bai, output/HCT116_input-CTCF_2/HCT116_input-CTCF_2_aligned_flagstat.tsv, output/HCT116_input-CTCF_2/HCT116_input-CTCF_2_markdup.txt
+    log: output/logs/filter/HCT116_input-CTCF_2.log
+    jobid: 22
+    benchmark: output/benchmarks/filter/HCT116_input-CTCF_2.tsv
+    reason: Missing output files: output/HCT116_input-CTCF_2/HCT116_input-CTCF_2_markdup.txt, output/HCT116_input-CTCF_2/HCT116_input-CTCF_2_filtered.bam, output/HCT116_input-CTCF_2/HCT116_input-CTCF_2_aligned_flagstat.tsv; Input files updated by another job: output/HCT116_input-CTCF_2/HCT116_input-CTCF_2_aligned.bam
+    wildcards: sample=HCT116_input-CTCF_2
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:59:42 2026]
+rule filter:
+    input: output/HCT116_input-H3K27ac_2/HCT116_input-H3K27ac_2_aligned.bam, ../data/reference/blacklist.bed.gz
+    output: output/HCT116_input-H3K27ac_2/HCT116_input-H3K27ac_2_filtered.bam, output/HCT116_input-H3K27ac_2/HCT116_input-H3K27ac_2_filtered.bam.bai, output/HCT116_input-H3K27ac_2/HCT116_input-H3K27ac_2_aligned_flagstat.tsv, output/HCT116_input-H3K27ac_2/HCT116_input-H3K27ac_2_markdup.txt
+    log: output/logs/filter/HCT116_input-H3K27ac_2.log
+    jobid: 26
+    benchmark: output/benchmarks/filter/HCT116_input-H3K27ac_2.tsv
+    reason: Missing output files: output/HCT116_input-H3K27ac_2/HCT116_input-H3K27ac_2_filtered.bam, output/HCT116_input-H3K27ac_2/HCT116_input-H3K27ac_2_aligned_flagstat.tsv, output/HCT116_input-H3K27ac_2/HCT116_input-H3K27ac_2_markdup.txt; Input files updated by another job: output/HCT116_input-H3K27ac_2/HCT116_input-H3K27ac_2_aligned.bam
+    wildcards: sample=HCT116_input-H3K27ac_2
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:59:42 2026]
+rule filter:
+    input: output/HCT116_DNase_2/HCT116_DNase_2_aligned.bam, ../data/reference/blacklist.bed.gz
+    output: output/HCT116_DNase_2/HCT116_DNase_2_filtered.bam, output/HCT116_DNase_2/HCT116_DNase_2_filtered.bam.bai, output/HCT116_DNase_2/HCT116_DNase_2_aligned_flagstat.tsv, output/HCT116_DNase_2/HCT116_DNase_2_markdup.txt
+    log: output/logs/filter/HCT116_DNase_2.log
+    jobid: 30
+    benchmark: output/benchmarks/filter/HCT116_DNase_2.tsv
+    reason: Missing output files: output/HCT116_DNase_2/HCT116_DNase_2_filtered.bam.bai, output/HCT116_DNase_2/HCT116_DNase_2_markdup.txt, output/HCT116_DNase_2/HCT116_DNase_2_filtered.bam, output/HCT116_DNase_2/HCT116_DNase_2_aligned_flagstat.tsv; Input files updated by another job: output/HCT116_DNase_2/HCT116_DNase_2_aligned.bam
+    wildcards: sample=HCT116_DNase_2
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:59:42 2026]
+rule filter:
+    input: output/HCT116_CTCF_2/HCT116_CTCF_2_aligned.bam, ../data/reference/blacklist.bed.gz
+    output: output/HCT116_CTCF_2/HCT116_CTCF_2_filtered.bam, output/HCT116_CTCF_2/HCT116_CTCF_2_filtered.bam.bai, output/HCT116_CTCF_2/HCT116_CTCF_2_aligned_flagstat.tsv, output/HCT116_CTCF_2/HCT116_CTCF_2_markdup.txt
+    log: output/logs/filter/HCT116_CTCF_2.log
+    jobid: 14
+    benchmark: output/benchmarks/filter/HCT116_CTCF_2.tsv
+    reason: Missing output files: output/HCT116_CTCF_2/HCT116_CTCF_2_markdup.txt, output/HCT116_CTCF_2/HCT116_CTCF_2_filtered.bam, output/HCT116_CTCF_2/HCT116_CTCF_2_aligned_flagstat.tsv, output/HCT116_CTCF_2/HCT116_CTCF_2_filtered.bam.bai; Input files updated by another job: output/HCT116_CTCF_2/HCT116_CTCF_2_aligned.bam
+    wildcards: sample=HCT116_CTCF_2
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:59:42 2026]
+rule filter:
+    input: output/HCT116_H3K27ac_1/HCT116_H3K27ac_1_aligned.bam, ../data/reference/blacklist.bed.gz
+    output: output/HCT116_H3K27ac_1/HCT116_H3K27ac_1_filtered.bam, output/HCT116_H3K27ac_1/HCT116_H3K27ac_1_filtered.bam.bai, output/HCT116_H3K27ac_1/HCT116_H3K27ac_1_aligned_flagstat.tsv, output/HCT116_H3K27ac_1/HCT116_H3K27ac_1_markdup.txt
+    log: output/logs/filter/HCT116_H3K27ac_1.log
+    jobid: 16
+    benchmark: output/benchmarks/filter/HCT116_H3K27ac_1.tsv
+    reason: Missing output files: output/HCT116_H3K27ac_1/HCT116_H3K27ac_1_filtered.bam.bai, output/HCT116_H3K27ac_1/HCT116_H3K27ac_1_filtered.bam, output/HCT116_H3K27ac_1/HCT116_H3K27ac_1_markdup.txt, output/HCT116_H3K27ac_1/HCT116_H3K27ac_1_aligned_flagstat.tsv; Input files updated by another job: output/HCT116_H3K27ac_1/HCT116_H3K27ac_1_aligned.bam
+    wildcards: sample=HCT116_H3K27ac_1
+    resources: tmpdir=<TBD>
+
+Would remove temporary output output/HCT116_input-CTCF_1/HCT116_input-CTCF_1_aligned.bam
+Would remove temporary output output/HCT116_input-H3K27ac_1/HCT116_input-H3K27ac_1_aligned.bam
+Would remove temporary output output/HCT116_DNase_1/HCT116_DNase_1_aligned.bam
+Would remove temporary output output/HCT116_CTCF_1/HCT116_CTCF_1_aligned.bam
+Would remove temporary output output/HCT116_H3K27ac_2/HCT116_H3K27ac_2_aligned.bam
+Would remove temporary output output/HCT116_input-CTCF_2/HCT116_input-CTCF_2_aligned.bam
+Would remove temporary output output/HCT116_input-H3K27ac_2/HCT116_input-H3K27ac_2_aligned.bam
+Would remove temporary output output/HCT116_DNase_2/HCT116_DNase_2_aligned.bam
+Would remove temporary output output/HCT116_CTCF_2/HCT116_CTCF_2_aligned.bam
+Would remove temporary output output/HCT116_H3K27ac_1/HCT116_H3K27ac_1_aligned.bam
+
+[Wed Nov 18 00:59:42 2026]
+rule bigwig:
+    input: output/HCT116_DNase_2/HCT116_DNase_2_filtered.bam
+    output: output/tracks/HCT116_DNase_2.bw
+    log: output/logs/bigwig/HCT116_DNase_2.log
+    jobid: 41
+    benchmark: output/benchmarks/bigwig/HCT116_DNase_2.tsv
+    reason: Missing output files: output/tracks/HCT116_DNase_2.bw; Input files updated by another job: output/HCT116_DNase_2/HCT116_DNase_2_filtered.bam
+    wildcards: sample=HCT116_DNase_2
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:59:42 2026]
+rule call_peaks:
+    input: output/HCT116_CTCF_2/HCT116_CTCF_2_filtered.bam, output/HCT116_input-CTCF_2/HCT116_input-CTCF_2_filtered.bam
+    output: output/peaks/HCT116_CTCF_2_peaks.narrowPeak, output/peaks/HCT116_CTCF_2_peaks.xls, output/peaks/HCT116_CTCF_2_summits.bed
+    log: output/logs/call_peaks/HCT116_CTCF_2.log
+    jobid: 43
+    benchmark: output/benchmarks/call_peaks/HCT116_CTCF_2.tsv
+    reason: Missing output files: output/peaks/HCT116_CTCF_2_peaks.narrowPeak; Input files updated by another job: output/HCT116_CTCF_2/HCT116_CTCF_2_filtered.bam, output/HCT116_input-CTCF_2/HCT116_input-CTCF_2_filtered.bam
+    wildcards: sample=HCT116_CTCF_2
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:59:42 2026]
+rule call_peaks:
+    input: output/HCT116_H3K27ac_2/HCT116_H3K27ac_2_filtered.bam, output/HCT116_input-H3K27ac_2/HCT116_input-H3K27ac_2_filtered.bam
+    output: output/peaks/HCT116_H3K27ac_2_peaks.narrowPeak, output/peaks/HCT116_H3K27ac_2_peaks.xls, output/peaks/HCT116_H3K27ac_2_summits.bed
+    log: output/logs/call_peaks/HCT116_H3K27ac_2.log
+    jobid: 45
+    benchmark: output/benchmarks/call_peaks/HCT116_H3K27ac_2.tsv
+    reason: Missing output files: output/peaks/HCT116_H3K27ac_2_peaks.narrowPeak; Input files updated by another job: output/HCT116_input-H3K27ac_2/HCT116_input-H3K27ac_2_filtered.bam, output/HCT116_H3K27ac_2/HCT116_H3K27ac_2_filtered.bam
+    wildcards: sample=HCT116_H3K27ac_2
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:59:42 2026]
+rule call_peaks:
+    input: output/HCT116_DNase_2/HCT116_DNase_2_filtered.bam
+    output: output/peaks/HCT116_DNase_2_peaks.narrowPeak, output/peaks/HCT116_DNase_2_peaks.xls, output/peaks/HCT116_DNase_2_summits.bed
+    log: output/logs/call_peaks/HCT116_DNase_2.log
+    jobid: 47
+    benchmark: output/benchmarks/call_peaks/HCT116_DNase_2.tsv
+    reason: Missing output files: output/peaks/HCT116_DNase_2_peaks.narrowPeak; Input files updated by another job: output/HCT116_DNase_2/HCT116_DNase_2_filtered.bam
+    wildcards: sample=HCT116_DNase_2
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:59:42 2026]
+rule bigwig:
+    input: output/HCT116_CTCF_1/HCT116_CTCF_1_filtered.bam
+    output: output/tracks/HCT116_CTCF_1.bw
+    log: output/logs/bigwig/HCT116_CTCF_1.log
+    jobid: 32
+    benchmark: output/benchmarks/bigwig/HCT116_CTCF_1.tsv
+    reason: Missing output files: output/tracks/HCT116_CTCF_1.bw; Input files updated by another job: output/HCT116_CTCF_1/HCT116_CTCF_1_filtered.bam
+    wildcards: sample=HCT116_CTCF_1
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:59:42 2026]
+rule bigwig:
+    input: output/HCT116_H3K27ac_1/HCT116_H3K27ac_1_filtered.bam
+    output: output/tracks/HCT116_H3K27ac_1.bw
+    log: output/logs/bigwig/HCT116_H3K27ac_1.log
+    jobid: 34
+    benchmark: output/benchmarks/bigwig/HCT116_H3K27ac_1.tsv
+    reason: Missing output files: output/tracks/HCT116_H3K27ac_1.bw; Input files updated by another job: output/HCT116_H3K27ac_1/HCT116_H3K27ac_1_filtered.bam
+    wildcards: sample=HCT116_H3K27ac_1
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:59:42 2026]
+rule bigwig:
+    input: output/HCT116_input-CTCF_1/HCT116_input-CTCF_1_filtered.bam
+    output: output/tracks/HCT116_input-CTCF_1.bw
+    log: output/logs/bigwig/HCT116_input-CTCF_1.log
+    jobid: 36
+    benchmark: output/benchmarks/bigwig/HCT116_input-CTCF_1.tsv
+    reason: Missing output files: output/tracks/HCT116_input-CTCF_1.bw; Input files updated by another job: output/HCT116_input-CTCF_1/HCT116_input-CTCF_1_filtered.bam
+    wildcards: sample=HCT116_input-CTCF_1
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:59:42 2026]
+rule bigwig:
+    input: output/HCT116_input-H3K27ac_1/HCT116_input-H3K27ac_1_filtered.bam
+    output: output/tracks/HCT116_input-H3K27ac_1.bw
+    log: output/logs/bigwig/HCT116_input-H3K27ac_1.log
+    jobid: 38
+    benchmark: output/benchmarks/bigwig/HCT116_input-H3K27ac_1.tsv
+    reason: Missing output files: output/tracks/HCT116_input-H3K27ac_1.bw; Input files updated by another job: output/HCT116_input-H3K27ac_1/HCT116_input-H3K27ac_1_filtered.bam
+    wildcards: sample=HCT116_input-H3K27ac_1
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:59:42 2026]
+rule bigwig:
+    input: output/HCT116_DNase_1/HCT116_DNase_1_filtered.bam
+    output: output/tracks/HCT116_DNase_1.bw
+    log: output/logs/bigwig/HCT116_DNase_1.log
+    jobid: 40
+    benchmark: output/benchmarks/bigwig/HCT116_DNase_1.tsv
+    reason: Missing output files: output/tracks/HCT116_DNase_1.bw; Input files updated by another job: output/HCT116_DNase_1/HCT116_DNase_1_filtered.bam
+    wildcards: sample=HCT116_DNase_1
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:59:42 2026]
+rule call_peaks:
+    input: output/HCT116_CTCF_1/HCT116_CTCF_1_filtered.bam, output/HCT116_input-CTCF_1/HCT116_input-CTCF_1_filtered.bam
+    output: output/peaks/HCT116_CTCF_1_peaks.narrowPeak, output/peaks/HCT116_CTCF_1_peaks.xls, output/peaks/HCT116_CTCF_1_summits.bed
+    log: output/logs/call_peaks/HCT116_CTCF_1.log
+    jobid: 42
+    benchmark: output/benchmarks/call_peaks/HCT116_CTCF_1.tsv
+    reason: Missing output files: output/peaks/HCT116_CTCF_1_peaks.narrowPeak; Input files updated by another job: output/HCT116_input-CTCF_1/HCT116_input-CTCF_1_filtered.bam, output/HCT116_CTCF_1/HCT116_CTCF_1_filtered.bam
+    wildcards: sample=HCT116_CTCF_1
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:59:42 2026]
+rule call_peaks:
+    input: output/HCT116_H3K27ac_1/HCT116_H3K27ac_1_filtered.bam, output/HCT116_input-H3K27ac_1/HCT116_input-H3K27ac_1_filtered.bam
+    output: output/peaks/HCT116_H3K27ac_1_peaks.narrowPeak, output/peaks/HCT116_H3K27ac_1_peaks.xls, output/peaks/HCT116_H3K27ac_1_summits.bed
+    log: output/logs/call_peaks/HCT116_H3K27ac_1.log
+    jobid: 44
+    benchmark: output/benchmarks/call_peaks/HCT116_H3K27ac_1.tsv
+    reason: Missing output files: output/peaks/HCT116_H3K27ac_1_peaks.narrowPeak; Input files updated by another job: output/HCT116_input-H3K27ac_1/HCT116_input-H3K27ac_1_filtered.bam, output/HCT116_H3K27ac_1/HCT116_H3K27ac_1_filtered.bam
+    wildcards: sample=HCT116_H3K27ac_1
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:59:42 2026]
+rule call_peaks:
+    input: output/HCT116_DNase_1/HCT116_DNase_1_filtered.bam
+    output: output/peaks/HCT116_DNase_1_peaks.narrowPeak, output/peaks/HCT116_DNase_1_peaks.xls, output/peaks/HCT116_DNase_1_summits.bed
+    log: output/logs/call_peaks/HCT116_DNase_1.log
+    jobid: 46
+    benchmark: output/benchmarks/call_peaks/HCT116_DNase_1.tsv
+    reason: Missing output files: output/peaks/HCT116_DNase_1_peaks.narrowPeak; Input files updated by another job: output/HCT116_DNase_1/HCT116_DNase_1_filtered.bam
+    wildcards: sample=HCT116_DNase_1
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:59:42 2026]
+rule bigwig:
+    input: output/HCT116_CTCF_2/HCT116_CTCF_2_filtered.bam
+    output: output/tracks/HCT116_CTCF_2.bw
+    log: output/logs/bigwig/HCT116_CTCF_2.log
+    jobid: 33
+    benchmark: output/benchmarks/bigwig/HCT116_CTCF_2.tsv
+    reason: Missing output files: output/tracks/HCT116_CTCF_2.bw; Input files updated by another job: output/HCT116_CTCF_2/HCT116_CTCF_2_filtered.bam
+    wildcards: sample=HCT116_CTCF_2
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:59:42 2026]
+rule bigwig:
+    input: output/HCT116_H3K27ac_2/HCT116_H3K27ac_2_filtered.bam
+    output: output/tracks/HCT116_H3K27ac_2.bw
+    log: output/logs/bigwig/HCT116_H3K27ac_2.log
+    jobid: 35
+    benchmark: output/benchmarks/bigwig/HCT116_H3K27ac_2.tsv
+    reason: Missing output files: output/tracks/HCT116_H3K27ac_2.bw; Input files updated by another job: output/HCT116_H3K27ac_2/HCT116_H3K27ac_2_filtered.bam
+    wildcards: sample=HCT116_H3K27ac_2
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:59:42 2026]
+rule bigwig:
+    input: output/HCT116_input-CTCF_2/HCT116_input-CTCF_2_filtered.bam
+    output: output/tracks/HCT116_input-CTCF_2.bw
+    log: output/logs/bigwig/HCT116_input-CTCF_2.log
+    jobid: 37
+    benchmark: output/benchmarks/bigwig/HCT116_input-CTCF_2.tsv
+    reason: Missing output files: output/tracks/HCT116_input-CTCF_2.bw; Input files updated by another job: output/HCT116_input-CTCF_2/HCT116_input-CTCF_2_filtered.bam
+    wildcards: sample=HCT116_input-CTCF_2
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:59:42 2026]
+rule bigwig:
+    input: output/HCT116_input-H3K27ac_2/HCT116_input-H3K27ac_2_filtered.bam
+    output: output/tracks/HCT116_input-H3K27ac_2.bw
+    log: output/logs/bigwig/HCT116_input-H3K27ac_2.log
+    jobid: 39
+    benchmark: output/benchmarks/bigwig/HCT116_input-H3K27ac_2.tsv
+    reason: Missing output files: output/tracks/HCT116_input-H3K27ac_2.bw; Input files updated by another job: output/HCT116_input-H3K27ac_2/HCT116_input-H3K27ac_2_filtered.bam
+    wildcards: sample=HCT116_input-H3K27ac_2
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:59:42 2026]
+rule frip:
+    input: output/HCT116_H3K27ac_2/HCT116_H3K27ac_2_filtered.bam, output/HCT116_H3K27ac_2/HCT116_H3K27ac_2_filtered.bam.bai, output/peaks/HCT116_H3K27ac_2_peaks.narrowPeak
+    output: output/HCT116_H3K27ac_2/HCT116_H3K27ac_2_frip.tsv
+    log: output/logs/frip/HCT116_H3K27ac_2.log
+    jobid: 55
+    benchmark: output/benchmarks/frip/HCT116_H3K27ac_2.tsv
+    reason: Missing output files: output/HCT116_H3K27ac_2/HCT116_H3K27ac_2_frip.tsv; Input files updated by another job: output/HCT116_H3K27ac_2/HCT116_H3K27ac_2_filtered.bam.bai, output/HCT116_H3K27ac_2/HCT116_H3K27ac_2_filtered.bam, output/peaks/HCT116_H3K27ac_2_peaks.narrowPeak
+    wildcards: sample=HCT116_H3K27ac_2
+    resources: tmpdir=<TBD>
+
+[Wed Nov 18 00:59:42 2026]
+rule frip:
+    input: output/HCT116_DNase_2/HCT116_DNase_2_filtered.bam, output/HCT116_DNase_2/HCT116_DNase_2_filtered.bam.bai, output/peaks/HCT116_DNase_2_peaks.narrowPeak
+    output: output/HCT116_DNase_2/HCT116_DNase_2_frip.tsv
+    log: output/logs/frip/HCT116_DNase_2.log
+    jobid: 57
+    benchmark: output/benchmarks/frip/HCT116_DNase_2.tsv
+    reason: Missing output files: output/HCT116_DNase_2/HCT116_DNase_2_frip.tsv; Input files updated by another job: output/HCT116_DNase_2/HCT116_DNase_2_filtered.bam.bai, output/peaks/HCT116_DNase_2_peaks.narrowPeak, output/HCT116_DNase_2/HCT116_DNase_2_filtered.bam
+    wildcards: sample=HCT116_DNase_2
+    resources: tmpdir=<TBD>
+
+[Wed Nov 18 00:59:42 2026]
+rule consensus_peaks:
+    input: output/peaks/HCT116_H3K27ac_1_peaks.narrowPeak, output/peaks/HCT116_H3K27ac_2_peaks.narrowPeak
+    output: output/consensus/H3K27ac_consensus.bed
+    log: output/logs/consensus_peaks/H3K27ac.log
+    jobid: 49
+    benchmark: output/benchmarks/consensus_peaks/H3K27ac.tsv
+    reason: Missing output files: output/consensus/H3K27ac_consensus.bed; Input files updated by another job: output/peaks/HCT116_H3K27ac_1_peaks.narrowPeak, output/peaks/HCT116_H3K27ac_2_peaks.narrowPeak
+    wildcards: target=H3K27ac
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:59:43 2026]
+rule frip:
+    input: output/HCT116_CTCF_1/HCT116_CTCF_1_filtered.bam, output/HCT116_CTCF_1/HCT116_CTCF_1_filtered.bam.bai, output/peaks/HCT116_CTCF_1_peaks.narrowPeak
+    output: output/HCT116_CTCF_1/HCT116_CTCF_1_frip.tsv
+    log: output/logs/frip/HCT116_CTCF_1.log
+    jobid: 52
+    benchmark: output/benchmarks/frip/HCT116_CTCF_1.tsv
+    reason: Missing output files: output/HCT116_CTCF_1/HCT116_CTCF_1_frip.tsv; Input files updated by another job: output/HCT116_CTCF_1/HCT116_CTCF_1_filtered.bam, output/peaks/HCT116_CTCF_1_peaks.narrowPeak, output/HCT116_CTCF_1/HCT116_CTCF_1_filtered.bam.bai
+    wildcards: sample=HCT116_CTCF_1
+    resources: tmpdir=<TBD>
+
+[Wed Nov 18 00:59:43 2026]
+rule frip:
+    input: output/HCT116_H3K27ac_1/HCT116_H3K27ac_1_filtered.bam, output/HCT116_H3K27ac_1/HCT116_H3K27ac_1_filtered.bam.bai, output/peaks/HCT116_H3K27ac_1_peaks.narrowPeak
+    output: output/HCT116_H3K27ac_1/HCT116_H3K27ac_1_frip.tsv
+    log: output/logs/frip/HCT116_H3K27ac_1.log
+    jobid: 54
+    benchmark: output/benchmarks/frip/HCT116_H3K27ac_1.tsv
+    reason: Missing output files: output/HCT116_H3K27ac_1/HCT116_H3K27ac_1_frip.tsv; Input files updated by another job: output/HCT116_H3K27ac_1/HCT116_H3K27ac_1_filtered.bam.bai, output/peaks/HCT116_H3K27ac_1_peaks.narrowPeak, output/HCT116_H3K27ac_1/HCT116_H3K27ac_1_filtered.bam
+    wildcards: sample=HCT116_H3K27ac_1
+    resources: tmpdir=<TBD>
+
+[Wed Nov 18 00:59:43 2026]
+rule frip:
+    input: output/HCT116_DNase_1/HCT116_DNase_1_filtered.bam, output/HCT116_DNase_1/HCT116_DNase_1_filtered.bam.bai, output/peaks/HCT116_DNase_1_peaks.narrowPeak
+    output: output/HCT116_DNase_1/HCT116_DNase_1_frip.tsv
+    log: output/logs/frip/HCT116_DNase_1.log
+    jobid: 56
+    benchmark: output/benchmarks/frip/HCT116_DNase_1.tsv
+    reason: Missing output files: output/HCT116_DNase_1/HCT116_DNase_1_frip.tsv; Input files updated by another job: output/peaks/HCT116_DNase_1_peaks.narrowPeak, output/HCT116_DNase_1/HCT116_DNase_1_filtered.bam.bai, output/HCT116_DNase_1/HCT116_DNase_1_filtered.bam
+    wildcards: sample=HCT116_DNase_1
+    resources: tmpdir=<TBD>
+
+[Wed Nov 18 00:59:43 2026]
+rule consensus_peaks:
+    input: output/peaks/HCT116_CTCF_1_peaks.narrowPeak, output/peaks/HCT116_CTCF_2_peaks.narrowPeak
+    output: output/consensus/CTCF_consensus.bed
+    log: output/logs/consensus_peaks/CTCF.log
+    jobid: 48
+    benchmark: output/benchmarks/consensus_peaks/CTCF.tsv
+    reason: Missing output files: output/consensus/CTCF_consensus.bed; Input files updated by another job: output/peaks/HCT116_CTCF_2_peaks.narrowPeak, output/peaks/HCT116_CTCF_1_peaks.narrowPeak
+    wildcards: target=CTCF
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:59:43 2026]
+rule consensus_peaks:
+    input: output/peaks/HCT116_DNase_1_peaks.narrowPeak, output/peaks/HCT116_DNase_2_peaks.narrowPeak
+    output: output/consensus/DNase_consensus.bed
+    log: output/logs/consensus_peaks/DNase.log
+    jobid: 50
+    benchmark: output/benchmarks/consensus_peaks/DNase.tsv
+    reason: Missing output files: output/consensus/DNase_consensus.bed; Input files updated by another job: output/peaks/HCT116_DNase_1_peaks.narrowPeak, output/peaks/HCT116_DNase_2_peaks.narrowPeak
+    wildcards: target=DNase
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 00:59:43 2026]
+rule frip:
+    input: output/HCT116_CTCF_2/HCT116_CTCF_2_filtered.bam, output/HCT116_CTCF_2/HCT116_CTCF_2_filtered.bam.bai, output/peaks/HCT116_CTCF_2_peaks.narrowPeak
+    output: output/HCT116_CTCF_2/HCT116_CTCF_2_frip.tsv
+    log: output/logs/frip/HCT116_CTCF_2.log
+    jobid: 53
+    benchmark: output/benchmarks/frip/HCT116_CTCF_2.tsv
+    reason: Missing output files: output/HCT116_CTCF_2/HCT116_CTCF_2_frip.tsv; Input files updated by another job: output/peaks/HCT116_CTCF_2_peaks.narrowPeak, output/HCT116_CTCF_2/HCT116_CTCF_2_filtered.bam, output/HCT116_CTCF_2/HCT116_CTCF_2_filtered.bam.bai
+    wildcards: sample=HCT116_CTCF_2
+    resources: tmpdir=<TBD>
+
+[Wed Nov 18 00:59:43 2026]
+rule qc_table:
+    input: output/HCT116_CTCF_1/HCT116_CTCF_1_aligned_flagstat.tsv, output/HCT116_CTCF_2/HCT116_CTCF_2_aligned_flagstat.tsv, output/HCT116_H3K27ac_1/HCT116_H3K27ac_1_aligned_flagstat.tsv, output/HCT116_H3K27ac_2/HCT116_H3K27ac_2_aligned_flagstat.tsv, output/HCT116_input-CTCF_1/HCT116_input-CTCF_1_aligned_flagstat.tsv, output/HCT116_input-CTCF_2/HCT116_input-CTCF_2_aligned_flagstat.tsv, output/HCT116_input-H3K27ac_1/HCT116_input-H3K27ac_1_aligned_flagstat.tsv, output/HCT116_input-H3K27ac_2/HCT116_input-H3K27ac_2_aligned_flagstat.tsv, output/HCT116_DNase_1/HCT116_DNase_1_aligned_flagstat.tsv, output/HCT116_DNase_2/HCT116_DNase_2_aligned_flagstat.tsv, output/HCT116_CTCF_1/HCT116_CTCF_1_markdup.txt, output/HCT116_CTCF_2/HCT116_CTCF_2_markdup.txt, output/HCT116_H3K27ac_1/HCT116_H3K27ac_1_markdup.txt, output/HCT116_H3K27ac_2/HCT116_H3K27ac_2_markdup.txt, output/HCT116_input-CTCF_1/HCT116_input-CTCF_1_markdup.txt, output/HCT116_input-CTCF_2/HCT116_input-CTCF_2_markdup.txt, output/HCT116_input-H3K27ac_1/HCT116_input-H3K27ac_1_markdup.txt, output/HCT116_input-H3K27ac_2/HCT116_input-H3K27ac_2_markdup.txt, output/HCT116_DNase_1/HCT116_DNase_1_markdup.txt, output/HCT116_DNase_2/HCT116_DNase_2_markdup.txt, output/HCT116_CTCF_1/HCT116_CTCF_1_frip.tsv, output/HCT116_CTCF_2/HCT116_CTCF_2_frip.tsv, output/HCT116_H3K27ac_1/HCT116_H3K27ac_1_frip.tsv, output/HCT116_H3K27ac_2/HCT116_H3K27ac_2_frip.tsv, output/HCT116_DNase_1/HCT116_DNase_1_frip.tsv, output/HCT116_DNase_2/HCT116_DNase_2_frip.tsv, output/peaks/HCT116_CTCF_1_peaks.narrowPeak, output/peaks/HCT116_CTCF_2_peaks.narrowPeak, output/peaks/HCT116_H3K27ac_1_peaks.narrowPeak, output/peaks/HCT116_H3K27ac_2_peaks.narrowPeak, output/peaks/HCT116_DNase_1_peaks.narrowPeak, output/peaks/HCT116_DNase_2_peaks.narrowPeak
+    output: output/qc/qc_table.tsv
+    log: output/logs/qc_table/qc_table.log
+    jobid: 51
+    benchmark: output/benchmarks/qc_table/qc_table.tsv
+    reason: Missing output files: output/qc/qc_table.tsv; Input files updated by another job: output/peaks/HCT116_CTCF_2_peaks.narrowPeak, output/HCT116_DNase_2/HCT116_DNase_2_markdup.txt, output/HCT116_DNase_1/HCT116_DNase_1_markdup.txt, output/HCT116_input-CTCF_1/HCT116_input-CTCF_1_markdup.txt, output/HCT116_input-CTCF_1/HCT116_input-CTCF_1_aligned_flagstat.tsv, output/peaks/HCT116_DNase_1_peaks.narrowPeak, output/peaks/HCT116_DNase_2_peaks.narrowPeak, output/HCT116_H3K27ac_2/HCT116_H3K27ac_2_markdup.txt, output/HCT116_CTCF_2/HCT116_CTCF_2_markdup.txt, output/HCT116_DNase_2/HCT116_DNase_2_aligned_flagstat.tsv, output/HCT116_input-CTCF_2/HCT116_input-CTCF_2_markdup.txt, output/HCT116_H3K27ac_2/HCT116_H3K27ac_2_frip.tsv, output/HCT116_input-CTCF_2/HCT116_input-CTCF_2_aligned_flagstat.tsv, output/HCT116_H3K27ac_1/HCT116_H3K27ac_1_frip.tsv, output/HCT116_CTCF_1/HCT116_CTCF_1_markdup.txt, output/HCT116_H3K27ac_1/HCT116_H3K27ac_1_aligned_flagstat.tsv, output/HCT116_H3K27ac_1/HCT116_H3K27ac_1_markdup.txt, output/HCT116_CTCF_2/HCT116_CTCF_2_frip.tsv, output/peaks/HCT116_H3K27ac_1_peaks.narrowPeak, output/HCT116_CTCF_2/HCT116_CTCF_2_aligned_flagstat.tsv, output/HCT116_DNase_2/HCT116_DNase_2_frip.tsv, output/HCT116_DNase_1/HCT116_DNase_1_frip.tsv, output/HCT116_H3K27ac_2/HCT116_H3K27ac_2_aligned_flagstat.tsv, output/peaks/HCT116_H3K27ac_2_peaks.narrowPeak, output/HCT116_CTCF_1/HCT116_CTCF_1_frip.tsv, output/HCT116_input-H3K27ac_2/HCT116_input-H3K27ac_2_aligned_flagstat.tsv, output/HCT116_input-H3K27ac_2/HCT116_input-H3K27ac_2_markdup.txt, output/HCT116_CTCF_1/HCT116_CTCF_1_aligned_flagstat.tsv, output/HCT116_input-H3K27ac_1/HCT116_input-H3K27ac_1_aligned_flagstat.tsv, output/peaks/HCT116_CTCF_1_peaks.narrowPeak, output/HCT116_input-H3K27ac_1/HCT116_input-H3K27ac_1_markdup.txt, output/HCT116_DNase_1/HCT116_DNase_1_aligned_flagstat.tsv
+    resources: tmpdir=<TBD>
+
+[Wed Nov 18 00:59:43 2026]
+rule ctcf_rad21_overlap:
+    input: output/consensus/CTCF_consensus.bed, ../data/peaks/RAD21_ENCFF391AAM.bed.gz, ../data/peaks/CTCF_ENCODE_IDR.bed.gz
+    output: output/qc/ctcf_rad21_overlap.tsv
+    log: output/logs/ctcf_rad21_overlap/ctcf_rad21_overlap.log
+    jobid: 58
+    benchmark: output/benchmarks/ctcf_rad21_overlap/ctcf_rad21_overlap.tsv
+    reason: Missing output files: output/qc/ctcf_rad21_overlap.tsv; Input files updated by another job: output/consensus/CTCF_consensus.bed
+    resources: tmpdir=<TBD>
+
+[Wed Nov 18 00:59:43 2026]
+rule locus_plot:
+    input: output/tracks/HCT116_CTCF_1.bw, output/tracks/HCT116_CTCF_2.bw, output/tracks/HCT116_H3K27ac_1.bw, output/tracks/HCT116_H3K27ac_2.bw, output/tracks/HCT116_DNase_1.bw, output/tracks/HCT116_DNase_2.bw, output/consensus/CTCF_consensus.bed, output/consensus/H3K27ac_consensus.bed, output/consensus/DNase_consensus.bed, ../data/peaks/RAD21_ENCFF391AAM.bed.gz, ../data/geo/TTseq_HCT116_1_plus.bw, ../data/geo/TTseq_HCT116_1_minus.bw, ../data/geo/TTseq_HCT116_2_plus.bw, ../data/geo/TTseq_HCT116_2_minus.bw, ../data/geo/TTseq_HCT116_enhancers.gtf.gz, ../data/geo/TTseq_HCT116_eRNAs.gtf.gz
+    output: output/figures/MYC_locus.pdf
+    log: output/logs/locus_plot/locus_plot.log
+    jobid: 59
+    benchmark: output/benchmarks/locus_plot/locus_plot.tsv
+    reason: Missing output files: output/figures/MYC_locus.pdf; Input files updated by another job: output/consensus/DNase_consensus.bed, output/tracks/HCT116_CTCF_1.bw, output/tracks/HCT116_CTCF_2.bw, output/consensus/H3K27ac_consensus.bed, output/tracks/HCT116_DNase_1.bw, output/tracks/HCT116_DNase_2.bw, output/tracks/HCT116_H3K27ac_1.bw, output/tracks/HCT116_H3K27ac_2.bw, output/consensus/CTCF_consensus.bed
+    resources: tmpdir=<TBD>
+
+[Wed Nov 18 00:59:43 2026]
+rule enhancer_activity:
+    input: ../data/geo/TTseq_HCT116_1_plus.bw, ../data/geo/TTseq_HCT116_1_minus.bw, ../data/geo/TTseq_HCT116_2_plus.bw, ../data/geo/TTseq_HCT116_2_minus.bw, ../data/geo/TTseq_HCT116_enhancers.gtf.gz, ../data/geo/TTseq_HCT116_eRNAs.gtf.gz, output/consensus/H3K27ac_consensus.bed, output/consensus/DNase_consensus.bed, output/consensus/CTCF_consensus.bed, ../data/peaks/RAD21_ENCFF391AAM.bed.gz
+    output: output/qc/enhancer_activity.tsv
+    log: output/logs/enhancer_activity/enhancer_activity.log
+    jobid: 60
+    benchmark: output/benchmarks/enhancer_activity/enhancer_activity.tsv
+    reason: Missing output files: output/qc/enhancer_activity.tsv; Input files updated by another job: output/consensus/DNase_consensus.bed, output/consensus/H3K27ac_consensus.bed, output/consensus/CTCF_consensus.bed
+    resources: tmpdir=<TBD>
+
+[Wed Nov 18 00:59:43 2026]
+rule all:
+    input: output/HCT116_CTCF_1/fastqc/HCT116_CTCF_1_fastqc.html, output/HCT116_CTCF_2/fastqc/HCT116_CTCF_2_fastqc.html, output/HCT116_H3K27ac_1/fastqc/HCT116_H3K27ac_1_fastqc.html, output/HCT116_H3K27ac_2/fastqc/HCT116_H3K27ac_2_fastqc.html, output/HCT116_input-CTCF_1/fastqc/HCT116_input-CTCF_1_fastqc.html, output/HCT116_input-CTCF_2/fastqc/HCT116_input-CTCF_2_fastqc.html, output/HCT116_input-H3K27ac_1/fastqc/HCT116_input-H3K27ac_1_fastqc.html, output/HCT116_input-H3K27ac_2/fastqc/HCT116_input-H3K27ac_2_fastqc.html, output/HCT116_DNase_1/fastqc/HCT116_DNase_1_fastqc.html, output/HCT116_DNase_2/fastqc/HCT116_DNase_2_fastqc.html, output/HCT116_CTCF_1/HCT116_CTCF_1_filtered.bam, output/HCT116_CTCF_2/HCT116_CTCF_2_filtered.bam, output/HCT116_H3K27ac_1/HCT116_H3K27ac_1_filtered.bam, output/HCT116_H3K27ac_2/HCT116_H3K27ac_2_filtered.bam, output/HCT116_input-CTCF_1/HCT116_input-CTCF_1_filtered.bam, output/HCT116_input-CTCF_2/HCT116_input-CTCF_2_filtered.bam, output/HCT116_input-H3K27ac_1/HCT116_input-H3K27ac_1_filtered.bam, output/HCT116_input-H3K27ac_2/HCT116_input-H3K27ac_2_filtered.bam, output/HCT116_DNase_1/HCT116_DNase_1_filtered.bam, output/HCT116_DNase_2/HCT116_DNase_2_filtered.bam, output/tracks/HCT116_CTCF_1.bw, output/tracks/HCT116_CTCF_2.bw, output/tracks/HCT116_H3K27ac_1.bw, output/tracks/HCT116_H3K27ac_2.bw, output/tracks/HCT116_input-CTCF_1.bw, output/tracks/HCT116_input-CTCF_2.bw, output/tracks/HCT116_input-H3K27ac_1.bw, output/tracks/HCT116_input-H3K27ac_2.bw, output/tracks/HCT116_DNase_1.bw, output/tracks/HCT116_DNase_2.bw, output/peaks/HCT116_CTCF_1_peaks.narrowPeak, output/peaks/HCT116_CTCF_2_peaks.narrowPeak, output/peaks/HCT116_H3K27ac_1_peaks.narrowPeak, output/peaks/HCT116_H3K27ac_2_peaks.narrowPeak, output/peaks/HCT116_DNase_1_peaks.narrowPeak, output/peaks/HCT116_DNase_2_peaks.narrowPeak, output/consensus/CTCF_consensus.bed, output/consensus/H3K27ac_consensus.bed, output/consensus/DNase_consensus.bed, output/qc/qc_table.tsv, output/qc/ctcf_rad21_overlap.tsv, output/figures/MYC_locus.pdf, output/qc/enhancer_activity.tsv
+    jobid: 0
+    reason: Input files updated by another job: output/HCT116_input-H3K27ac_2/HCT116_input-H3K27ac_2_filtered.bam, output/tracks/HCT116_input-H3K27ac_1.bw, output/HCT116_input-H3K27ac_2/fastqc/HCT116_input-H3K27ac_2_fastqc.html, output/tracks/HCT116_CTCF_2.bw, output/qc/qc_table.tsv, output/HCT116_H3K27ac_2/fastqc/HCT116_H3K27ac_2_fastqc.html, output/HCT116_H3K27ac_2/HCT116_H3K27ac_2_filtered.bam, output/consensus/H3K27ac_consensus.bed, output/tracks/HCT116_DNase_1.bw, output/HCT116_H3K27ac_1/fastqc/HCT116_H3K27ac_1_fastqc.html, output/peaks/HCT116_H3K27ac_1_peaks.narrowPeak, output/consensus/CTCF_consensus.bed, output/HCT116_DNase_2/HCT116_DNase_2_filtered.bam, output/qc/enhancer_activity.tsv, output/HCT116_input-CTCF_1/fastqc/HCT116_input-CTCF_1_fastqc.html, output/HCT116_DNase_1/HCT116_DNase_1_filtered.bam, output/tracks/HCT116_input-CTCF_2.bw, output/HCT116_input-H3K27ac_1/fastqc/HCT116_input-H3K27ac_1_fastqc.html, output/peaks/HCT116_CTCF_1_peaks.narrowPeak, output/tracks/HCT116_input-CTCF_1.bw, output/HCT116_input-H3K27ac_1/HCT116_input-H3K27ac_1_filtered.bam, output/tracks/HCT116_H3K27ac_1.bw, output/peaks/HCT116_CTCF_2_peaks.narrowPeak, output/peaks/HCT116_DNase_2_peaks.narrowPeak, output/consensus/DNase_consensus.bed, output/HCT116_DNase_2/fastqc/HCT116_DNase_2_fastqc.html, output/HCT116_H3K27ac_1/HCT116_H3K27ac_1_filtered.bam, output/HCT116_CTCF_1/fastqc/HCT116_CTCF_1_fastqc.html, output/HCT116_input-CTCF_2/fastqc/HCT116_input-CTCF_2_fastqc.html, output/tracks/HCT116_DNase_2.bw, output/HCT116_DNase_1/fastqc/HCT116_DNase_1_fastqc.html, output/figures/MYC_locus.pdf, output/HCT116_CTCF_1/HCT116_CTCF_1_filtered.bam, output/tracks/HCT116_H3K27ac_2.bw, output/HCT116_input-CTCF_2/HCT116_input-CTCF_2_filtered.bam, output/HCT116_input-CTCF_1/HCT116_input-CTCF_1_filtered.bam, output/tracks/HCT116_CTCF_1.bw, output/qc/ctcf_rad21_overlap.tsv, output/tracks/HCT116_input-H3K27ac_2.bw, output/HCT116_CTCF_2/fastqc/HCT116_CTCF_2_fastqc.html, output/peaks/HCT116_H3K27ac_2_peaks.narrowPeak, output/peaks/HCT116_DNase_1_peaks.narrowPeak, output/HCT116_CTCF_2/HCT116_CTCF_2_filtered.bam
+    resources: tmpdir=<TBD>
+
+Job stats:
+job                   count
+------------------  -------
+align                    10
+all                       1
+bigwig                   10
+bowtie2_index             1
+call_peaks                6
+consensus_peaks           3
+ctcf_rad21_overlap        1
+enhancer_activity         1
+fastqc                   10
+filter                   10
+frip                      6
+locus_plot                1
+qc_table                  1
+total                    61
+
+Reasons:
+    (check individual jobs above for details)
+    input files updated by another job:
+        align, all, bigwig, call_peaks, consensus_peaks, ctcf_rad21_overlap, enhancer_activity, filter, frip, locus_plot, qc_table
+    output files have to be generated:
+        align, bigwig, bowtie2_index, call_peaks, consensus_peaks, ctcf_rad21_overlap, enhancer_activity, fastqc, filter, frip, locus_plot, qc_table
+
+This was a dry-run (flag -n). The order of jobs does not reflect the order of execution.

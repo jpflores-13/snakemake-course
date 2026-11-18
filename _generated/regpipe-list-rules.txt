@@ -5,6 +5,7 @@ bowtie2_index
 call_peaks
 consensus_peaks
 ctcf_rad21_overlap
+enhancer_activity
 fastqc
 filter
 frip
