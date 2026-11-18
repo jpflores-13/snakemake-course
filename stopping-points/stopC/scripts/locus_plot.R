@@ -72,7 +72,10 @@ ttseq_tracks <- unlist(p$ttseq_tracks)
 ttseq_strands <- unlist(p$ttseq_strands)
 ttseq <- lapply(unlist(snakemake@input$ttseq), \(f) import(f, which = window))
 names(ttseq) <- ttseq_tracks
-ttseq_max <- if (length(ttseq)) max(vapply(ttseq, \(s) max(s$score, 0), numeric(1))) else 0
+## One y-axis per strand: highly transcribed genes (MYC is on the plus strand) would
+## otherwise flatten the other strand
+ttseq_top <- vapply(ttseq, \(s) max(s$score, 0), numeric(1))
+strand_max <- tapply(ttseq_top, ttseq_strands, max)
 annotations <- lapply(unlist(snakemake@input$annotations), \(f) import(f, format = "gtf"))
 names(annotations) <- unlist(p$annotation_names)
 
@@ -86,8 +89,9 @@ width <- 5.9
 signal_h <- 0.45
 peak_h <- 0.15
 gap <- 0.08
-n_tracks <- length(signals) + length(ttseq) + length(consensus) + length(annotations) + 1
-page_h <- 0.6 + n_tracks * (signal_h + gap) + 1.6
+n_signal <- length(signals) + length(ttseq)
+n_peak <- length(consensus) + 1 + length(annotations)
+page_h <- 0.55 + n_signal * (signal_h + gap) + n_peak * (peak_h + gap) + 1.6
 
 pdf(snakemake@output$pdf, width = 7.5, height = page_h)
 pageCreate(width = 7.5, height = page_h, default.units = "inches", showGuides = FALSE)
@@ -118,13 +122,14 @@ for (s in samples) {
   y <- y + signal_h + gap
 }
 
-## ---- TT-seq tracks: plus strand in red, minus strand in blue, one y-axis for all --------
+## ---- TT-seq tracks: plus strand in red, minus strand in blue --------------------------
 strand_color <- c(plus = "#B2182B", minus = "#2166AC")
 for (i in seq_along(ttseq)) {
+  top <- strand_max[[ttseq_strands[i]]]
   track <- plotSignal(data = ttseq[[i]], params = region, y = y, height = signal_h,
-                      range = c(0, ttseq_max), fill = strand_color[[ttseq_strands[i]]],
+                      range = c(0, top), fill = strand_color[[ttseq_strands[i]]],
                       linecolor = strand_color[[ttseq_strands[i]]])
-  annoYaxis(plot = track, at = c(0, round(ttseq_max)), fontsize = 5)
+  annoYaxis(plot = track, at = c(0, round(top)), fontsize = 5)
   label(ttseq_tracks[i], y, signal_h, strand_color[[ttseq_strands[i]]])
   y <- y + signal_h + gap
 }
