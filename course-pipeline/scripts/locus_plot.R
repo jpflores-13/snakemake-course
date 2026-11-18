@@ -89,8 +89,9 @@ width <- 5.9
 signal_h <- 0.45
 peak_h <- 0.15
 gap <- 0.08
-n_tracks <- length(signals) + length(ttseq) + length(consensus) + length(annotations) + 1
-page_h <- 0.6 + n_tracks * (signal_h + gap) + 1.6
+n_signal <- length(signals) + length(ttseq)
+n_peak <- length(consensus) + 1 + length(annotations)
+page_h <- 0.55 + n_signal * (signal_h + gap) + n_peak * (peak_h + gap) + 1.6
 
 pdf(snakemake@output$pdf, width = 7.5, height = page_h)
 pageCreate(width = 7.5, height = page_h, default.units = "inches", showGuides = FALSE)
