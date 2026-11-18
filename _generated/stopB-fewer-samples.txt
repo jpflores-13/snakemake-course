@@ -1,0 +1,12 @@
+Job stats:
+job                count
+---------------  -------
+align                  9
+all                    1
+bigwig                 9
+bowtie2_index          1
+call_peaks             5
+consensus_peaks        3
+fastqc                 9
+filter                 9
+total                 46

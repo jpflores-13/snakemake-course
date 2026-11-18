@@ -1,0 +1,6 @@
+KeyError in file Snakefile, line 33:
+"['Bio_Rep'] not in index"
+  File "Snakefile", line 33, in <module>
+  File "/opt/course-venv/lib/python3.13/site-packages/pandas/core/frame.py", line 4336, in __getitem__
+  File "/opt/course-venv/lib/python3.13/site-packages/pandas/core/indexes/base.py", line 6557, in _get_indexer_strict
+  File "/opt/course-venv/lib/python3.13/site-packages/pandas/core/indexes/base.py", line 6609, in _raise_if_missing

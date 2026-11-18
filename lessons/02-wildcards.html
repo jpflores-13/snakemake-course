@@ -1,0 +1,1726 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en-US" xml:lang="en-US">
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="quarto-1.11.9" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+
+<meta name="description" content="Turn one-sample rules into rules for every sample with {sample} wildcards, rule all and expand(), and reach stopping point A." />
+
+<title>Wildcards – Snakemake for genomics</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+<!-- htmldependencies:E3FAD763 -->
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<style>html{ scroll-behavior: smooth; }</style>
+
+
+</head>
+
+<body>
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark" aria-label="Site">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="/index.html">
+    <span class="navbar-title">Snakemake for genomics</span>
+    </a>
+  </div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse"
+  aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation"
+  onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="/index.html"> 
+<span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="/schedule.html"> 
+<span class="menu-text">Schedule</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="/setup.html"> 
+<span class="menu-text">Setup</span></a>
+  </li>  
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-lessons" role="link" data-bs-toggle="dropdown" aria-expanded="false" >
+ <span class="menu-text">Lessons</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-lessons">    
+        <li>
+    <a class="dropdown-item" href="/lessons/00-why.html">
+ <span class="dropdown-text">0. Why Snakemake</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="/lessons/01-rules.html">
+ <span class="dropdown-text">1. Rules</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="/lessons/02-wildcards.html">
+ <span class="dropdown-text">2. Wildcards</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="/lessons/03-config.html">
+ <span class="dropdown-text">3. Config and samplesheets</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="/lessons/04-rules-that-behave.html">
+ <span class="dropdown-text">4. Rules that behave</span></a>
+  </li>  
+        <li><hr class="dropdown-divider"></li>
+        <li>
+    <a class="dropdown-item" href="/lessons/05-cluster.html">
+ <span class="dropdown-text">5. Running on a cluster</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="/lessons/06-structure.html">
+ <span class="dropdown-text">6. Structuring a pipeline</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="/lessons/07-beyond-files.html">
+ <span class="dropdown-text">7. Beyond files</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="/lessons/08-testing.html">
+ <span class="dropdown-text">8. Testing</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-field-guide" role="link" data-bs-toggle="dropdown" aria-expanded="false" >
+ <span class="menu-text">Field guide</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-field-guide">    
+        <li>
+    <a class="dropdown-item" href="/field-guide/index.html">
+ <span class="dropdown-text">Reading the lab pipelines</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="/field-guide/microcpipe.html">
+ <span class="dropdown-text">MicroCPipe</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="/field-guide/ttpipe.html">
+ <span class="dropdown-text">TTpipe</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="/field-guide/chromsimpipe.html">
+ <span class="dropdown-text">ChromSimPipe</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="/field-guide/conventions.html">
+ <span class="dropdown-text">Lab conventions</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" href="/exercises/snakemakeify.html"> 
+<span class="menu-text">Snakemake-ify</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="/capstone.html"> 
+<span class="menu-text">Capstone</span></a>
+  </li>  
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-answers" role="link" data-bs-toggle="dropdown" aria-expanded="false" >
+ <span class="menu-text">Answers</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-answers">    
+        <li>
+    <a class="dropdown-item" href="/answers/00-why-answers.html">
+ <span class="dropdown-text">0. Why Snakemake</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="/answers/01-rules-answers.html">
+ <span class="dropdown-text">1. Rules</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="/answers/02-wildcards-answers.html">
+ <span class="dropdown-text">2. Wildcards</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="/answers/03-config-answers.html">
+ <span class="dropdown-text">3. Config and samplesheets</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="/answers/04-rules-that-behave-answers.html">
+ <span class="dropdown-text">4. Rules that behave</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="/answers/05-cluster-answers.html">
+ <span class="dropdown-text">5. Running on a cluster</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="/answers/06-structure-answers.html">
+ <span class="dropdown-text">6. Structuring a pipeline</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="/answers/07-beyond-files-answers.html">
+ <span class="dropdown-text">7. Beyond files</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="/answers/08-testing-answers.html">
+ <span class="dropdown-text">8. Testing</span></a>
+  </li>  
+        <li><hr class="dropdown-divider"></li>
+        <li>
+    <a class="dropdown-item" href="/answers/snakemakeify-answers.html">
+ <span class="dropdown-text">Snakemake-ify</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" href="/cheatsheet.html"> 
+<span class="menu-text">Cheat sheet</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="/about.html"> 
+<span class="menu-text">About</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/jpflores-13/snakemake-course"> <i 
+  class="bi bi-github" 
+  role="img" 
+  aria-label="Course repository on GitHub" 
+>
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+  <button type="button" role="switch" aria-checked="false" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode" aria-label="Toggle dark mode"><i class="bi"></i></button>
+</div>
+            <div id="quarto-search" class="" title="Search"></div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav" aria-label="Toolbar">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn"
+      data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" 
+      aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation"
+      onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <h1 class="quarto-secondary-nav-title no-breadcrumbs"></h1>
+        <a class="flex-grow-1" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"
+        onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation docked overflow-auto" aria-label="Section">
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <button type="button" class="sidebar-item-text sidebar-item-toggle sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" aria-controls="quarto-sidebar-section-1" aria-expanded="true">
+ <span class="menu-text" id="quarto-sidebar-section-1-label">Day 1</span><i class="bi bi-chevron-right" aria-hidden="true"></i></button>
+      </div>
+      <ul id="quarto-sidebar-section-1" aria-labelledby="quarto-sidebar-section-1-label" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="/lessons/00-why.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Why a workflow manager</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="/lessons/01-rules.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Rules</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="/lessons/02-wildcards.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">Wildcards</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="/lessons/03-config.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Config and samplesheets</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="/lessons/04-rules-that-behave.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Rules that behave</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <button type="button" class="sidebar-item-text sidebar-item-toggle sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" aria-controls="quarto-sidebar-section-2" aria-expanded="true">
+ <span class="menu-text" id="quarto-sidebar-section-2-label">Day 2</span><i class="bi bi-chevron-right" aria-hidden="true"></i></button>
+      </div>
+      <ul id="quarto-sidebar-section-2" aria-labelledby="quarto-sidebar-section-2-label" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="/lessons/05-cluster.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Running on a cluster</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="/lessons/06-structure.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Structuring a pipeline</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="/lessons/07-beyond-files.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Beyond one file per step</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="/lessons/08-testing.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Testing and reproducibility</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <button type="button" class="sidebar-item-text sidebar-item-toggle sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" aria-controls="quarto-sidebar-section-3" aria-expanded="true">
+ <span class="menu-text" id="quarto-sidebar-section-3-label">Practice</span><i class="bi bi-chevron-right" aria-hidden="true"></i></button>
+      </div>
+      <ul id="quarto-sidebar-section-3" aria-labelledby="quarto-sidebar-section-3-label" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="/exercises/snakemakeify.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Snakemake-ify</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="/capstone.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Capstone project</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <button type="button" class="sidebar-item-text sidebar-item-toggle sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" aria-controls="quarto-sidebar-section-4" aria-expanded="true">
+ <span class="menu-text" id="quarto-sidebar-section-4-label">Reference</span><i class="bi bi-chevron-right" aria-hidden="true"></i></button>
+      </div>
+      <ul id="quarto-sidebar-section-4" aria-labelledby="quarto-sidebar-section-4-label" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="/cheatsheet.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Snakemake cheat sheet</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="/glossary.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Glossary</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="/references.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">References</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" ></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <div id="quarto-toc-target"></div>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+<script id = "quarto-html-before-body" type="application/javascript">
+    const toggleBodyColorMode = (bsSheetEl) => {
+      const mode = bsSheetEl.getAttribute("data-mode");
+      const bodyEl = window.document.querySelector("body");
+      if (mode === "dark") {
+        bodyEl.classList.add("quarto-dark");
+        bodyEl.classList.remove("quarto-light");
+      } else {
+        bodyEl.classList.add("quarto-light");
+        bodyEl.classList.remove("quarto-dark");
+      }
+    }
+    const toggleBodyColorPrimary = () => {
+      const bsSheetEl = window.document.querySelector("link#quarto-bootstrap:not([rel=disabled-stylesheet])");
+      if (bsSheetEl) {
+        toggleBodyColorMode(bsSheetEl);
+      }
+    }
+    const setColorSchemeToggle = (alternate) => {
+      const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+      for (let i=0; i < toggles.length; i++) {
+        const toggle = toggles[i];
+        if (toggle) {
+          toggle.setAttribute("aria-checked", alternate ? "true" : "false");
+          if (alternate) {
+            toggle.classList.add("alternate");
+          } else {
+            toggle.classList.remove("alternate");
+          }
+        }
+      }
+    };
+    const toggleColorMode = (alternate) => {
+      // Switch the stylesheets
+      const primaryStylesheets = window.document.querySelectorAll('link.quarto-color-scheme:not(.quarto-color-alternate)');
+      const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+      manageTransitions('#quarto-margin-sidebar .nav-link', false);
+      if (alternate) {
+        // note: dark is layered on light, we don't disable primary!
+        enableStylesheet(alternateStylesheets);
+        for (const sheetNode of alternateStylesheets) {
+          if (sheetNode.id === "quarto-bootstrap") {
+            toggleBodyColorMode(sheetNode);
+          }
+        }
+      } else {
+        disableStylesheet(alternateStylesheets);
+        enableStylesheet(primaryStylesheets)
+        toggleBodyColorPrimary();
+      }
+      manageTransitions('#quarto-margin-sidebar .nav-link', true);
+      // Switch the toggles
+      setColorSchemeToggle(alternate)
+    }
+    // Hack to workaround the fact that safari doesn't
+    // properly recolor the scrollbar when toggling (#1455).
+    // Not run on load: stylesheets are set before first paint there, and
+    // scrolling would undo the scroll to a URL fragment (#14973).
+    // The one pixel nudge keeps the reader where they were.
+    const refreshSafariScrollbar = () => {
+      if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+        manageTransitions("body", false);
+        const scrollY = window.scrollY;
+        window.scrollTo(0, scrollY > 0 ? scrollY - 1 : 1);
+        setTimeout(() => {
+          window.scrollTo(0, scrollY);
+          manageTransitions("body", true);
+        }, 40);
+      }
+    }
+    const disableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        stylesheet.rel = 'disabled-stylesheet';
+      }
+    }
+    const enableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        if(stylesheet.rel !== 'stylesheet') { // for Chrome, which will still FOUC without this check
+          stylesheet.rel = 'stylesheet';
+        }
+      }
+    }
+    const manageTransitions = (selector, allowTransitions) => {
+      const els = window.document.querySelectorAll(selector);
+      for (let i=0; i < els.length; i++) {
+        const el = els[i];
+        if (allowTransitions) {
+          el.classList.remove('notransition');
+        } else {
+          el.classList.add('notransition');
+        }
+      }
+    }
+    const isFileUrl = () => {
+      return window.location.protocol === 'file:';
+    }
+    const hasAlternateSentinel = () => {
+      let styleSentinel = getColorSchemeSentinel();
+      if (styleSentinel !== null) {
+        return styleSentinel === "alternate";
+      } else {
+        return false;
+      }
+    }
+    const setStyleSentinel = (alternate) => {
+      const value = alternate ? "alternate" : "default";
+      if (!isFileUrl()) {
+        window.localStorage.setItem("quarto-color-scheme", value);
+      } else {
+        localAlternateSentinel = value;
+      }
+    }
+    const getColorSchemeSentinel = () => {
+      if (!isFileUrl()) {
+        const storageValue = window.localStorage.getItem("quarto-color-scheme");
+        return storageValue != null ? storageValue : localAlternateSentinel;
+      } else {
+        return localAlternateSentinel;
+      }
+    }
+    const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+      const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+      const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+      let newTheme = '';
+      if(authorPrefersDark) {
+        newTheme = isAlternate ? baseTheme : alternateTheme;
+      } else {
+        newTheme = isAlternate ? alternateTheme : baseTheme;
+      }
+      const changeGiscusTheme = () => {
+        // From: https://github.com/giscus/giscus/issues/336
+        const sendMessage = (message) => {
+          const iframe = document.querySelector('iframe.giscus-frame');
+          if (!iframe) return;
+          iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+        }
+        sendMessage({
+          setConfig: {
+            theme: newTheme
+          }
+        });
+      }
+      const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+      if (isGiscussLoaded) {
+        changeGiscusTheme();
+      }
+    };
+    const authorPrefersDark = false;
+    const queryPrefersDark = window.matchMedia('(prefers-color-scheme: dark)');
+    const darkModeDefault = queryPrefersDark.matches;
+      document.querySelector('link#quarto-text-highlighting-styles.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+      document.querySelector('link#quarto-bootstrap.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+    let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+    // Dark / light mode switch
+    window.quartoToggleColorScheme = () => {
+      // Read the current dark / light value
+      let toAlternate = !hasAlternateSentinel();
+      toggleColorMode(toAlternate);
+      refreshSafariScrollbar();
+      setStyleSentinel(toAlternate);
+      toggleGiscusIfUsed(toAlternate, darkModeDefault);
+      window.dispatchEvent(new Event('resize'));
+    };
+    queryPrefersDark.addEventListener("change", e => {
+      if(window.localStorage.getItem("quarto-color-scheme") !== null)
+        return;
+      const alternate = e.matches
+      toggleColorMode(alternate);
+      refreshSafariScrollbar();
+      localAlternateSentinel = e.matches ? 'alternate' : 'default'; // this is used alongside local storage!
+      toggleGiscusIfUsed(alternate, darkModeDefault);
+    });
+    // Switch to dark mode if need be
+    if (hasAlternateSentinel()) {
+      toggleColorMode(true);
+    } else {
+      toggleColorMode(false);
+    }
+  </script>
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Wildcards</h1>
+<p class="subtitle lead">Module 2</p>
+</div>
+
+<div>
+  <div class="description">
+    Turn one-sample rules into rules for every sample with {sample} wildcards, rule all and expand(), and reach stopping point A.
+  </div>
+</div>
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+<nav id="TOC" role="doc-toc" aria-labelledby="toc-title">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#from-one-sample-to-ten" id="toc-from-one-sample-to-ten">From one sample to ten</a></li>
+  <li><a href="#how-snakemake-fills-in-a-wildcard" id="toc-how-snakemake-fills-in-a-wildcard">How Snakemake fills in a wildcard</a></li>
+  <li><a href="#no-target-no-sample" id="toc-no-target-no-sample">No target, no sample</a></li>
+  <li><a href="#rule-all-and-expand" id="toc-rule-all-and-expand"><code>rule all</code> and <code>expand()</code></a></li>
+  <li><a href="#paths-in-one-place" id="toc-paths-in-one-place">Paths in one place</a></li>
+  <li><a href="#every-sample-through-align" id="toc-every-sample-through-align">Every sample through <code>align</code></a></li>
+  <li><a href="#and-through-filter" id="toc-and-through-filter">And through <code>filter</code></a></li>
+  <li><a href="#the-plan-for-stopping-point-a" id="toc-the-plan-for-stopping-point-a">The plan for stopping point A</a></li>
+  <li><a href="#the-graph" id="toc-the-graph">The graph</a></li>
+  <li><a href="#when-a-name-does-not-match" id="toc-when-a-name-does-not-match">When a name does not match</a></li>
+  <li><a href="#constraining-wildcards" id="toc-constraining-wildcards">Constraining wildcards</a></li>
+  <li><a href="#exercises" id="toc-exercises">Exercises</a></li>
+  <li><a href="#stopping-point-a" id="toc-stopping-point-a">Stopping point A</a></li>
+  <li><a href="#key-points" id="toc-key-points">Key points</a></li>
+  </ul>
+</nav>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class='callout-icon'></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Learning objectives
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<ul>
+<li>Replace a sample name in a rule with a <code>{sample}</code> wildcard.</li>
+<li>Explain how Snakemake works out a wildcard’s value from the file it needs.</li>
+<li>Write <code>rule all</code> with <code>expand()</code> so that <code>snakemake</code> alone builds everything.</li>
+<li>Read a dry run’s job stats and predict them before you run.</li>
+<li>Recognize an ambiguous pattern and fix it with <code>wildcard_constraints</code>.</li>
+</ul>
+<p>Time: 45 min</p>
+</div>
+</div>
+<section id="from-one-sample-to-ten" class="level2">
+<h2>From one sample to ten</h2>
+<p>The module 1 <code>fastqc</code> rule has <code>HCT116_CTCF_1</code> written into it three times. Replace the name with <code>{sample}</code>:</p>
+<div class="code-with-filename">
+<div class="code-with-filename-file">
+<pre><strong>Snakefile</strong></pre>
+</div>
+<div class="sourceCode" id="cb1" data-filename="Snakefile"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>rule fastqc:</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    <span class="bu">input</span>:</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>        <span class="co">&quot;../../data/fastq/{sample}.fastq.gz&quot;</span>,</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    output:</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>        html <span class="op">=</span> <span class="st">&quot;output/</span><span class="sc">{sample}</span><span class="st">/fastqc/</span><span class="sc">{sample}</span><span class="st">_fastqc.html&quot;</span>,</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>        <span class="bu">zip</span> <span class="op">=</span> <span class="st">&quot;output/</span><span class="sc">{sample}</span><span class="st">/fastqc/</span><span class="sc">{sample}</span><span class="st">_fastqc.zip&quot;</span>,</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    shell:</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>        <span class="co">&quot;fastqc --outdir output/{wildcards.sample}/fastqc {input}&quot;</span></span></code></pre></div>
+</div>
+<p><code>{sample}</code> in <code>input:</code> and <code>output:</code> is a <strong>wildcard</strong>: it stands for any text. The rule is now a pattern that can make FastQC reports for any sample whose FASTQ exists.</p>
+<p>In <code>shell:</code> the wildcard is <code>{wildcards.sample}</code>, not <code>{sample}</code>. Inside the command, the names you can use are <code>input</code>, <code>output</code>, <code>wildcards</code>, <code>threads</code>, <code>params</code>, <code>log</code> and global Python variables. Exercise 2.4 shows the error you get otherwise.</p>
+</section>
+<section id="how-snakemake-fills-in-a-wildcard" class="level2">
+<h2>How Snakemake fills in a wildcard</h2>
+<p>Ask for a file:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">snakemake</span> <span class="at">-n</span> output/HCT116_CTCF_2/fastqc/HCT116_CTCF_2_fastqc.html</span></code></pre></div>
+<ol type="1">
+<li>Snakemake looks for a rule with an output pattern that matches the name. <code>output/{sample}/fastqc/{sample}_fastqc.html</code> matches with <code>sample=HCT116_CTCF_2</code>. A wildcard used twice must match the same text both times.</li>
+<li>It fills the same value into <code>input:</code>: <code>../../data/fastq/HCT116_CTCF_2.fastq.gz</code>.</li>
+<li>If that file exists, or another rule can make it, the job is planned.</li>
+</ol>
+<p>Wildcards always flow from outputs to inputs. Snakemake never looks in <code>data/fastq/</code> to see which samples exist. It only knows what you ask for.</p>
+<div class="notes">
+<p>This is the moment to say it twice: Snakemake works backward. The FASTQ folder could hold a hundred files; if nothing asks for their outputs, nothing runs.</p>
+</div>
+</section>
+<section id="no-target-no-sample" class="level2">
+<h2>No target, no sample</h2>
+<p>Now run <code>snakemake -n</code> with no target. If <code>fastqc</code> is the first rule:</p>
+<!-- GENERATE: lesson02-no-target | stopping-points/stopA | cat > Snakefile <<'EOF'
+rule fastqc:
+    input:
+        "../../data/fastq/{sample}.fastq.gz",
+    output:
+        html = "output/{sample}/fastqc/{sample}_fastqc.html",
+        zip = "output/{sample}/fastqc/{sample}_fastqc.zip",
+    shell:
+        "fastqc --outdir output/{wildcards.sample}/fastqc {input}"
+EOF
+snakemake -n || true -->
+<div class="generated generated-output" data-name="lesson02-no-target">
+<div class="sourceCode" id="cb3"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>Building DAG of jobs...</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>WorkflowError:</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>Target rules may not contain wildcards. Please specify concrete files or a rule without wildcards at the command line, or have a rule without wildcards at the very top of your workflow (e.g. the typical &quot;rule all&quot; which just collects all results you want to generate in the end).</span></code></pre></div>
+</div>
+<p>The default target is the first rule’s output, and that output has a wildcard nobody filled in. The message already names the fix: a rule without wildcards at the top that lists every file you want.</p>
+</section>
+<section id="rule-all-and-expand" class="level2">
+<h2><code>rule all</code> and <code>expand()</code></h2>
+<div class="code-with-filename">
+<div class="code-with-filename-file">
+<pre><strong>Snakefile</strong></pre>
+</div>
+<div class="sourceCode" id="cb4" data-filename="Snakefile"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>SAMPLES <span class="op">=</span> [<span class="st">&quot;HCT116_CTCF_1&quot;</span>, <span class="st">&quot;HCT116_CTCF_2&quot;</span>]</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>rule <span class="bu">all</span>:</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    <span class="bu">input</span>:</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>        expand(<span class="st">&quot;output/</span><span class="sc">{sample}</span><span class="st">/fastqc/</span><span class="sc">{sample}</span><span class="st">_fastqc.html&quot;</span>, sample<span class="op">=</span>SAMPLES),</span></code></pre></div>
+</div>
+<p><code>rule all</code> has only inputs. It makes nothing itself; it exists so that its inputs become the targets. <code>expand()</code> fills a pattern once per value:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;&gt;</span> expand(<span class="st">&quot;output/</span><span class="sc">{sample}</span><span class="st">/</span><span class="sc">{sample}</span><span class="st">_filtered.bam&quot;</span>, sample<span class="op">=</span>[<span class="st">&quot;HCT116_CTCF_1&quot;</span>, <span class="st">&quot;HCT116_CTCF_2&quot;</span>])</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>[<span class="st">&#39;output/HCT116_CTCF_1/HCT116_CTCF_1_filtered.bam&#39;</span>, <span class="st">&#39;output/HCT116_CTCF_2/HCT116_CTCF_2_filtered.bam&#39;</span>]</span></code></pre></div>
+<p><code>expand()</code> is ordinary Python that runs when the Snakefile is read, so the list is fixed before Snakemake plans anything. It is not a wildcard. With two lists (<code>expand("{a}_{b}", a=[...], b=[...])</code>) you get every combination.</p>
+</section>
+<section id="paths-in-one-place" class="level2">
+<h2>Paths in one place</h2>
+<p>The paths <code>../../data</code> and <code>output</code> now appear in every rule. Put them in variables, as stopping point A does:</p>
+<div class="snippet" data-repo="stopA">
+<div class="code-with-filename">
+<div class="code-with-filename-file">
+<pre><strong>Snakefile</strong></pre>
+</div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>DATA <span class="op">=</span> <span class="st">&quot;../../data&quot;</span>       <span class="co"># the course data, relative to this folder</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>OUT <span class="op">=</span> <span class="st">&quot;output&quot;</span>            <span class="co"># everything this workflow writes goes here</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>SAMPLES <span class="op">=</span> [</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;HCT116_CTCF_1&quot;</span>, <span class="st">&quot;HCT116_CTCF_2&quot;</span>,</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;HCT116_input-CTCF_1&quot;</span>, <span class="st">&quot;HCT116_input-CTCF_2&quot;</span>,</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;HCT116_H3K27ac_1&quot;</span>, <span class="st">&quot;HCT116_H3K27ac_2&quot;</span>,</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;HCT116_input-H3K27ac_1&quot;</span>, <span class="st">&quot;HCT116_input-H3K27ac_2&quot;</span>,</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;HCT116_DNase_1&quot;</span>, <span class="st">&quot;HCT116_DNase_2&quot;</span>,</span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>]</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a><span class="co">## Filtering settings (they move to a config file in module 3)</span></span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>MIN_MAPQ <span class="op">=</span> <span class="dv">30</span></span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>EXCLUDE_FLAGS <span class="op">=</span> <span class="dv">1804</span>      <span class="co"># unmapped, mate unmapped, secondary, QC fail, duplicate</span></span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a><span class="co">## The first rule is the default target: it lists the files we want at the end.</span></span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>rule <span class="bu">all</span>:</span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>    <span class="bu">input</span>:</span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>        expand(OUT <span class="op">+</span> <span class="st">&quot;/</span><span class="sc">{sample}</span><span class="st">/fastqc/</span><span class="sc">{sample}</span><span class="st">_fastqc.html&quot;</span>, sample<span class="op">=</span>SAMPLES),</span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>        expand(OUT <span class="op">+</span> <span class="st">&quot;/</span><span class="sc">{sample}</span><span class="st">/</span><span class="sc">{sample}</span><span class="st">_filtered.bam&quot;</span>, sample<span class="op">=</span>SAMPLES),</span></code></pre></div>
+</div>
+<div class="snippet-source">
+<span class="snippet-where">stopping-points/stopA, lines 9-28</span> <a href="https://github.com/jpflores-13/snakemake-course/blob/main/stopping-points/stopA/Snakefile#L9-L28" class="snippet-link">view in the course repository</a>
+</div>
+</div>
+<p><code>DATA + "/fastq/{sample}.fastq.gz"</code> is plain string concatenation: the result still contains <code>{sample}</code>, which Snakemake treats as a wildcard. In <code>shell:</code>, <code>{OUT}</code> is a global variable and is filled in like <code>{input}</code>. The sample list and the MAPQ settings are still in the Snakefile. Module 3 moves them to a samplesheet and a config file.</p>
+</section>
+<section id="every-sample-through-align" class="level2">
+<h2>Every sample through <code>align</code></h2>
+<div class="snippet" data-repo="stopA">
+<div class="code-with-filename">
+<div class="code-with-filename-file">
+<pre><strong>Snakefile</strong></pre>
+</div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co">## bowtie2 writes SAM to stdout; samtools sort reads it from the pipe.</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>rule align:</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>    <span class="bu">input</span>:</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>        fastq <span class="op">=</span> DATA <span class="op">+</span> <span class="st">&quot;/fastq/</span><span class="sc">{sample}</span><span class="st">.fastq.gz&quot;</span>,</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>        index <span class="op">=</span> rules.bowtie2_index.output,</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>    output:</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>        bam <span class="op">=</span> OUT <span class="op">+</span> <span class="st">&quot;/</span><span class="sc">{sample}</span><span class="st">/</span><span class="sc">{sample}</span><span class="st">_aligned.bam&quot;</span>,</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>    shell:</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>        <span class="co">&quot;&quot;&quot;</span></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a><span class="co">        bowtie2 -x {OUT}/reference/bowtie2_index/genome -U {input.fastq} </span><span class="op">\</span></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a><span class="co">            | samtools sort -o {output.bam} -</span></span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a><span class="co">        &quot;&quot;&quot;</span></span></code></pre></div>
+</div>
+<div class="snippet-source">
+<span class="snippet-where">stopping-points/stopA, lines 52-63</span> <a href="https://github.com/jpflores-13/snakemake-course/blob/main/stopping-points/stopA/Snakefile#L52-L63" class="snippet-link">view in the course repository</a>
+</div>
+</div>
+<p>The module 1 rule with <code>HCT116_CTCF_1</code> replaced by <code>{sample}</code>. The index has no wildcard, so every <code>align</code> job depends on the same one <code>bowtie2_index</code> job.</p>
+</section>
+<section id="and-through-filter" class="level2">
+<h2>And through <code>filter</code></h2>
+<div class="snippet" data-repo="stopA">
+<div class="code-with-filename">
+<div class="code-with-filename-file">
+<pre><strong>Snakefile</strong></pre>
+</div>
+<div class="sourceCode" id="cb8"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co">## Global Python variables (OUT, MIN_MAPQ, ...) can be used in {braces} in shell commands.</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="co">## 1. flagstat of everything bowtie2 wrote (unaligned reads included)</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="co">## 2. keep reads with MAPQ &gt;= MIN_MAPQ and none of EXCLUDE_FLAGS</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="co">## 3. drop reads in ENCODE blacklist regions</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="co">## 4. remove duplicates (single-end reads: no `samtools fixmate` needed)</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>rule <span class="bu">filter</span>:</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>    <span class="bu">input</span>:</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>        bam <span class="op">=</span> OUT <span class="op">+</span> <span class="st">&quot;/</span><span class="sc">{sample}</span><span class="st">/</span><span class="sc">{sample}</span><span class="st">_aligned.bam&quot;</span>,</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>        blacklist <span class="op">=</span> DATA <span class="op">+</span> <span class="st">&quot;/reference/blacklist.bed.gz&quot;</span>,</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>    output:</span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>        bam <span class="op">=</span> OUT <span class="op">+</span> <span class="st">&quot;/</span><span class="sc">{sample}</span><span class="st">/</span><span class="sc">{sample}</span><span class="st">_filtered.bam&quot;</span>,</span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>        bai <span class="op">=</span> OUT <span class="op">+</span> <span class="st">&quot;/</span><span class="sc">{sample}</span><span class="st">/</span><span class="sc">{sample}</span><span class="st">_filtered.bam.bai&quot;</span>,</span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>        flagstat <span class="op">=</span> OUT <span class="op">+</span> <span class="st">&quot;/</span><span class="sc">{sample}</span><span class="st">/</span><span class="sc">{sample}</span><span class="st">_aligned_flagstat.tsv&quot;</span>,</span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>        markdup <span class="op">=</span> OUT <span class="op">+</span> <span class="st">&quot;/</span><span class="sc">{sample}</span><span class="st">/</span><span class="sc">{sample}</span><span class="st">_markdup.txt&quot;</span>,</span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>    shell:</span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a>        <span class="co">&quot;&quot;&quot;</span></span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a><span class="co">        samtools flagstat -O tsv {input.bam} &gt; {output.flagstat}</span></span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a><span class="co">        samtools view -u -q {MIN_MAPQ} -F {EXCLUDE_FLAGS} {input.bam} </span><span class="op">\</span></span>
+<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a><span class="co">            | bedtools intersect -v -abam stdin -b {input.blacklist} </span><span class="op">\</span></span>
+<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a><span class="co">            | samtools markdup -r -f {output.markdup} - {output.bam}</span></span>
+<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a><span class="co">        samtools index {output.bam}</span></span>
+<span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a><span class="co">        &quot;&quot;&quot;</span></span></code></pre></div>
+</div>
+<div class="snippet-source">
+<span class="snippet-where">stopping-points/stopA, lines 66-87</span> <a href="https://github.com/jpflores-13/snakemake-course/blob/main/stopping-points/stopA/Snakefile#L66-L87" class="snippet-link">view in the course repository</a>
+</div>
+</div>
+<p>The input of <code>filter</code> is the output pattern of <code>align</code>. When <code>rule all</code> asks for <code>output/HCT116_DNase_1/HCT116_DNase_1_filtered.bam</code>, Snakemake fills in <code>sample=HCT116_DNase_1</code> here, needs <code>output/HCT116_DNase_1/HCT116_DNase_1_aligned.bam</code>, finds that <code>align</code> can make it, and so on back to the FASTQ. The 20 files in <code>rule all</code> become 31 jobs, plus <code>rule all</code> itself.</p>
+<p>The shell block is four commands. <code>{MIN_MAPQ}</code> and <code>{EXCLUDE_FLAGS}</code> are global variables. 1804 is the ENCODE ChIP-seq filter: unmapped, mate unmapped, secondary, QC fail and duplicate.</p>
+</section>
+<section id="the-plan-for-stopping-point-a" class="level2">
+<h2>The plan for stopping point A</h2>
+<div class="sourceCode" id="cb9"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> stopping-points/stopA</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="ex">snakemake</span> <span class="at">-n</span></span></code></pre></div>
+<!-- GENERATE: stopA-dryrun | stopping-points/stopA | snakemake -n -->
+<div class="generated generated-output" data-name="stopA-dryrun">
+<div class="code-with-filename">
+<div class="code-with-filename-file">
+<pre><strong>$ snakemake -n</strong></pre>
+</div>
+<div class="sourceCode" id="cb10"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>Building DAG of jobs...</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>Job stats:</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>job              count</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>-------------  -------</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>align               10</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>all                  1</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>bowtie2_index        1</span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>fastqc              10</span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>filter              10</span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>total               32</span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>[Wed Nov 18 06:20:59 2026]</span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>rule fastqc:</span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>...</span></code></pre></div>
+</div>
+</div>
+<p>If you want to try Exercise 2.1, do it before you read this table. The rest of the dry run lists each job with its wildcards and reason, and ends with the same table.</p>
+</section>
+<section id="the-graph" class="level2">
+<h2>The graph</h2>
+<p><code>--rulegraph</code> draws one box per rule; <code>--dag</code> draws one per job.</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="ex">snakemake</span> <span class="at">--rulegraph</span> <span class="kw">|</span> <span class="ex">dot</span> <span class="at">-Tsvg</span> <span class="op">&gt;</span> rulegraph.svg</span></code></pre></div>
+<!-- GENERATE: stopA-rulegraph | stopping-points/stopA | snakemake --rulegraph -->
+<div class="generated generated-graph-wrap">
+<img src="../_generated/stopA-rulegraph.svg" class="generated-graph img-fluid" style="width:45.0%" alt="Rule graph of stopping point A: fastqc and bowtie2_index; bowtie2_index feeds align, align feeds filter; fastqc and filter feed all" />
+</div>
+</section>
+<section id="when-a-name-does-not-match" class="level2">
+<h2>When a name does not match</h2>
+<p>Wildcards match text, so a typo in a target does not mean “file not found”. It means no rule has an output pattern that fits:</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="ex">snakemake</span> <span class="at">-n</span> output/HCT116_CTCF_1/HCT116_CTCF_1.bam</span></code></pre></div>
+<!-- GENERATE: stopA-no-rule | stopping-points/stopA | snakemake -n output/HCT116_CTCF_1/HCT116_CTCF_1.bam || true -->
+<div class="generated generated-output" data-name="stopA-no-rule">
+<div class="code-with-filename">
+<div class="code-with-filename-file">
+<pre><strong>$ snakemake -n output/HCT116_CTCF_1/HCT116_CTCF_1.bam || true</strong></pre>
+</div>
+<div class="sourceCode" id="cb13"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>Building DAG of jobs...</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>MissingRuleException:</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>No rule to produce output/HCT116_CTCF_1/HCT116_CTCF_1.bam (if you use input functions make sure that they don&#39;t raise unexpected exceptions).</span></code></pre></div>
+</div>
+</div>
+<p><code>filter</code> makes <code>..._filtered.bam</code> and <code>align</code> makes <code>..._aligned.bam</code>. Nothing makes a plain <code>{sample}.bam</code>.</p>
+</section>
+<section id="constraining-wildcards" class="level2">
+<h2>Constraining wildcards</h2>
+<p>A wildcard matches any text, slashes included. Usually that is harmless. It becomes a problem when two rules could make the same file, or when one pattern can split a name in more than one place. The fix is to say what a wildcard is allowed to be. MicroCPipe restricts its two wildcards to the names in the samplesheet:</p>
+<div class="snippet" data-repo="microcpipe">
+<div class="code-with-filename">
+<div class="code-with-filename-file">
+<pre><strong>workflows/MicroCPipe.snakefile</strong></pre>
+</div>
+<div class="sourceCode" id="cb14"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>wildcard_constraints:</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>    group <span class="op">=</span> <span class="st">&quot;|&quot;</span>.join(<span class="bu">map</span>(re.escape, GROUPS)),</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>    run <span class="op">=</span> <span class="st">&quot;|&quot;</span>.join(<span class="bu">map</span>(re.escape, samples[<span class="st">&quot;run&quot;</span>])),</span></code></pre></div>
+</div>
+<div class="snippet-source">
+<span class="snippet-where">MicroCPipe, lines 33-35</span> <a href="https://github.com/jpflores-13/MicroCPipe/blob/253a6cc119b1740e3aaebb267cbeffb6fa694cae/workflows/MicroCPipe.snakefile#L33-L35" class="snippet-link">view on GitHub</a>
+</div>
+</div>
+<p><code>"|".join(...)</code> builds a regular expression such as <code>GM12878_ctrl_1|GM12878_ctrl_2</code>, so <code>{group}</code> can only be one of those names. <code>re.escape</code> protects characters that mean something in a regular expression, like the <code>.</code> in a name such as <code>GM12878.ctrl</code>. With the constraint, a typo in a target fails with “No rule to produce” right away. Stopping point B adds the same block for <code>{sample}</code> (module 3). Exercise 2.2 shows the error a missing constraint causes.</p>
+</section>
+<section id="exercises" class="level2">
+<h2>Exercises</h2>
+<div class="exercise callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class='callout-icon'></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Exercise 2.1: Predict the job stats
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Without running it, write down the job stats table that <code>snakemake -n</code> prints for <code>stopping-points/stopA/</code> on a fresh copy (no <code>output/</code>): one line per rule and the total. Then run it and compare.</p>
+<p><a href="../answers/02-wildcards-answers.qmd#ex-2.1">Answer</a></p>
+</div>
+</div>
+<div class="exercise callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class='callout-icon'></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Exercise 2.2: Make it ambiguous, then fix it
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>In your copy of stopping point A, add a general rule that indexes any BAM:</p>
+<div class="code-with-filename">
+<div class="code-with-filename-file">
+<pre><strong>Snakefile</strong></pre>
+</div>
+<div class="sourceCode" id="cb15" data-filename="Snakefile"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>rule index_bam:</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>    <span class="bu">input</span>:</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>        <span class="co">&quot;{prefix}.bam&quot;</span>,</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>    output:</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>        <span class="co">&quot;{prefix}.bam.bai&quot;</span>,</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>    shell:</span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>        <span class="co">&quot;samtools index {input}&quot;</span></span></code></pre></div>
+</div>
+<p>Run <code>snakemake -n output/HCT116_CTCF_1/HCT116_CTCF_1_filtered.bam.bai</code>. Read the error. Then fix it with <code>wildcard_constraints</code>, without deleting the new rule.</p>
+<p><a href="../answers/02-wildcards-answers.qmd#ex-2.2">Answer</a></p>
+</div>
+</div>
+<div class="exercise callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class='callout-icon'></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Exercise 2.3: Add samples
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Start from stopping point A with <code>SAMPLES</code> cut down to the four CTCF samples (<code>HCT116_CTCF_1</code>, <code>HCT116_CTCF_2</code>, <code>HCT116_input-CTCF_1</code>, <code>HCT116_input-CTCF_2</code>) and run it. Then add the two DNase samples to the list. Predict the job stats of the next dry run.</p>
+<p><a href="../answers/02-wildcards-answers.qmd#ex-2.3">Answer</a></p>
+</div>
+</div>
+<div class="exercise callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class='callout-icon'></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Exercise 2.4: <code>{sample}</code> in the shell
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>In the <code>fastqc</code> rule at the top of this page, change <code>{wildcards.sample}</code> in <code>shell:</code> to <code>{sample}</code>. What does <code>snakemake -n -p output/HCT116_CTCF_2/fastqc/HCT116_CTCF_2_fastqc.html</code> say?</p>
+<p><a href="../answers/02-wildcards-answers.qmd#ex-2.4">Answer</a></p>
+</div>
+</div>
+</section>
+<section id="stopping-point-a" class="level2">
+<h2>Stopping point A</h2>
+<div class="stopping-point callout callout-style-default callout-important callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class='callout-icon'></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>Stopping point A
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><code>stopping-points/stopA/Snakefile</code> is the state of the pipeline now: FastQC, the bowtie2 index, alignment and filtering for all ten samples, with <code>{sample}</code> wildcards and <code>expand()</code>. A dry run plans 32 jobs; a full run takes about 46 s on a 4-core laptop.</p>
+<p>If your own Snakefile does not run, copy this one and carry on from there:</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cp</span> <span class="at">-r</span> stopping-points/stopA work/regpipe-A</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> work/regpipe-A</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a><span class="ex">snakemake</span> <span class="at">-n</span></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a><span class="ex">snakemake</span> <span class="at">--cores</span> 4</span></code></pre></div>
+</div>
+</div>
+</section>
+<section id="key-points" class="level2">
+<h2>Key points</h2>
+<ul>
+<li><code>{sample}</code> in an output makes a rule a pattern. Snakemake fills in the value by matching the file it needs, then uses the same value in the inputs.</li>
+<li>In <code>shell:</code>, write <code>{wildcards.sample}</code>.</li>
+<li><code>rule all</code> comes first and lists the final files; <code>expand()</code> builds that list from your sample names.</li>
+<li>Wildcards flow backward from targets. Snakemake never scans folders to find samples.</li>
+<li>When two rules can make the same file, or a pattern is too loose, constrain the wildcard.</li>
+</ul>
+<p>Next: <a href="03-config.qmd">Module 3, Config and samplesheets</a>.</p>
+<div id="quarto-navigation-envelope" class="hidden">
+<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1zaWRlYmFyLXRpdGxl">Lessons</span></p>
+<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1uYXZiYXItdGl0bGU=">Snakemake for genomics</span></p>
+<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1uZXh0">Config and samplesheets</span></p>
+<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1wcmV2">Rules</span></p>
+<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1zaWRlYmFyOnF1YXJ0by1zaWRlYmFyLXNlY3Rpb24tMQ==">Day 1</span></p>
+<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1zaWRlYmFyOi9sZXNzb25zLzAwLXdoeS5odG1sV2h5LWEtd29ya2Zsb3ctbWFuYWdlcg==">Why a workflow manager</span></p>
+<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1zaWRlYmFyOi9sZXNzb25zLzAxLXJ1bGVzLmh0bWxSdWxlcw==">Rules</span></p>
+<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1zaWRlYmFyOi9sZXNzb25zLzAyLXdpbGRjYXJkcy5odG1sV2lsZGNhcmRz">Wildcards</span></p>
+<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1zaWRlYmFyOi9sZXNzb25zLzAzLWNvbmZpZy5odG1sQ29uZmlnLWFuZC1zYW1wbGVzaGVldHM=">Config and samplesheets</span></p>
+<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1zaWRlYmFyOi9sZXNzb25zLzA0LXJ1bGVzLXRoYXQtYmVoYXZlLmh0bWxSdWxlcy10aGF0LWJlaGF2ZQ==">Rules that behave</span></p>
+<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1zaWRlYmFyOnF1YXJ0by1zaWRlYmFyLXNlY3Rpb24tMg==">Day 2</span></p>
+<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1zaWRlYmFyOi9sZXNzb25zLzA1LWNsdXN0ZXIuaHRtbFJ1bm5pbmctb24tYS1jbHVzdGVy">Running on a cluster</span></p>
+<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1zaWRlYmFyOi9sZXNzb25zLzA2LXN0cnVjdHVyZS5odG1sU3RydWN0dXJpbmctYS1waXBlbGluZQ==">Structuring a pipeline</span></p>
+<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1zaWRlYmFyOi9sZXNzb25zLzA3LWJleW9uZC1maWxlcy5odG1sQmV5b25kLW9uZS1maWxlLXBlci1zdGVw">Beyond one file per step</span></p>
+<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1zaWRlYmFyOi9sZXNzb25zLzA4LXRlc3RpbmcuaHRtbFRlc3RpbmctYW5kLXJlcHJvZHVjaWJpbGl0eQ==">Testing and reproducibility</span></p>
+<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1zaWRlYmFyOnF1YXJ0by1zaWRlYmFyLXNlY3Rpb24tMw==">Practice</span></p>
+<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1zaWRlYmFyOi9leGVyY2lzZXMvc25ha2VtYWtlaWZ5Lmh0bWxTbmFrZW1ha2UtaWZ5">Snakemake-ify</span></p>
+<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1zaWRlYmFyOi9jYXBzdG9uZS5odG1sQ2Fwc3RvbmUtcHJvamVjdA==">Capstone project</span></p>
+<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1zaWRlYmFyOnF1YXJ0by1zaWRlYmFyLXNlY3Rpb24tNA==">Reference</span></p>
+<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1zaWRlYmFyOi9jaGVhdHNoZWV0Lmh0bWxTbmFrZW1ha2UtY2hlYXQtc2hlZXQ=">Snakemake cheat sheet</span></p>
+<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1zaWRlYmFyOi9nbG9zc2FyeS5odG1sR2xvc3Nhcnk=">Glossary</span></p>
+<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1zaWRlYmFyOi9yZWZlcmVuY2VzLmh0bWxSZWZlcmVuY2Vz">References</span></p>
+<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1uYXZiYXI6SG9tZQ==">Home</span></p>
+<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1uYXZiYXI6L2luZGV4Lmh0bWw=">/index.html</span></p>
+<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1uYXZiYXI6U2NoZWR1bGU=">Schedule</span></p>
+<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1uYXZiYXI6L3NjaGVkdWxlLmh0bWw=">/schedule.html</span></p>
+<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1uYXZiYXI6U2V0dXA=">Setup</span></p>
+<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1uYXZiYXI6L3NldHVwLmh0bWw=">/setup.html</span></p>
+<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1uYXZiYXI6TGVzc29ucw==">Lessons</span></p>
+<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1uYXZiYXI6MC4gV2h5IFNuYWtlbWFrZQ==">0. Why Snakemake</span></p>
+<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1uYXZiYXI6L2xlc3NvbnMvMDAtd2h5Lmh0bWw=">/lessons/00-why.html</span></p>
+<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1uYXZiYXI6MS4gUnVsZXM=">1. Rules</span></p>
+<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1uYXZiYXI6L2xlc3NvbnMvMDEtcnVsZXMuaHRtbA==">/lessons/01-rules.html</span></p>
+<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1uYXZiYXI6Mi4gV2lsZGNhcmRz">2. Wildcards</span></p>
+<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1uYXZiYXI6L2xlc3NvbnMvMDItd2lsZGNhcmRzLmh0bWw=">/lessons/02-wildcards.html</span></p>
+<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1uYXZiYXI6My4gQ29uZmlnIGFuZCBzYW1wbGVzaGVldHM=">3. Config and samplesheets</span></p>
+<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1uYXZiYXI6L2xlc3NvbnMvMDMtY29uZmlnLmh0bWw=">/lessons/03-config.html</span></p>
+<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1uYXZiYXI6NC4gUnVsZXMgdGhhdCBiZWhhdmU=">4. Rules that behave</span></p>
+<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1uYXZiYXI6L2xlc3NvbnMvMDQtcnVsZXMtdGhhdC1iZWhhdmUuaHRtbA==">/lessons/04-rules-that-behave.html</span></p>
+<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1uYXZiYXI6LS0t">—</span></p>
+<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1uYXZiYXI6NS4gUnVubmluZyBvbiBhIGNsdXN0ZXI=">5. Running on a cluster</span></p>
+<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1uYXZiYXI6L2xlc3NvbnMvMDUtY2x1c3Rlci5odG1s">/lessons/05-cluster.html</span></p>
+<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1uYXZiYXI6Ni4gU3RydWN0dXJpbmcgYSBwaXBlbGluZQ==">6. Structuring a pipeline</span></p>
+<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1uYXZiYXI6L2xlc3NvbnMvMDYtc3RydWN0dXJlLmh0bWw=">/lessons/06-structure.html</span></p>
+<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1uYXZiYXI6Ny4gQmV5b25kIGZpbGVz">7. Beyond files</span></p>
+<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1uYXZiYXI6L2xlc3NvbnMvMDctYmV5b25kLWZpbGVzLmh0bWw=">/lessons/07-beyond-files.html</span></p>
+<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1uYXZiYXI6OC4gVGVzdGluZw==">8. Testing</span></p>
+<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1uYXZiYXI6L2xlc3NvbnMvMDgtdGVzdGluZy5odG1s">/lessons/08-testing.html</span></p>
+<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1uYXZiYXI6RmllbGQgZ3VpZGU=">Field guide</span></p>
+<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1uYXZiYXI6UmVhZGluZyB0aGUgbGFiIHBpcGVsaW5lcw==">Reading the lab pipelines</span></p>
+<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1uYXZiYXI6L2ZpZWxkLWd1aWRlL2luZGV4Lmh0bWw=">/field-guide/index.html</span></p>
+<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1uYXZiYXI6TWljcm9DUGlwZQ==">MicroCPipe</span></p>
+<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1uYXZiYXI6L2ZpZWxkLWd1aWRlL21pY3JvY3BpcGUuaHRtbA==">/field-guide/microcpipe.html</span></p>
+<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1uYXZiYXI6VFRwaXBl">TTpipe</span></p>
+<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1uYXZiYXI6L2ZpZWxkLWd1aWRlL3R0cGlwZS5odG1s">/field-guide/ttpipe.html</span></p>
+<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1uYXZiYXI6Q2hyb21TaW1QaXBl">ChromSimPipe</span></p>
+<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1uYXZiYXI6L2ZpZWxkLWd1aWRlL2Nocm9tc2ltcGlwZS5odG1s">/field-guide/chromsimpipe.html</span></p>
+<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1uYXZiYXI6TGFiIGNvbnZlbnRpb25z">Lab conventions</span></p>
+<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1uYXZiYXI6L2ZpZWxkLWd1aWRlL2NvbnZlbnRpb25zLmh0bWw=">/field-guide/conventions.html</span></p>
+<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1uYXZiYXI6U25ha2VtYWtlLWlmeQ==">Snakemake-ify</span></p>
+<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1uYXZiYXI6L2V4ZXJjaXNlcy9zbmFrZW1ha2VpZnkuaHRtbA==">/exercises/snakemakeify.html</span></p>
+<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1uYXZiYXI6Q2Fwc3RvbmU=">Capstone</span></p>
+<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1uYXZiYXI6L2NhcHN0b25lLmh0bWw=">/capstone.html</span></p>
+<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1uYXZiYXI6QW5zd2Vycw==">Answers</span></p>
+<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1uYXZiYXI6L2Fuc3dlcnMvMDAtd2h5LWFuc3dlcnMuaHRtbA==">/answers/00-why-answers.html</span></p>
+<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1uYXZiYXI6L2Fuc3dlcnMvMDEtcnVsZXMtYW5zd2Vycy5odG1s">/answers/01-rules-answers.html</span></p>
+<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1uYXZiYXI6L2Fuc3dlcnMvMDItd2lsZGNhcmRzLWFuc3dlcnMuaHRtbA==">/answers/02-wildcards-answers.html</span></p>
+<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1uYXZiYXI6L2Fuc3dlcnMvMDMtY29uZmlnLWFuc3dlcnMuaHRtbA==">/answers/03-config-answers.html</span></p>
+<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1uYXZiYXI6L2Fuc3dlcnMvMDQtcnVsZXMtdGhhdC1iZWhhdmUtYW5zd2Vycy5odG1s">/answers/04-rules-that-behave-answers.html</span></p>
+<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1uYXZiYXI6L2Fuc3dlcnMvMDUtY2x1c3Rlci1hbnN3ZXJzLmh0bWw=">/answers/05-cluster-answers.html</span></p>
+<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1uYXZiYXI6L2Fuc3dlcnMvMDYtc3RydWN0dXJlLWFuc3dlcnMuaHRtbA==">/answers/06-structure-answers.html</span></p>
+<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1uYXZiYXI6L2Fuc3dlcnMvMDctYmV5b25kLWZpbGVzLWFuc3dlcnMuaHRtbA==">/answers/07-beyond-files-answers.html</span></p>
+<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1uYXZiYXI6L2Fuc3dlcnMvMDgtdGVzdGluZy1hbnN3ZXJzLmh0bWw=">/answers/08-testing-answers.html</span></p>
+<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1uYXZiYXI6L2Fuc3dlcnMvc25ha2VtYWtlaWZ5LWFuc3dlcnMuaHRtbA==">/answers/snakemakeify-answers.html</span></p>
+<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1uYXZiYXI6Q2hlYXQgc2hlZXQ=">Cheat sheet</span></p>
+<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1uYXZiYXI6L2NoZWF0c2hlZXQuaHRtbA==">/cheatsheet.html</span></p>
+<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1uYXZiYXI6QWJvdXQ=">About</span></p>
+<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1uYXZiYXI6L2Fib3V0Lmh0bWw=">/about.html</span></p>
+<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1uYXZiYXI6aHR0cHM6Ly9naXRodWIuY29tL2pwZmxvcmVzLTEzL3NuYWtlbWFrZS1jb3Vyc2U=">https://github.com/jpflores-13/snakemake-course</span></p>
+<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWJyZWFkY3J1bWJzLURheS0x">Day 1</span></p>
+<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWJyZWFkY3J1bWJzLVdpbGRjYXJkcw==">Wildcards</span></p>
+<div class="hidden quarto-markdown-envelope-contents" data-render-id="Zm9vdGVyLWxlZnQ=">
+<p>Snakemake for genomics, by JP Flores. Lessons <a href="../about.qmd#license">CC BY 4.0</a>, code <a href="../about.qmd#license">MIT</a>.</p>
+</div>
+<div class="hidden quarto-markdown-envelope-contents" data-render-id="Zm9vdGVyLXJpZ2h0LS9nbG9zc2FyeS5odG1s">
+<p>Glossary</p>
+</div>
+<div class="hidden quarto-markdown-envelope-contents" data-render-id="Zm9vdGVyLXJpZ2h0LS9yZWZlcmVuY2VzLmh0bWw=">
+<p>References</p>
+</div>
+<div class="hidden quarto-markdown-envelope-contents" data-render-id="Zm9vdGVyLXJpZ2h0LS9hYm91dC5xbWQjaG93LXRvLWNpdGU=">
+<p>Cite</p>
+</div>
+</div>
+<div id="quarto-meta-markdown" class="hidden">
+<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLW1ldGF0aXRsZQ==">Wildcards – Snakemake for genomics</span></p>
+<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLXR3aXR0ZXJjYXJkdGl0bGU=">Wildcards – Snakemake for genomics</span></p>
+<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLW9nY2FyZHRpdGxl">Wildcards – Snakemake for genomics</span></p>
+<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLW1ldGFzaXRlbmFtZQ==">Snakemake for genomics</span></p>
+<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLW9nc2l0ZW5hbWU=">Snakemake for genomics</span></p>
+<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLXR3aXR0ZXJjYXJkZGVzYw==">Turn one-sample rules into rules for every sample with {sample} wildcards, rule all and expand(), and reach stopping point A.</span></p>
+<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLW9nY2FyZGRkZXNj">Turn one-sample rules into rules for every sample with {sample} wildcards, rule all and expand(), and reach stopping point A.</span></p>
+<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLW1ldGFzaXRlZGVzYw==">A hands-on Snakemake course for genomics labs: two half-day workshops, slides, exercises and answer keys.</span></p>
+</div>
+</section>
+
+</main> <!-- /main -->
+<script id = "quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    // Ensure there is a toggle, if there isn't float one in the top right
+    if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+      const toggle = window.document.createElement('button');
+      toggle.type = "button";
+      toggle.setAttribute("role", "switch");
+      toggle.setAttribute("aria-checked", "false");
+      toggle.classList.add('top-right');
+      toggle.classList.add('quarto-color-scheme-toggle');
+      toggle.setAttribute("aria-label", "Toggle dark mode");
+      toggle.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+      const i = window.document.createElement("i");
+      i.classList.add('bi');
+      toggle.appendChild(i);
+      // Put the toggle in a landmark of its own, so that landmark navigation
+      // can reach it.
+      //
+      // The container is always a fresh direct child of body, and the toggle is
+      // never moved into page furniture that the theme or the author controls.
+      // The toggle is positioned against the page, so any ancestor that
+      // establishes a containing block captures it: a positioned element or a
+      // grid for position: absolute, and transform, filter, will-change or
+      // contain for position: fixed. A direct child of body has none of these
+      // to inherit, and the shift when one appears is silent and visual.
+      //
+      // ARIA says a document should have at most one banner, and axe reports a
+      // duplicate whether or not the banners carry distinct labels. So use a
+      // header when the page has no banner yet, and a named region otherwise.
+      //
+      // A header is a banner wherever it sits, unless it is inside sectioning
+      // content, so this cannot just look at the children of body: a custom
+      // page layout wraps the title block header in a plain div. An explicit
+      // role="banner" always counts.
+      const sectioning = 'article, aside, main, nav, section, [role="article"], [role="complementary"], [role="main"], [role="navigation"], [role="region"]';
+      const hasBanner = Array.from(
+        window.document.querySelectorAll('header:not([role]), [role="banner"]')
+      ).some(function(el) {
+        return el.hasAttribute("role") || el.closest(sectioning) === null;
+      });
+      const container = window.document.createElement(hasBanner ? "div" : "header");
+      if (hasBanner) {
+        container.setAttribute("role", "region");
+        container.setAttribute("aria-label", "Toggle dark mode");
+      }
+      container.classList.add('quarto-color-scheme-toggle-container');
+      container.appendChild(toggle);
+      window.document.body.appendChild(container);
+    }
+    setColorSchemeToggle(hasAlternateSentinel())
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/jpflores-13\.github\.io\/snakemake-course");
+      const newWindowLabel = "(opens in a new tab)";
+      const newWindowNoteId = "quarto-ext-newwindow-label";
+      // Links reference one hidden label through aria-describedby, so the
+      // announcement never changes their accessible name.
+      var describeNewWindow = (link) => {
+        if (!window.document.getElementById(newWindowNoteId)) {
+          var newWindowNote = window.document.createElement("span");
+          newWindowNote.id = newWindowNoteId;
+          newWindowNote.hidden = true;
+          newWindowNote.textContent = newWindowLabel;
+          window.document.body.appendChild(newWindowNote);
+        }
+        var describedBy = (link.getAttribute("aria-describedby") || "").split(/\s+/).filter(Boolean);
+        if (!describedBy.includes(newWindowNoteId)) {
+          describedBy.push(newWindowNoteId);
+          link.setAttribute("aria-describedby", describedBy.join(" "));
+        }
+      }
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+      window.quartoDecorateExternalLinks = function (root) {
+     var links = (root || window.document).querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+            // target, if specified
+            link.setAttribute("target", "_blank");
+            if (link.getAttribute("rel") === null) {
+              link.setAttribute("rel", "noopener");
+            }
+            describeNewWindow(link);
+          if (!link.classList.contains('no-external-icon')) {
+            // default icon
+            link.classList.add("external");
+          }
+        }
+      }
+      };
+      window.quartoDecorateExternalLinks(window.document);
+    // Esc closes the popup (WCAG 1.4.13) and focus leaving both trigger and
+    // popup closes it (WCAG 2.4.11); tippy handles neither for interactive popups.
+    const hideOnEscAndFocusOut = {
+      name: 'hideOnEscAndFocusOut',
+      defaultValue: true,
+      fn(instance) {
+        const dismiss = () => {
+          // A show scheduled by the trigger delay would otherwise reopen it
+          instance.clearDelayTimeouts();
+          instance.hide();
+        };
+        const onKeyDown = (event) => {
+          if (event.key !== 'Escape') {
+            return;
+          }
+          // Keep Esc from also reaching page handlers (e.g. reveal.js overview),
+          // except an open reveal.js slide menu, which Esc should close too.
+          // The menu handles keys only when its keyboard option is on.
+          const menuHandlesEsc = window.Reveal?.getPlugin?.('menu')?.isOpen() &&
+            window.Reveal.getConfig().menu?.keyboard !== false;
+          if (!menuHandlesEsc) {
+            event.stopPropagation();
+          }
+          if (instance.popper.contains(window.document.activeElement)) {
+            // Disabled while refocusing so the focus trigger does not reopen it
+            instance.disable();
+            instance.reference.focus();
+            instance.enable();
+          }
+          dismiss();
+        };
+        const onFocusOut = (event) => {
+          const target = event.relatedTarget;
+          if (target && !instance.reference.contains(target) &&
+              !instance.popper.contains(target)) {
+            dismiss();
+          }
+        };
+        // On the trigger too: a click trigger (code-annotations: select) has no
+        // blur handling. Attached for the instance's lifetime so leaving the
+        // trigger also cancels a show still pending on the trigger delay.
+        instance.reference.addEventListener('focusout', onFocusOut);
+        return {
+          onShow() {
+            window.document.addEventListener('keydown', onKeyDown, true);
+            instance.popper.addEventListener('focusout', onFocusOut);
+          },
+          onHide() {
+            window.document.removeEventListener('keydown', onKeyDown, true);
+            instance.popper.removeEventListener('focusout', onFocusOut);
+          },
+          onDestroy() {
+            instance.reference.removeEventListener('focusout', onFocusOut);
+          },
+        };
+      },
+    };
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+        plugins: [hideOnEscAndFocusOut],
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          // Each band is positioned against its own containing block, which is
+          // not the offsetParent of the lines, so place it from client rects.
+          const placeBand = (band, firstEl, lastEl, codeBlock) => {
+            const container = band.offsetParent;
+            if (container === null) {
+              return;
+            }
+            const containerRect = container.getBoundingClientRect();
+            // Reveal.js scales slides with a transform, so convert client
+            // pixels back to the CSS pixels of the container.
+            const scale = containerRect.height / container.offsetHeight || 1;
+            const firstRect = firstEl.getBoundingClientRect();
+            const lastRect = lastEl.getBoundingClientRect();
+            const top = (firstRect.top - containerRect.top) / scale - container.clientTop + container.scrollTop;
+            const height = (lastRect.bottom - firstRect.top) / scale;
+            band.style.top = top - 2 + "px";
+            band.style.height = height + 4 + "px";
+            if (codeBlock) {
+              // Without the copy button wrapper, the containing block is wider
+              // than the code block, so span the code block explicitly.
+              const blockRect = codeBlock.getBoundingClientRect();
+              band.style.left = (blockRect.left - containerRect.left) / scale - container.clientLeft + container.scrollLeft + "px";
+              band.style.width = blockRect.width / scale + "px";
+            }
+          };
+          if (lineIds.length > 0) {
+            const el = window.document.getElementById(lineIds[0]);
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const parent = el.parentElement.parentElement;
+            // cook up a div (if necessary) and position it
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            placeBand(div, el, lastEl, parent.closest("div.sourceCode") || parent);
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            placeBand(gutterDiv, el, lastEl);
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+  <script type="application/javascript">
+  window.quartoScrollableRegionsLabels = {"code":"Scrollable code","output":"Scrollable output"};
+  </script>
+<nav class="page-navigation" aria-label="Page">
+  <div class="nav-page nav-page-previous">
+      <a  href="/lessons/01-rules.html" class="pagination-link" aria-label="Rules">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Rules</span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a  href="/lessons/03-config.html" class="pagination-link" aria-label="Config and samplesheets">
+        <span class="nav-page-text">Config and samplesheets</span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+      <div class='footer-contents'>Snakemake for genomics, by JP Flores. Lessons [CC BY 4.0](/about.qmd#license), code [MIT](/about.qmd#license).</div>  
+    </div>   
+    <div class="nav-footer-center">
+      &nbsp;
+    </div>
+    <div class="nav-footer-right">
+      <ul class="footer-items list-unstyled">
+    <li class="nav-item">
+    <a class="nav-link" href="/glossary.html">
+ Glossary
+    </a>
+  </li>  
+    <li class="nav-item">
+    <a class="nav-link" href="/references.html">
+ References
+    </a>
+  </li>  
+    <li class="nav-item">
+    <a class="nav-link" href="/about.qmd#how-to-cite">
+ Cite
+    </a>
+  </li>  
+</ul>
+    </div>
+  </div>
+</footer>
+
+</body>
+
+</html>

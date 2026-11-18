@@ -1,0 +1,211 @@
+---
+title: "Module 5 answers: Running on a cluster"
+description: "Worked answers for the module 5 exercises: failed cluster jobs, output paths, where a job's resources come from, and a profile for a new cluster."
+code-annotations: below
+---
+
+<!--
+SLURM is not available in the build container: the restart steps in 5.1 (sbatch, sacct,
+squeue) and the real submission in 5.4 are untested here. The dry-run numbers in 5.3 were
+checked with `snakemake -n --profile profiles/longleaf` (Snakemake 8.27.1, SLURM plugin 2.8.0).
+-->
+
+Back to [Module 5](../lessons/05-cluster.qmd).
+
+## Exercise 5.1: A job hit its time limit {#ex-5.1}
+
+The other jobs first. The launcher runs Snakemake with
+`--keep-going`, so when one `align` job failed, Snakemake kept starting every
+job that did not depend on it. The other samples went all the way through. The
+jobs downstream of the failed sample did not run: its `filter`, `bigwig`,
+`call_peaks` and `frip` (or, for a control, the `call_peaks` of the ChIP that
+uses it), the `consensus_peaks` of its target, and everything that needs all
+samples, such as `qc_table`. Snakemake deleted the failed job's partial BAM, as
+it does for any failed job.
+
+Next, the fix. The time limit came from the profile, not from the rule:
+
+```yaml
+set-resources:
+  align:
+    runtime: 1440      # <1>
+    mem_mb: 16000
+```
+1. Was 720 (12 hours). Raise it in the profile file. Do not pass it on the
+   command line instead: `--set-resources align:runtime=1440` replaces the
+   profile's *whole* `set-resources` block, and keeps only that one entry. We
+   checked with a dry run: `align` got its 1440 minutes but lost its 16 GB, and
+   `bigwig` fell back from 120 minutes to the 720-minute default.
+
+To restart, submit the launcher again:
+
+```bash
+sbatch RegPipe.sh
+```
+
+Snakemake compares what exists with what `rule all` needs, so it reruns the
+failed `align` and the jobs below it, and nothing else. Run `bash RegPipe.sh -n`
+first if you want to see the list.
+
+Two related cases are worth telling apart:
+
+- If **Snakemake itself** was killed (the launcher job hit its own two-day
+  limit, or the node went down), outputs of jobs that were running at that
+  moment are marked incomplete. `--rerun-incomplete`, which the launcher always
+  passes, reruns them.
+- If Snakemake was killed hard, its lock stays behind and the next run stops
+  with `Directory cannot be locked`. Run `bash unlock.sh`, then submit again.
+
+## Exercise 5.2: Where do the results go? {#ex-5.2}
+
+`outdir()` in `common.smk` expands `~`, keeps an absolute path as it is, and
+puts a relative one under `$REGPIPE_OUTPUT_ROOT`:
+
+```python
+d = os.path.expanduser(str(config.get("outputDir", "output")))    # <1>
+if not os.path.isabs(d):                                           # <2>
+    d = os.path.join(os.environ.get("REGPIPE_OUTPUT_ROOT", os.getcwd()), d)
+```
+1. `~/results/regpipe` becomes `/home/you/results/regpipe` here, so it counts
+   as absolute from the next line on.
+2. Only a relative path is moved under the root. Without the variable, the root
+   is the folder you launched from.
+
+So, case by case:
+
+1. `/work/users/$USER/output`.
+2. Also `/work/users/$USER/output`, the **same folder** as case 1. Avoid this.
+   The two clones each have their own `.snakemake/` folder (it lives where you
+   launch, not in the output folder), so their locks do not see each other, and
+   a run in one clone can overwrite results the other one made. Give the test
+   clone its own name, for example `outputDir: 'output_test'`.
+3. `$HOME/results/regpipe`, whatever the root is. Fine for the course data.
+   For real data, home directories on clusters are usually small and backed up,
+   which makes them the wrong place for BAM files.
+4. `/proj/mylab/regpipe_hct116`, as written. An absolute path ignores the root.
+
+## Exercise 5.3: Read the job before you submit it {#ex-5.3}
+
+The dry run with the Longleaf profile prints this for the job:
+
+```
+rule bigwig:
+    input: output/HCT116_DNase_1/HCT116_DNase_1_filtered.bam
+    output: output/tracks/HCT116_DNase_1.bw
+    ...
+    wildcards: sample=HCT116_DNase_1
+    threads: 4
+    resources: mem_mb=8000, mem_mib=7630, disk_mb=<TBD>, tmpdir=<TBD>, slurm_account=<TBD>, slurm_partition=<TBD>, runtime=120, nodes=1
+```
+
+Each number has one source:
+
+```yaml
+## workflows/rules/tracks.smk
+    threads: 2                 # <1>
+
+## profiles/longleaf/config.yaml
+default-resources:
+  slurm_account: <account>     # <2>
+  slurm_partition: general
+  runtime: 720                 # <3>
+  mem_mb: 8000
+  nodes: 1
+set-threads:
+  bigwig: 4                    # <4>
+set-resources:
+  bigwig:
+    runtime: 120               # <5>
+    mem_mb: 8000
+```
+1. The rule's own default. The profile overrides it, so you never see the 2 on
+   Longleaf. On a laptop, `profiles/local` sets `bigwig: 2`, the same as the rule.
+2. Account and partition come from `default-resources`. A dry run shows them as
+   `<TBD>`; the plugin fills them in at submission. `<account>` itself would be
+   caught by the launcher before anything is submitted.
+3. The default time limit (12 hours) for any rule without its own `runtime`.
+   `bigwig` has one, so this is not used.
+4. Four threads, which SLURM sees as `--cpus-per-task=4`.
+5. Two hours and 8 GB from the rule's own entry. `mem_mib=7630` is not in any
+   file: Snakemake converts `mem_mb` to mebibytes itself.
+
+If you got 2 threads, you ran without `--profile profiles/longleaf`, or with
+`cores` lower than 4.
+
+## Exercise 5.4: A profile for a new cluster {#ex-5.4}
+
+Everyone's answer is different, because the point is to find your cluster's
+values. Here is the checklist worked through for Longleaf from the template,
+so you can see which lines each item touches. Compare the result with
+`profiles/longleaf/`: the only differences from the template are the partition
+and the comments.
+
+```yaml
+## profiles/mycluster/config.yaml
+executor: slurm                          # <1>
+jobs: 100
+cores: 100                               # <2>
+latency-wait: 500
+software-deployment-method: conda
+
+default-resources:
+  slurm_account: <account>               # <3>
+  slurm_partition: general               # <4>
+  runtime: 720
+  mem_mb: 8000
+  nodes: 1
+```
+1. Scheduler. `sinfo --version` answers SLURM or fails. For another scheduler,
+   look for its plugin in the
+   [executor plugin catalog](https://snakemake.github.io/snakemake-plugin-catalog/)
+   before you write anything else.
+2. Keep this. It is the ceiling for every rule's `threads`, and without it they
+   are capped at the launcher job's one CPU.
+3. `sacctmgr show assoc user=$USER` lists your accounts. If the cluster has
+   none, delete the line; the launcher refuses to start while `<account>` is
+   still there.
+4. `sinfo -s` lists partitions with their time limits. Pick the ordinary CPU
+   partition. Check that its limit is longer than the longest `runtime` in
+   `set-resources` (12 hours for `align` here).
+
+QOS and GPUs only matter for rules that need them, so they go on that rule's
+entry, not in `default-resources`. ChromSimPipe's Longleaf profile is the lab's
+only example ([module 7](../lessons/07-beyond-files.qmd#gpu-jobs)):
+
+```yaml
+set-resources:
+  simulateShard:
+    slurm_partition: "l40-gpu,volta-gpu,gpu"   # <1>
+    qos: gpu_access                            # <2>
+    gpu: 1                                     # <3>
+```
+1. Your cluster's GPU partitions, from `sinfo -s`. A comma-separated list lets
+   SLURM use whichever has a free node.
+2. Only if the cluster's documentation says GPU jobs need a QOS.
+3. One GPU per job.
+
+How conda is provided goes in `env.sh`:
+
+```bash
+## profiles/mycluster/env.sh
+source "${REGPIPE_CONDA_ROOT:-$HOME/miniforge3}/etc/profile.d/conda.sh"   # <1>
+conda activate base
+## module load <python module> <conda module>                             # <2>
+```
+1. Your own Miniforge, the way the lab does it on Longleaf. It works on any
+   cluster that lets you install into your home directory, and you control the
+   conda version (Snakemake 8.27 needs conda 24.7.1 or newer).
+2. The alternative where the cluster provides Python and conda as modules. Use
+   the names from `module avail`. Check that the versions are new enough.
+
+Then select it and check it before you submit:
+
+```bash
+export REGPIPE_PROFILE=profiles/mycluster
+bash RegPipe.sh -n        # stops here if a <placeholder> is left
+sbatch RegPipe.sh
+```
+
+Last item on the list: put `REGPIPE_OUTPUT_ROOT` on the cluster's work or
+scratch file system, and find out whether it deletes old files. A purge that
+removes BAMs from last month will make Snakemake rerun them.

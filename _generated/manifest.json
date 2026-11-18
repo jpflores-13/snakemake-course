@@ -40,6 +40,72 @@
     "files": [],
     "failed_hash": "c86d9bb79f445a6a6d53e52ab169b96e306900cfbd37ff8eaaa93c68d1c10e9d"
   },
+  "lesson01-dryrun": {
+    "command": "cat > Snakefile <<'EOF'\nrule bowtie2_index:\n    input:\n        \"../../data/reference/chr8_course.fa.gz\",\n    output:\n        multiext(\"output/reference/bowtie2_index/genome\",\n                 \".1.bt2\", \".2.bt2\", \".3.bt2\", \".4.bt2\", \".rev.1.bt2\", \".rev.2.bt2\"),\n    shell:\n        \"bowtie2-build {input} output/reference/bowtie2_index/genome\"\nEOF\nsnakemake -n -p",
+    "cwd": "stopping-points/stopA",
+    "source": "lessons/01-rules.qmd",
+    "returncode": 0,
+    "kind": "txt",
+    "files": [
+      "lesson01-dryrun.txt"
+    ],
+    "hash": "7e6c1fed7839640c726dd7bf97b790c3937d24cc8ad28b9ff1b306280ef7bb2e"
+  },
+  "lesson01-dryrun-align": {
+    "command": "cat > Snakefile <<'EOF'\nrule bowtie2_index:\n    input:\n        \"../../data/reference/chr8_course.fa.gz\",\n    output:\n        multiext(\"output/reference/bowtie2_index/genome\",\n                 \".1.bt2\", \".2.bt2\", \".3.bt2\", \".4.bt2\", \".rev.1.bt2\", \".rev.2.bt2\"),\n    shell:\n        \"bowtie2-build {input} output/reference/bowtie2_index/genome\"\nrule align:\n    input:\n        fastq = \"../../data/fastq/HCT116_CTCF_1.fastq.gz\",\n        index = rules.bowtie2_index.output,\n    output:\n        bam = \"output/HCT116_CTCF_1/HCT116_CTCF_1_aligned.bam\",\n    shell:\n        \"\"\"\n        bowtie2 -x output/reference/bowtie2_index/genome -U {input.fastq} \\\n            | samtools sort -o {output.bam} -\n        \"\"\"\nEOF\nsnakemake --cores 4 bowtie2_index > /dev/null 2>&1\nsnakemake -n -p align",
+    "cwd": "stopping-points/stopA",
+    "source": "lessons/01-rules.qmd",
+    "returncode": 0,
+    "kind": "txt",
+    "files": [
+      "lesson01-dryrun-align.txt"
+    ],
+    "hash": "e90c2b0644d845d92d5a3f403124247775e524bdc7f2f7ac5f7b2c0e00eb883c"
+  },
+  "lesson01-missing-output": {
+    "command": "cat > Snakefile <<'EOF'\nrule fastqc:\n    input:\n        \"../../data/fastq/HCT116_CTCF_1.fastq.gz\",\n    output:\n        html = \"output/HCT116_CTCF_1/fastqc/HCT116_CTCF_1.html\",\n        zip = \"output/HCT116_CTCF_1/fastqc/HCT116_CTCF_1.zip\",\n    shell:\n        \"fastqc --outdir output/HCT116_CTCF_1/fastqc {input}\"\nEOF\nsnakemake --cores 1 2>&1 | grep -v -e JAVA_TOOL_OPTIONS -e '^application/' -e '^Started analysis' -e '^Approx' -e '^Analysis complete' || true",
+    "cwd": "stopping-points/stopA",
+    "source": "answers/01-rules-answers.qmd",
+    "returncode": 0,
+    "kind": "txt",
+    "files": [
+      "lesson01-missing-output.txt"
+    ],
+    "hash": "9207638b5fd47147e68e9cc86dcf68b9e132fc8eddf0a37550fc59715f69ea2f"
+  },
+  "lesson01-touch": {
+    "command": "cat > Snakefile <<'EOF'\nrule bowtie2_index:\n    input:\n        \"../../data/reference/chr8_course.fa.gz\",\n    output:\n        multiext(\"output/reference/bowtie2_index/genome\",\n                 \".1.bt2\", \".2.bt2\", \".3.bt2\", \".4.bt2\", \".rev.1.bt2\", \".rev.2.bt2\"),\n    shell:\n        \"bowtie2-build {input} output/reference/bowtie2_index/genome\"\nrule align:\n    input:\n        fastq = \"../../data/fastq/HCT116_CTCF_1.fastq.gz\",\n        index = rules.bowtie2_index.output,\n    output:\n        bam = \"output/HCT116_CTCF_1/HCT116_CTCF_1_aligned.bam\",\n    shell:\n        \"\"\"\n        bowtie2 -x output/reference/bowtie2_index/genome -U {input.fastq} \\\n            | samtools sort -o {output.bam} -\n        \"\"\"\nEOF\nsnakemake --cores 4 align > /dev/null 2>&1\ntouch output/reference/bowtie2_index/genome.1.bt2\nsnakemake -n align",
+    "cwd": "stopping-points/stopA",
+    "source": "lessons/01-rules.qmd",
+    "returncode": 0,
+    "kind": "txt",
+    "files": [
+      "lesson01-touch.txt"
+    ],
+    "hash": "929c1eea8d7920eba2a606c2f2476408dd27c9ae039aa05cb472c8615169ce28"
+  },
+  "lesson02-no-target": {
+    "command": "cat > Snakefile <<'EOF'\nrule fastqc:\n    input:\n        \"../../data/fastq/{sample}.fastq.gz\",\n    output:\n        html = \"output/{sample}/fastqc/{sample}_fastqc.html\",\n        zip = \"output/{sample}/fastqc/{sample}_fastqc.zip\",\n    shell:\n        \"fastqc --outdir output/{wildcards.sample}/fastqc {input}\"\nEOF\nsnakemake -n || true",
+    "cwd": "stopping-points/stopA",
+    "source": "lessons/02-wildcards.qmd",
+    "returncode": 0,
+    "kind": "txt",
+    "files": [
+      "lesson02-no-target.txt"
+    ],
+    "hash": "c483b4bf197c8cebe77b5177577b2a7f0bb123608117a7e47fa6f43b5df0e4fe"
+  },
+  "lesson02-shell-wildcard": {
+    "command": "cat > Snakefile <<'EOF'\nrule fastqc:\n    input:\n        \"../../data/fastq/{sample}.fastq.gz\",\n    output:\n        html = \"output/{sample}/fastqc/{sample}_fastqc.html\",\n        zip = \"output/{sample}/fastqc/{sample}_fastqc.zip\",\n    shell:\n        \"fastqc --outdir output/{sample}/fastqc {input}\"\nEOF\nsnakemake -n -p output/HCT116_CTCF_2/fastqc/HCT116_CTCF_2_fastqc.html || true",
+    "cwd": "stopping-points/stopA",
+    "source": "answers/02-wildcards-answers.qmd",
+    "returncode": 0,
+    "kind": "txt",
+    "files": [
+      "lesson02-shell-wildcard.txt"
+    ],
+    "hash": "78ccbacb31f0c7a824634699ed2e2f9f333f901de7bf2defbe250d58e9384d0c"
+  },
   "microcpipe-dag": {
     "command": "snakemake --dag -s workflows/MicroCPipe.snakefile --cores 1 --configfile config/MicroCConfig.yaml tests/dryrun/config.yaml",
     "cwd": "pipelines/microcpipe",
@@ -120,6 +186,39 @@
     ],
     "hash": "ee4cac3b37f16b332652fb24cb6c6b932b5d21922ea6dfd7eb6c93998dd091a9"
   },
+  "regpipe-align-local": {
+    "command": "snakemake -n -s workflows/RegPipe.snakefile --profile profiles/local 2>&1 | grep -m1 -A9 \"^rule align:\"",
+    "cwd": "course-pipeline",
+    "source": "lessons/05-cluster.qmd",
+    "returncode": 0,
+    "kind": "txt",
+    "files": [
+      "regpipe-align-local.txt"
+    ],
+    "hash": "05c6f38fcaa3864ed274c339a8db426010cf2df0487d49757c38a03116225565"
+  },
+  "regpipe-align-longleaf": {
+    "command": "snakemake -n -s workflows/RegPipe.snakefile --profile profiles/longleaf 2>&1 | grep -m1 -A9 \"^rule align:\"",
+    "cwd": "course-pipeline",
+    "source": "lessons/05-cluster.qmd",
+    "returncode": 0,
+    "kind": "txt",
+    "files": [
+      "regpipe-align-longleaf.txt"
+    ],
+    "hash": "0352a7ea8585426f11ef86e987c5af60b5983361aac11d71b14e0a5f995bc34d"
+  },
+  "regpipe-config-false": {
+    "command": "for v in False false; do echo \"--config make_locus_plot=$v\"; snakemake -n -s workflows/RegPipe.snakefile --cores 1 --config make_locus_plot=$v 2>&1 | grep -m1 \"^total\"; done",
+    "cwd": "course-pipeline",
+    "source": "lessons/06-structure.qmd",
+    "returncode": 0,
+    "kind": "txt",
+    "files": [
+      "regpipe-config-false.txt"
+    ],
+    "hash": "7e03af9a99f84380b05131f8caca8102a955aa9931882ec94ae113e1c9bca0a1"
+  },
   "regpipe-dag": {
     "command": "snakemake --dag -s workflows/RegPipe.snakefile --cores 1",
     "cwd": "course-pipeline",
@@ -143,6 +242,17 @@
     ],
     "hash": "955b43ffd089b32af062ee70dd17e663ef8ed293af586023b8d94228b6d62e90"
   },
+  "regpipe-dryrun-nottseq": {
+    "command": "printf 'ttseq:\\n  enabled: false\\n' > no_ttseq.yaml && snakemake -n -s workflows/RegPipe.snakefile --cores 1 --configfile no_ttseq.yaml",
+    "cwd": "course-pipeline",
+    "source": "lessons/06-structure.qmd",
+    "returncode": 0,
+    "kind": "txt",
+    "files": [
+      "regpipe-dryrun-nottseq.txt"
+    ],
+    "hash": "1a436d0952ebfc698a21a5704fcd535dbc58f1a4f18f9ed5605a30dd2299d388"
+  },
   "regpipe-dryrun-p": {
     "command": "snakemake -n -p -s workflows/RegPipe.snakefile --cores 1",
     "cwd": "course-pipeline",
@@ -154,6 +264,39 @@
     ],
     "hash": "d0799c2375269b46d3831365e173f25c12f771b9c2e732174ae96f782c202a11"
   },
+  "regpipe-dryrun-scatter4": {
+    "command": "snakemake -n -s workflows/RegPipe.snakefile --cores 1 --config scatter_chunks=4",
+    "cwd": "course-pipeline",
+    "source": "lessons/07-beyond-files.qmd",
+    "returncode": 0,
+    "kind": "txt",
+    "files": [
+      "regpipe-dryrun-scatter4.txt"
+    ],
+    "hash": "f5b9a2b49c4b3f2539ab6d1199d50dd5f9bb71d3a7b59dd817301d4398b38703"
+  },
+  "regpipe-lint": {
+    "command": "snakemake --lint -s workflows/RegPipe.snakefile || true",
+    "cwd": "course-pipeline",
+    "source": "lessons/08-testing.qmd",
+    "returncode": 0,
+    "kind": "txt",
+    "files": [
+      "regpipe-lint.txt"
+    ],
+    "hash": "e7d898b326d66dc5481e287c510ad20d338bb9d4ed7692df175deea6ac76a07b"
+  },
+  "regpipe-list-changes": {
+    "command": "snakemake --list-changes params -s workflows/RegPipe.snakefile --cores 1 2>&1 | tail -3",
+    "cwd": "course-pipeline",
+    "source": "lessons/08-testing.qmd",
+    "returncode": 0,
+    "kind": "txt",
+    "files": [
+      "regpipe-list-changes.txt"
+    ],
+    "hash": "c9444c3bb0b108495bcba68611802734760da00dbf6c1fe62b07a78a2e126025"
+  },
   "regpipe-list-rules": {
     "command": "snakemake --list-rules -s workflows/RegPipe.snakefile --cores 1",
     "cwd": "course-pipeline",
@@ -164,6 +307,39 @@
       "regpipe-list-rules.txt"
     ],
     "hash": "127123916e96dd525d9b136d753bbdc916f04f7fb0be8e9c78a51d2ad415d4e3"
+  },
+  "regpipe-params-mtime": {
+    "command": "snakemake -s workflows/RegPipe.snakefile --cores 4 --quiet all -- $PWD/output/HCT116_CTCF_1/HCT116_CTCF_1_filtered.bam > /dev/null 2>&1 && snakemake -n -s workflows/RegPipe.snakefile --cores 1 --rerun-triggers mtime --config minMapq=20 -- $PWD/output/HCT116_CTCF_1/HCT116_CTCF_1_filtered.bam",
+    "cwd": "course-pipeline",
+    "source": "lessons/07-beyond-files.qmd",
+    "returncode": 0,
+    "kind": "txt",
+    "files": [
+      "regpipe-params-mtime.txt"
+    ],
+    "hash": "e4bb638ff4104af5134be39ecf27493b81715dcea3dd9f7bed9775e137e96fcb"
+  },
+  "regpipe-params-rerun": {
+    "command": "snakemake -s workflows/RegPipe.snakefile --cores 4 --quiet all -- $PWD/output/HCT116_CTCF_1/HCT116_CTCF_1_filtered.bam > /dev/null 2>&1 && snakemake -n -s workflows/RegPipe.snakefile --cores 1 --config minMapq=20 -- $PWD/output/HCT116_CTCF_1/HCT116_CTCF_1_filtered.bam",
+    "cwd": "course-pipeline",
+    "source": "lessons/07-beyond-files.qmd",
+    "returncode": 0,
+    "kind": "txt",
+    "files": [
+      "regpipe-params-rerun.txt"
+    ],
+    "hash": "e8c07479bf9d2d5c6e0367085f794aeed8093b03d030e902e5f7f74b038f9082"
+  },
+  "regpipe-pytest": {
+    "command": "pytest -q tests/",
+    "cwd": "course-pipeline",
+    "source": "lessons/08-testing.qmd",
+    "returncode": 0,
+    "kind": "txt",
+    "files": [
+      "regpipe-pytest.txt"
+    ],
+    "hash": "f631386b578f57e218838679a2efb1ff4ea58447b7ee06b15f530ea67dbb2fc5"
   },
   "regpipe-rulegraph": {
     "command": "snakemake --rulegraph -s workflows/RegPipe.snakefile --cores 1",
@@ -187,6 +363,238 @@
       "regpipe-summary.txt"
     ],
     "hash": "b9433230d95ba45942d6c1b3a38c8d5ca623c826761d4b4bcb36ea7a9e422307"
+  },
+  "regpipe-summary-changed": {
+    "command": "snakemake -s workflows/RegPipe.snakefile --cores 4 --quiet all -- $PWD/output/HCT116_CTCF_1/HCT116_CTCF_1_filtered.bam > /dev/null 2>&1 && snakemake --summary -s workflows/RegPipe.snakefile --cores 1 --config minMapq=20 2>/dev/null | awk 'NR==1 || /HCT116_CTCF_1\\//'",
+    "cwd": "course-pipeline",
+    "source": "lessons/08-testing.qmd",
+    "returncode": 0,
+    "kind": "txt",
+    "files": [
+      "regpipe-summary-changed.txt"
+    ],
+    "hash": "bcc698cad78c902798f1cae2703a66b562709b2b164f128d18993130b395f355"
+  },
+  "stopA-add-samples": {
+    "command": "sed -i -e '/\"HCT116_H3K27ac_1\", \"HCT116_H3K27ac_2\",/d' -e '/\"HCT116_input-H3K27ac_1\", \"HCT116_input-H3K27ac_2\",/d' -e '/\"HCT116_DNase_1\", \"HCT116_DNase_2\",/d' Snakefile\nsnakemake --cores 4 > /dev/null 2>&1\nsed -i 's/^    \"HCT116_input-CTCF_1\", \"HCT116_input-CTCF_2\",/&\\n    \"HCT116_DNase_1\", \"HCT116_DNase_2\",/' Snakefile\nsnakemake -n | awk '/^Job stats/ && !done {on=1} on {print} /^total/ && on {on=0; done=1}'",
+    "cwd": "stopping-points/stopA",
+    "source": "answers/02-wildcards-answers.qmd",
+    "returncode": 0,
+    "kind": "txt",
+    "files": [
+      "stopA-add-samples.txt"
+    ],
+    "hash": "02ba1aa435af87f799fcd1a163c331eae375fc578aac8e4516520753475b7f65"
+  },
+  "stopA-ambiguous": {
+    "command": "cat >> Snakefile <<'EOF'\nrule index_bam:\n    input:\n        \"{prefix}.bam\",\n    output:\n        \"{prefix}.bam.bai\",\n    shell:\n        \"samtools index {input}\"\nEOF\nsnakemake -n output/HCT116_CTCF_1/HCT116_CTCF_1_filtered.bam.bai || true",
+    "cwd": "stopping-points/stopA",
+    "source": "answers/02-wildcards-answers.qmd",
+    "returncode": 0,
+    "kind": "txt",
+    "files": [
+      "stopA-ambiguous.txt"
+    ],
+    "hash": "31bb5b189576e04a6665ec04c48bd4aa2d934b238c51fbbaf68fc7c1319e0ca2"
+  },
+  "stopA-ambiguous-fixed": {
+    "command": "cat >> Snakefile <<'EOF'\nrule index_bam:\n    input:\n        \"{prefix}.bam\",\n    output:\n        \"{prefix}.bam.bai\",\n    wildcard_constraints:\n        prefix = r\".*_aligned\",\n    shell:\n        \"samtools index {input}\"\nEOF\nsnakemake -n output/HCT116_CTCF_1/HCT116_CTCF_1_filtered.bam.bai | awk '/^Job stats/ && !done {on=1} on {print} /^total/ && on {on=0; done=1}'\nsnakemake -n output/HCT116_CTCF_1/HCT116_CTCF_1_aligned.bam.bai | awk '/^Job stats/ && !done {on=1} on {print} /^total/ && on {on=0; done=1}'",
+    "cwd": "stopping-points/stopA",
+    "source": "answers/02-wildcards-answers.qmd",
+    "returncode": 0,
+    "kind": "txt",
+    "files": [
+      "stopA-ambiguous-fixed.txt"
+    ],
+    "hash": "4716d66c846b192d0be60b1f06e97b6e292eaf9724157c877067deb3e98b3d25"
+  },
+  "stopA-dryrun": {
+    "command": "snakemake -n",
+    "cwd": "stopping-points/stopA",
+    "source": "lessons/02-wildcards.qmd",
+    "returncode": 0,
+    "kind": "txt",
+    "files": [
+      "stopA-dryrun.txt"
+    ],
+    "hash": "3f273c12c061e8cad25c37b22512155d1ad10a2dd2aa4e6054f8b09f2ec0733b"
+  },
+  "stopA-no-rule": {
+    "command": "snakemake -n output/HCT116_CTCF_1/HCT116_CTCF_1.bam || true",
+    "cwd": "stopping-points/stopA",
+    "source": "lessons/02-wildcards.qmd",
+    "returncode": 0,
+    "kind": "txt",
+    "files": [
+      "stopA-no-rule.txt"
+    ],
+    "hash": "0d0a79edc028e73e6d574dc7e1d3a0db8e3f8ff2c0aee85b4658064202cb2173"
+  },
+  "stopA-rulegraph": {
+    "command": "snakemake --rulegraph",
+    "cwd": "stopping-points/stopA",
+    "source": "lessons/02-wildcards.qmd",
+    "returncode": 0,
+    "kind": "dot",
+    "files": [
+      "stopA-rulegraph.dot",
+      "stopA-rulegraph.svg"
+    ],
+    "hash": "f9147d498e8981965dd5988992fd6a452ca01da56958f5ce2f5dc016e5abfdc6"
+  },
+  "stopB-awk-braces": {
+    "command": "cat >> Snakefile <<'EOF'\nrule count_peaks:\n    input:\n        peaks = OUT + \"/peaks/{sample}_peaks.narrowPeak\",\n    output:\n        OUT + \"/peaks/{sample}_peak_count.txt\",\n    shell:\n        \"awk '{n++} END {print FILENAME, n}' {input.peaks} > {output}\"\nEOF\nsnakemake -n -p output/peaks/HCT116_CTCF_1_peak_count.txt 2>&1 | sed -n '/^RuleException/,$p' || true",
+    "cwd": "stopping-points/stopB",
+    "source": "lessons/04-rules-that-behave.qmd",
+    "returncode": 0,
+    "kind": "txt",
+    "files": [
+      "stopB-awk-braces.txt"
+    ],
+    "hash": "81b386508bf1a37c44c55bcdbcab91e6e1c129532c14f4aa2617dc38c5ae2dae"
+  },
+  "stopB-benchmark": {
+    "command": "snakemake --cores 4 output/HCT116_CTCF_1/HCT116_CTCF_1_filtered.bam > /dev/null 2>&1; cat output/benchmarks/bowtie2_index/bowtie2_index.tsv",
+    "cwd": "stopping-points/stopB",
+    "source": "lessons/04-rules-that-behave.qmd",
+    "returncode": 0,
+    "kind": "txt",
+    "files": [
+      "stopB-benchmark.txt"
+    ],
+    "hash": "a80d25fd4876ab53bf0317b7a046202a2933f8144a8dc0e5bf3f6ceb147abd93"
+  },
+  "stopB-config-string": {
+    "command": "printf 'configfile: \"config/RegConfig.yaml\"\\nprint(config[\"window\"])\\n' > show.smk && snakemake -s show.smk -n --config 'window={\"start\": 128000000}'",
+    "cwd": "stopping-points/stopB",
+    "source": "lessons/03-config.qmd",
+    "returncode": 0,
+    "kind": "txt",
+    "files": [
+      "stopB-config-string.txt"
+    ],
+    "hash": "162bf724fc07bc4323f88956e2d7c8e2181fe16397fa8d1c1fca11ce3b254952"
+  },
+  "stopB-configfile-int": {
+    "command": "printf 'configfile: \"config/RegConfig.yaml\"\\nprint(config[\"window\"])\\n' > show.smk && printf 'window:\\n  start: 128000000\\n' > narrow.yaml && snakemake -s show.smk -n --configfile narrow.yaml",
+    "cwd": "stopping-points/stopB",
+    "source": "lessons/03-config.qmd",
+    "returncode": 0,
+    "kind": "txt",
+    "files": [
+      "stopB-configfile-int.txt"
+    ],
+    "hash": "34c6d0f452a45edcac2f69a873546cc91913c4ddd4869a84fce242d1f90cb5d2"
+  },
+  "stopB-count-reads-broken": {
+    "command": "cat >> Snakefile <<'EOF'\nrule count_reads:\n    input:\n        bam = OUT + \"/{sample}/{sample}_filtered.bam\",\n    output:\n        OUT + \"/{sample}/{sample}_read_count.txt\",\n    log:\n        LOGS + \"/count_reads/{sample}.log\",\n    threads: 2\n    shell:\n        \"\"\"\n        samtools view -c -@ {threads} {input.bam} | awk '{print \"{wildcards.sample}\", $1}' > {output} 2> {log}\n        \"\"\"\nEOF\nsnakemake -n -p output/HCT116_CTCF_1/HCT116_CTCF_1_read_count.txt 2>&1 | sed -n '/^RuleException/,$p' || true",
+    "cwd": "stopping-points/stopB",
+    "source": "answers/04-rules-that-behave-answers.qmd",
+    "returncode": 0,
+    "kind": "txt",
+    "files": [
+      "stopB-count-reads-broken.txt"
+    ],
+    "hash": "695ffd9ce7853ae48da759260ef9c5afd31fec67e30af4ade05520a306e9757a"
+  },
+  "stopB-count-reads-fixed": {
+    "command": "cat >> Snakefile <<'EOF'\nrule count_reads:\n    input:\n        bam = OUT + \"/{sample}/{sample}_filtered.bam\",\n    output:\n        OUT + \"/{sample}/{sample}_read_count.txt\",\n    log:\n        LOGS + \"/count_reads/{sample}.log\",\n    threads: 2\n    shell:\n        \"\"\"\n        samtools view -c -@ {threads} {input.bam} 2> {log} \\\n            | awk '{{print \"{wildcards.sample}\", $1}}' > {output} 2>> {log}\n        \"\"\"\nEOF\nsnakemake --cores 4 output/HCT116_CTCF_1/HCT116_CTCF_1_read_count.txt > /dev/null 2>&1; cat output/HCT116_CTCF_1/HCT116_CTCF_1_read_count.txt",
+    "cwd": "stopping-points/stopB",
+    "source": "answers/04-rules-that-behave-answers.qmd",
+    "returncode": 0,
+    "kind": "txt",
+    "files": [
+      "stopB-count-reads-fixed.txt"
+    ],
+    "hash": "073f716e85425de8872697658825c85929c7b10ecd4475e31f1beb6fcc9a15ea"
+  },
+  "stopB-dryrun": {
+    "command": "snakemake -n 2>&1 | grep -v 'strict channel priorities'",
+    "cwd": "stopping-points/stopB",
+    "source": "lessons/04-rules-that-behave.qmd",
+    "returncode": 0,
+    "kind": "txt",
+    "files": [
+      "stopB-dryrun.txt"
+    ],
+    "hash": "f40a1e8d75ded211a08b62b3f06f3306c55dc4c8968825336c611da960af5bab"
+  },
+  "stopB-fewer-samples": {
+    "command": "grep -v DNase_2 RegSamplesheet.txt > fewer.txt && snakemake -n --config samplesheet=fewer.txt 2>&1 | awk '/^Job stats/ && !done {on=1} on {print} /^total/ && on {on=0; done=1}'",
+    "cwd": "stopping-points/stopB",
+    "source": "answers/03-config-answers.qmd",
+    "returncode": 0,
+    "kind": "txt",
+    "files": [
+      "stopB-fewer-samples.txt"
+    ],
+    "hash": "de875725e9a2bd0e9979ed03beb0335121d514bb11f0e1e788529ee31003e160"
+  },
+  "stopB-keyerror": {
+    "command": "sed -i '1s/Bio_Rep/Rep/' RegSamplesheet.txt && snakemake -n 2>&1 | grep -v 'strict channel priorities' || true",
+    "cwd": "stopping-points/stopB",
+    "source": "answers/03-config-answers.qmd",
+    "returncode": 0,
+    "kind": "txt",
+    "files": [
+      "stopB-keyerror.txt"
+    ],
+    "hash": "5ad09201d722a8a8acc118001bd71c60116fcbe36ae569b9276540dfdf1bf8bf"
+  },
+  "stopB-no-keep-na": {
+    "command": "sed -i 's/, keep_default_na=False//' Snakefile && snakemake -n 2>&1 | grep -v 'strict channel priorities' || true",
+    "cwd": "stopping-points/stopB",
+    "source": "lessons/03-config.qmd",
+    "returncode": 0,
+    "kind": "txt",
+    "files": [
+      "stopB-no-keep-na.txt"
+    ],
+    "hash": "3a9cfd4de0885cebb455d0671097a003d4fc42764f56e78540cfd5c72bb7bd21"
+  },
+  "stopB-params-mtime": {
+    "command": "snakemake --cores 4 output/peaks/HCT116_CTCF_1_peaks.narrowPeak > /dev/null 2>&1 && snakemake -n output/peaks/HCT116_CTCF_1_peaks.narrowPeak --config minMapq=20 --rerun-triggers mtime 2>&1 | grep -v 'strict channel priorities'",
+    "cwd": "stopping-points/stopB",
+    "source": "lessons/04-rules-that-behave.qmd",
+    "returncode": 0,
+    "kind": "txt",
+    "files": [
+      "stopB-params-mtime.txt"
+    ],
+    "hash": "aad0cccca60ab25d0f1afb92c50af6df845d470b06c14be5c410a0f7661eb9ce"
+  },
+  "stopB-params-rerun": {
+    "command": "snakemake --cores 4 output/peaks/HCT116_CTCF_1_peaks.narrowPeak > /dev/null 2>&1 && snakemake -n output/peaks/HCT116_CTCF_1_peaks.narrowPeak --config minMapq=20 2>&1 | grep -E '^rule |reason:'",
+    "cwd": "stopping-points/stopB",
+    "source": "lessons/04-rules-that-behave.qmd",
+    "returncode": 0,
+    "kind": "txt",
+    "files": [
+      "stopB-params-rerun.txt"
+    ],
+    "hash": "b39e50d5463b3a1ba3b1fe4f992b51c2436c3599b3d35ea27836e878c1eac0d5"
+  },
+  "stopB-qvalue-rerun": {
+    "command": "snakemake --cores 4 > /dev/null 2>&1; sed -i 's/qvalue: 0.01/qvalue: 0.05/' config/RegConfig.yaml && snakemake -n 2>&1 | awk '/^Job stats/ && !done {on=1} on {print} /^total/ && on {on=0; done=1}'; echo; echo '$ snakemake -n --rerun-triggers mtime'; snakemake -n --rerun-triggers mtime 2>&1 | tail -1",
+    "cwd": "stopping-points/stopB",
+    "source": "answers/04-rules-that-behave-answers.qmd",
+    "returncode": 0,
+    "kind": "txt",
+    "files": [
+      "stopB-qvalue-rerun.txt"
+    ],
+    "hash": "ee5e9dff84d7bcc3f6dce3c101fbf7d8878d416085e7f11f656261f17994a116"
+  },
+  "stopc-dryrun": {
+    "command": "snakemake -n -s workflows/RegPipe.snakefile --cores 1",
+    "cwd": "stopping-points/stopC",
+    "source": "lessons/06-structure.qmd",
+    "returncode": 0,
+    "kind": "txt",
+    "files": [
+      "stopc-dryrun.txt"
+    ],
+    "hash": "3850bab7b05c1a093e2f9aa5e745119a35e4fac8ff427156ac9f020da2f96b9b"
   },
   "ttpipe-dag": {
     "command": "snakemake --dag -s workflows/TTpipe.snakefile --cores 1 --configfile config/TTpipeConfig.yaml tests/dryrun/config.yaml",

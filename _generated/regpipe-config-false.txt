@@ -1,0 +1,4 @@
+--config make_locus_plot=False
+total                    60
+--config make_locus_plot=false
+total                    61

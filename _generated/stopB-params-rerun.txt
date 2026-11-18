@@ -1,0 +1,10 @@
+rule align:
+    reason: Missing output files: output/HCT116_input-CTCF_1/HCT116_input-CTCF_1_aligned.bam
+rule align:
+    reason: Missing output files: output/HCT116_CTCF_1/HCT116_CTCF_1_aligned.bam
+rule filter:
+    reason: Input files updated by another job: output/HCT116_CTCF_1/HCT116_CTCF_1_aligned.bam; Params have changed since last execution: Union of exclusive params before and now across all output: before: 30 now: 20
+rule filter:
+    reason: Input files updated by another job: output/HCT116_input-CTCF_1/HCT116_input-CTCF_1_aligned.bam; Params have changed since last execution: Union of exclusive params before and now across all output: before: 30 now: 20
+rule call_peaks:
+    reason: Input files updated by another job: output/HCT116_input-CTCF_1/HCT116_input-CTCF_1_filtered.bam, output/HCT116_CTCF_1/HCT116_CTCF_1_filtered.bam

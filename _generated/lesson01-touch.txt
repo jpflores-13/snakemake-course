@@ -1,0 +1,28 @@
+Building DAG of jobs...
+Job stats:
+job      count
+-----  -------
+align        1
+total        1
+
+
+[Wed Nov 18 06:19:23 2026]
+rule align:
+    input: ../../data/fastq/HCT116_CTCF_1.fastq.gz, output/reference/bowtie2_index/genome.1.bt2, output/reference/bowtie2_index/genome.2.bt2, output/reference/bowtie2_index/genome.3.bt2, output/reference/bowtie2_index/genome.4.bt2, output/reference/bowtie2_index/genome.rev.1.bt2, output/reference/bowtie2_index/genome.rev.2.bt2
+    output: output/HCT116_CTCF_1/HCT116_CTCF_1_aligned.bam
+    jobid: 0
+    reason: Updated input files: output/reference/bowtie2_index/genome.1.bt2
+    resources: tmpdir=<TBD>
+
+Job stats:
+job      count
+-----  -------
+align        1
+total        1
+
+Reasons:
+    (check individual jobs above for details)
+    updated input files:
+        align
+
+This was a dry-run (flag -n). The order of jobs does not reflect the order of execution.

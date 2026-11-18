@@ -1,0 +1,9 @@
+output_file	date	rule	log-file(s)	status	plan
+output/HCT116_CTCF_1/fastqc/HCT116_CTCF_1_fastqc.html	-	fastqc	-	missing	update pending
+output/HCT116_CTCF_1/fastqc/HCT116_CTCF_1_fastqc.zip	-	fastqc	-	missing	update pending
+output/HCT116_CTCF_1/HCT116_CTCF_1_filtered.bam	Wed Nov 18 06:28:10 2026	filter	output/logs/filter/HCT116_CTCF_1.log	params changed	update pending
+output/HCT116_CTCF_1/HCT116_CTCF_1_filtered.bam.bai	Wed Nov 18 06:28:10 2026	filter	output/logs/filter/HCT116_CTCF_1.log	params changed	update pending
+output/HCT116_CTCF_1/HCT116_CTCF_1_aligned_flagstat.tsv	Wed Nov 18 06:28:10 2026	filter	output/logs/filter/HCT116_CTCF_1.log	params changed	update pending
+output/HCT116_CTCF_1/HCT116_CTCF_1_markdup.txt	Wed Nov 18 06:28:10 2026	filter	output/logs/filter/HCT116_CTCF_1.log	params changed	update pending
+output/HCT116_CTCF_1/HCT116_CTCF_1_aligned.bam	-	align	output/logs/align/HCT116_CTCF_1.log	removed temp file	update pending
+output/HCT116_CTCF_1/HCT116_CTCF_1_frip.tsv	-	frip	-	missing	update pending

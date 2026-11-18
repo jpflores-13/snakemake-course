@@ -1,0 +1,3 @@
+RuleException in rule count_peaks in file Snakefile, line 303:
+NameError: The name 'n++' is unknown in this context. Please make sure that you defined that variable. Also note that braces not used for variable access have to be escaped by repeating them, i.e. {{print $1}}, when formatting the following:
+awk '{n++} END {print FILENAME, n}' {input.peaks} > {output}

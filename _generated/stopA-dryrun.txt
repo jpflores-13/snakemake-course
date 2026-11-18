@@ -1,0 +1,346 @@
+Building DAG of jobs...
+Job stats:
+job              count
+-------------  -------
+align               10
+all                  1
+bowtie2_index        1
+fastqc              10
+filter              10
+total               32
+
+
+[Wed Nov 18 06:20:59 2026]
+rule fastqc:
+    input: ../../data/fastq/HCT116_H3K27ac_2.fastq.gz
+    output: output/HCT116_H3K27ac_2/fastqc/HCT116_H3K27ac_2_fastqc.html, output/HCT116_H3K27ac_2/fastqc/HCT116_H3K27ac_2_fastqc.zip
+    jobid: 6
+    reason: Missing output files: output/HCT116_H3K27ac_2/fastqc/HCT116_H3K27ac_2_fastqc.html
+    wildcards: sample=HCT116_H3K27ac_2
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 06:20:59 2026]
+rule fastqc:
+    input: ../../data/fastq/HCT116_input-H3K27ac_2.fastq.gz
+    output: output/HCT116_input-H3K27ac_2/fastqc/HCT116_input-H3K27ac_2_fastqc.html, output/HCT116_input-H3K27ac_2/fastqc/HCT116_input-H3K27ac_2_fastqc.zip
+    jobid: 8
+    reason: Missing output files: output/HCT116_input-H3K27ac_2/fastqc/HCT116_input-H3K27ac_2_fastqc.html
+    wildcards: sample=HCT116_input-H3K27ac_2
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 06:20:59 2026]
+rule fastqc:
+    input: ../../data/fastq/HCT116_DNase_2.fastq.gz
+    output: output/HCT116_DNase_2/fastqc/HCT116_DNase_2_fastqc.html, output/HCT116_DNase_2/fastqc/HCT116_DNase_2_fastqc.zip
+    jobid: 10
+    reason: Missing output files: output/HCT116_DNase_2/fastqc/HCT116_DNase_2_fastqc.html
+    wildcards: sample=HCT116_DNase_2
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 06:20:59 2026]
+rule fastqc:
+    input: ../../data/fastq/HCT116_CTCF_1.fastq.gz
+    output: output/HCT116_CTCF_1/fastqc/HCT116_CTCF_1_fastqc.html, output/HCT116_CTCF_1/fastqc/HCT116_CTCF_1_fastqc.zip
+    jobid: 1
+    reason: Missing output files: output/HCT116_CTCF_1/fastqc/HCT116_CTCF_1_fastqc.html
+    wildcards: sample=HCT116_CTCF_1
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 06:20:59 2026]
+rule fastqc:
+    input: ../../data/fastq/HCT116_input-CTCF_1.fastq.gz
+    output: output/HCT116_input-CTCF_1/fastqc/HCT116_input-CTCF_1_fastqc.html, output/HCT116_input-CTCF_1/fastqc/HCT116_input-CTCF_1_fastqc.zip
+    jobid: 3
+    reason: Missing output files: output/HCT116_input-CTCF_1/fastqc/HCT116_input-CTCF_1_fastqc.html
+    wildcards: sample=HCT116_input-CTCF_1
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 06:20:59 2026]
+rule fastqc:
+    input: ../../data/fastq/HCT116_H3K27ac_1.fastq.gz
+    output: output/HCT116_H3K27ac_1/fastqc/HCT116_H3K27ac_1_fastqc.html, output/HCT116_H3K27ac_1/fastqc/HCT116_H3K27ac_1_fastqc.zip
+    jobid: 5
+    reason: Missing output files: output/HCT116_H3K27ac_1/fastqc/HCT116_H3K27ac_1_fastqc.html
+    wildcards: sample=HCT116_H3K27ac_1
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 06:20:59 2026]
+rule fastqc:
+    input: ../../data/fastq/HCT116_input-H3K27ac_1.fastq.gz
+    output: output/HCT116_input-H3K27ac_1/fastqc/HCT116_input-H3K27ac_1_fastqc.html, output/HCT116_input-H3K27ac_1/fastqc/HCT116_input-H3K27ac_1_fastqc.zip
+    jobid: 7
+    reason: Missing output files: output/HCT116_input-H3K27ac_1/fastqc/HCT116_input-H3K27ac_1_fastqc.html
+    wildcards: sample=HCT116_input-H3K27ac_1
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 06:20:59 2026]
+rule fastqc:
+    input: ../../data/fastq/HCT116_DNase_1.fastq.gz
+    output: output/HCT116_DNase_1/fastqc/HCT116_DNase_1_fastqc.html, output/HCT116_DNase_1/fastqc/HCT116_DNase_1_fastqc.zip
+    jobid: 9
+    reason: Missing output files: output/HCT116_DNase_1/fastqc/HCT116_DNase_1_fastqc.html
+    wildcards: sample=HCT116_DNase_1
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 06:20:59 2026]
+rule fastqc:
+    input: ../../data/fastq/HCT116_CTCF_2.fastq.gz
+    output: output/HCT116_CTCF_2/fastqc/HCT116_CTCF_2_fastqc.html, output/HCT116_CTCF_2/fastqc/HCT116_CTCF_2_fastqc.zip
+    jobid: 2
+    reason: Missing output files: output/HCT116_CTCF_2/fastqc/HCT116_CTCF_2_fastqc.html
+    wildcards: sample=HCT116_CTCF_2
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 06:20:59 2026]
+rule fastqc:
+    input: ../../data/fastq/HCT116_input-CTCF_2.fastq.gz
+    output: output/HCT116_input-CTCF_2/fastqc/HCT116_input-CTCF_2_fastqc.html, output/HCT116_input-CTCF_2/fastqc/HCT116_input-CTCF_2_fastqc.zip
+    jobid: 4
+    reason: Missing output files: output/HCT116_input-CTCF_2/fastqc/HCT116_input-CTCF_2_fastqc.html
+    wildcards: sample=HCT116_input-CTCF_2
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 06:20:59 2026]
+rule bowtie2_index:
+    input: ../../data/reference/chr8_course.fa.gz
+    output: output/reference/bowtie2_index/genome.1.bt2, output/reference/bowtie2_index/genome.2.bt2, output/reference/bowtie2_index/genome.3.bt2, output/reference/bowtie2_index/genome.4.bt2, output/reference/bowtie2_index/genome.rev.1.bt2, output/reference/bowtie2_index/genome.rev.2.bt2
+    jobid: 13
+    reason: Missing output files: output/reference/bowtie2_index/genome.4.bt2, output/reference/bowtie2_index/genome.1.bt2, output/reference/bowtie2_index/genome.2.bt2, output/reference/bowtie2_index/genome.rev.1.bt2, output/reference/bowtie2_index/genome.rev.2.bt2, output/reference/bowtie2_index/genome.3.bt2
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 06:20:59 2026]
+rule align:
+    input: ../../data/fastq/HCT116_input-CTCF_1.fastq.gz, output/reference/bowtie2_index/genome.1.bt2, output/reference/bowtie2_index/genome.2.bt2, output/reference/bowtie2_index/genome.3.bt2, output/reference/bowtie2_index/genome.4.bt2, output/reference/bowtie2_index/genome.rev.1.bt2, output/reference/bowtie2_index/genome.rev.2.bt2
+    output: output/HCT116_input-CTCF_1/HCT116_input-CTCF_1_aligned.bam
+    jobid: 17
+    reason: Missing output files: output/HCT116_input-CTCF_1/HCT116_input-CTCF_1_aligned.bam; Input files updated by another job: output/reference/bowtie2_index/genome.4.bt2, output/reference/bowtie2_index/genome.rev.2.bt2, output/reference/bowtie2_index/genome.1.bt2, output/reference/bowtie2_index/genome.3.bt2, output/reference/bowtie2_index/genome.2.bt2, output/reference/bowtie2_index/genome.rev.1.bt2
+    wildcards: sample=HCT116_input-CTCF_1
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 06:20:59 2026]
+rule align:
+    input: ../../data/fastq/HCT116_H3K27ac_1.fastq.gz, output/reference/bowtie2_index/genome.1.bt2, output/reference/bowtie2_index/genome.2.bt2, output/reference/bowtie2_index/genome.3.bt2, output/reference/bowtie2_index/genome.4.bt2, output/reference/bowtie2_index/genome.rev.1.bt2, output/reference/bowtie2_index/genome.rev.2.bt2
+    output: output/HCT116_H3K27ac_1/HCT116_H3K27ac_1_aligned.bam
+    jobid: 21
+    reason: Missing output files: output/HCT116_H3K27ac_1/HCT116_H3K27ac_1_aligned.bam; Input files updated by another job: output/reference/bowtie2_index/genome.4.bt2, output/reference/bowtie2_index/genome.rev.2.bt2, output/reference/bowtie2_index/genome.1.bt2, output/reference/bowtie2_index/genome.3.bt2, output/reference/bowtie2_index/genome.2.bt2, output/reference/bowtie2_index/genome.rev.1.bt2
+    wildcards: sample=HCT116_H3K27ac_1
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 06:20:59 2026]
+rule align:
+    input: ../../data/fastq/HCT116_input-H3K27ac_1.fastq.gz, output/reference/bowtie2_index/genome.1.bt2, output/reference/bowtie2_index/genome.2.bt2, output/reference/bowtie2_index/genome.3.bt2, output/reference/bowtie2_index/genome.4.bt2, output/reference/bowtie2_index/genome.rev.1.bt2, output/reference/bowtie2_index/genome.rev.2.bt2
+    output: output/HCT116_input-H3K27ac_1/HCT116_input-H3K27ac_1_aligned.bam
+    jobid: 25
+    reason: Missing output files: output/HCT116_input-H3K27ac_1/HCT116_input-H3K27ac_1_aligned.bam; Input files updated by another job: output/reference/bowtie2_index/genome.4.bt2, output/reference/bowtie2_index/genome.rev.2.bt2, output/reference/bowtie2_index/genome.1.bt2, output/reference/bowtie2_index/genome.3.bt2, output/reference/bowtie2_index/genome.2.bt2, output/reference/bowtie2_index/genome.rev.1.bt2
+    wildcards: sample=HCT116_input-H3K27ac_1
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 06:20:59 2026]
+rule align:
+    input: ../../data/fastq/HCT116_DNase_1.fastq.gz, output/reference/bowtie2_index/genome.1.bt2, output/reference/bowtie2_index/genome.2.bt2, output/reference/bowtie2_index/genome.3.bt2, output/reference/bowtie2_index/genome.4.bt2, output/reference/bowtie2_index/genome.rev.1.bt2, output/reference/bowtie2_index/genome.rev.2.bt2
+    output: output/HCT116_DNase_1/HCT116_DNase_1_aligned.bam
+    jobid: 29
+    reason: Missing output files: output/HCT116_DNase_1/HCT116_DNase_1_aligned.bam; Input files updated by another job: output/reference/bowtie2_index/genome.4.bt2, output/reference/bowtie2_index/genome.rev.2.bt2, output/reference/bowtie2_index/genome.1.bt2, output/reference/bowtie2_index/genome.3.bt2, output/reference/bowtie2_index/genome.2.bt2, output/reference/bowtie2_index/genome.rev.1.bt2
+    wildcards: sample=HCT116_DNase_1
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 06:20:59 2026]
+rule align:
+    input: ../../data/fastq/HCT116_CTCF_1.fastq.gz, output/reference/bowtie2_index/genome.1.bt2, output/reference/bowtie2_index/genome.2.bt2, output/reference/bowtie2_index/genome.3.bt2, output/reference/bowtie2_index/genome.4.bt2, output/reference/bowtie2_index/genome.rev.1.bt2, output/reference/bowtie2_index/genome.rev.2.bt2
+    output: output/HCT116_CTCF_1/HCT116_CTCF_1_aligned.bam
+    jobid: 12
+    reason: Missing output files: output/HCT116_CTCF_1/HCT116_CTCF_1_aligned.bam; Input files updated by another job: output/reference/bowtie2_index/genome.4.bt2, output/reference/bowtie2_index/genome.rev.2.bt2, output/reference/bowtie2_index/genome.1.bt2, output/reference/bowtie2_index/genome.3.bt2, output/reference/bowtie2_index/genome.2.bt2, output/reference/bowtie2_index/genome.rev.1.bt2
+    wildcards: sample=HCT116_CTCF_1
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 06:20:59 2026]
+rule align:
+    input: ../../data/fastq/HCT116_CTCF_2.fastq.gz, output/reference/bowtie2_index/genome.1.bt2, output/reference/bowtie2_index/genome.2.bt2, output/reference/bowtie2_index/genome.3.bt2, output/reference/bowtie2_index/genome.4.bt2, output/reference/bowtie2_index/genome.rev.1.bt2, output/reference/bowtie2_index/genome.rev.2.bt2
+    output: output/HCT116_CTCF_2/HCT116_CTCF_2_aligned.bam
+    jobid: 15
+    reason: Missing output files: output/HCT116_CTCF_2/HCT116_CTCF_2_aligned.bam; Input files updated by another job: output/reference/bowtie2_index/genome.4.bt2, output/reference/bowtie2_index/genome.rev.2.bt2, output/reference/bowtie2_index/genome.1.bt2, output/reference/bowtie2_index/genome.3.bt2, output/reference/bowtie2_index/genome.2.bt2, output/reference/bowtie2_index/genome.rev.1.bt2
+    wildcards: sample=HCT116_CTCF_2
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 06:20:59 2026]
+rule align:
+    input: ../../data/fastq/HCT116_input-CTCF_2.fastq.gz, output/reference/bowtie2_index/genome.1.bt2, output/reference/bowtie2_index/genome.2.bt2, output/reference/bowtie2_index/genome.3.bt2, output/reference/bowtie2_index/genome.4.bt2, output/reference/bowtie2_index/genome.rev.1.bt2, output/reference/bowtie2_index/genome.rev.2.bt2
+    output: output/HCT116_input-CTCF_2/HCT116_input-CTCF_2_aligned.bam
+    jobid: 19
+    reason: Missing output files: output/HCT116_input-CTCF_2/HCT116_input-CTCF_2_aligned.bam; Input files updated by another job: output/reference/bowtie2_index/genome.4.bt2, output/reference/bowtie2_index/genome.rev.2.bt2, output/reference/bowtie2_index/genome.1.bt2, output/reference/bowtie2_index/genome.3.bt2, output/reference/bowtie2_index/genome.2.bt2, output/reference/bowtie2_index/genome.rev.1.bt2
+    wildcards: sample=HCT116_input-CTCF_2
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 06:20:59 2026]
+rule align:
+    input: ../../data/fastq/HCT116_H3K27ac_2.fastq.gz, output/reference/bowtie2_index/genome.1.bt2, output/reference/bowtie2_index/genome.2.bt2, output/reference/bowtie2_index/genome.3.bt2, output/reference/bowtie2_index/genome.4.bt2, output/reference/bowtie2_index/genome.rev.1.bt2, output/reference/bowtie2_index/genome.rev.2.bt2
+    output: output/HCT116_H3K27ac_2/HCT116_H3K27ac_2_aligned.bam
+    jobid: 23
+    reason: Missing output files: output/HCT116_H3K27ac_2/HCT116_H3K27ac_2_aligned.bam; Input files updated by another job: output/reference/bowtie2_index/genome.4.bt2, output/reference/bowtie2_index/genome.rev.2.bt2, output/reference/bowtie2_index/genome.1.bt2, output/reference/bowtie2_index/genome.3.bt2, output/reference/bowtie2_index/genome.2.bt2, output/reference/bowtie2_index/genome.rev.1.bt2
+    wildcards: sample=HCT116_H3K27ac_2
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 06:20:59 2026]
+rule align:
+    input: ../../data/fastq/HCT116_input-H3K27ac_2.fastq.gz, output/reference/bowtie2_index/genome.1.bt2, output/reference/bowtie2_index/genome.2.bt2, output/reference/bowtie2_index/genome.3.bt2, output/reference/bowtie2_index/genome.4.bt2, output/reference/bowtie2_index/genome.rev.1.bt2, output/reference/bowtie2_index/genome.rev.2.bt2
+    output: output/HCT116_input-H3K27ac_2/HCT116_input-H3K27ac_2_aligned.bam
+    jobid: 27
+    reason: Missing output files: output/HCT116_input-H3K27ac_2/HCT116_input-H3K27ac_2_aligned.bam; Input files updated by another job: output/reference/bowtie2_index/genome.4.bt2, output/reference/bowtie2_index/genome.rev.2.bt2, output/reference/bowtie2_index/genome.1.bt2, output/reference/bowtie2_index/genome.3.bt2, output/reference/bowtie2_index/genome.2.bt2, output/reference/bowtie2_index/genome.rev.1.bt2
+    wildcards: sample=HCT116_input-H3K27ac_2
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 06:20:59 2026]
+rule align:
+    input: ../../data/fastq/HCT116_DNase_2.fastq.gz, output/reference/bowtie2_index/genome.1.bt2, output/reference/bowtie2_index/genome.2.bt2, output/reference/bowtie2_index/genome.3.bt2, output/reference/bowtie2_index/genome.4.bt2, output/reference/bowtie2_index/genome.rev.1.bt2, output/reference/bowtie2_index/genome.rev.2.bt2
+    output: output/HCT116_DNase_2/HCT116_DNase_2_aligned.bam
+    jobid: 31
+    reason: Missing output files: output/HCT116_DNase_2/HCT116_DNase_2_aligned.bam; Input files updated by another job: output/reference/bowtie2_index/genome.4.bt2, output/reference/bowtie2_index/genome.rev.2.bt2, output/reference/bowtie2_index/genome.1.bt2, output/reference/bowtie2_index/genome.3.bt2, output/reference/bowtie2_index/genome.2.bt2, output/reference/bowtie2_index/genome.rev.1.bt2
+    wildcards: sample=HCT116_DNase_2
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 06:20:59 2026]
+rule filter:
+    input: output/HCT116_CTCF_2/HCT116_CTCF_2_aligned.bam, ../../data/reference/blacklist.bed.gz
+    output: output/HCT116_CTCF_2/HCT116_CTCF_2_filtered.bam, output/HCT116_CTCF_2/HCT116_CTCF_2_filtered.bam.bai, output/HCT116_CTCF_2/HCT116_CTCF_2_aligned_flagstat.tsv, output/HCT116_CTCF_2/HCT116_CTCF_2_markdup.txt
+    jobid: 14
+    reason: Missing output files: output/HCT116_CTCF_2/HCT116_CTCF_2_filtered.bam; Input files updated by another job: output/HCT116_CTCF_2/HCT116_CTCF_2_aligned.bam
+    wildcards: sample=HCT116_CTCF_2
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 06:20:59 2026]
+rule filter:
+    input: output/HCT116_input-CTCF_2/HCT116_input-CTCF_2_aligned.bam, ../../data/reference/blacklist.bed.gz
+    output: output/HCT116_input-CTCF_2/HCT116_input-CTCF_2_filtered.bam, output/HCT116_input-CTCF_2/HCT116_input-CTCF_2_filtered.bam.bai, output/HCT116_input-CTCF_2/HCT116_input-CTCF_2_aligned_flagstat.tsv, output/HCT116_input-CTCF_2/HCT116_input-CTCF_2_markdup.txt
+    jobid: 18
+    reason: Missing output files: output/HCT116_input-CTCF_2/HCT116_input-CTCF_2_filtered.bam; Input files updated by another job: output/HCT116_input-CTCF_2/HCT116_input-CTCF_2_aligned.bam
+    wildcards: sample=HCT116_input-CTCF_2
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 06:20:59 2026]
+rule filter:
+    input: output/HCT116_H3K27ac_2/HCT116_H3K27ac_2_aligned.bam, ../../data/reference/blacklist.bed.gz
+    output: output/HCT116_H3K27ac_2/HCT116_H3K27ac_2_filtered.bam, output/HCT116_H3K27ac_2/HCT116_H3K27ac_2_filtered.bam.bai, output/HCT116_H3K27ac_2/HCT116_H3K27ac_2_aligned_flagstat.tsv, output/HCT116_H3K27ac_2/HCT116_H3K27ac_2_markdup.txt
+    jobid: 22
+    reason: Missing output files: output/HCT116_H3K27ac_2/HCT116_H3K27ac_2_filtered.bam; Input files updated by another job: output/HCT116_H3K27ac_2/HCT116_H3K27ac_2_aligned.bam
+    wildcards: sample=HCT116_H3K27ac_2
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 06:20:59 2026]
+rule filter:
+    input: output/HCT116_input-H3K27ac_2/HCT116_input-H3K27ac_2_aligned.bam, ../../data/reference/blacklist.bed.gz
+    output: output/HCT116_input-H3K27ac_2/HCT116_input-H3K27ac_2_filtered.bam, output/HCT116_input-H3K27ac_2/HCT116_input-H3K27ac_2_filtered.bam.bai, output/HCT116_input-H3K27ac_2/HCT116_input-H3K27ac_2_aligned_flagstat.tsv, output/HCT116_input-H3K27ac_2/HCT116_input-H3K27ac_2_markdup.txt
+    jobid: 26
+    reason: Missing output files: output/HCT116_input-H3K27ac_2/HCT116_input-H3K27ac_2_filtered.bam; Input files updated by another job: output/HCT116_input-H3K27ac_2/HCT116_input-H3K27ac_2_aligned.bam
+    wildcards: sample=HCT116_input-H3K27ac_2
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 06:20:59 2026]
+rule filter:
+    input: output/HCT116_DNase_1/HCT116_DNase_1_aligned.bam, ../../data/reference/blacklist.bed.gz
+    output: output/HCT116_DNase_1/HCT116_DNase_1_filtered.bam, output/HCT116_DNase_1/HCT116_DNase_1_filtered.bam.bai, output/HCT116_DNase_1/HCT116_DNase_1_aligned_flagstat.tsv, output/HCT116_DNase_1/HCT116_DNase_1_markdup.txt
+    jobid: 28
+    reason: Missing output files: output/HCT116_DNase_1/HCT116_DNase_1_filtered.bam; Input files updated by another job: output/HCT116_DNase_1/HCT116_DNase_1_aligned.bam
+    wildcards: sample=HCT116_DNase_1
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 06:20:59 2026]
+rule filter:
+    input: output/HCT116_CTCF_1/HCT116_CTCF_1_aligned.bam, ../../data/reference/blacklist.bed.gz
+    output: output/HCT116_CTCF_1/HCT116_CTCF_1_filtered.bam, output/HCT116_CTCF_1/HCT116_CTCF_1_filtered.bam.bai, output/HCT116_CTCF_1/HCT116_CTCF_1_aligned_flagstat.tsv, output/HCT116_CTCF_1/HCT116_CTCF_1_markdup.txt
+    jobid: 11
+    reason: Missing output files: output/HCT116_CTCF_1/HCT116_CTCF_1_filtered.bam; Input files updated by another job: output/HCT116_CTCF_1/HCT116_CTCF_1_aligned.bam
+    wildcards: sample=HCT116_CTCF_1
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 06:20:59 2026]
+rule filter:
+    input: output/HCT116_input-CTCF_1/HCT116_input-CTCF_1_aligned.bam, ../../data/reference/blacklist.bed.gz
+    output: output/HCT116_input-CTCF_1/HCT116_input-CTCF_1_filtered.bam, output/HCT116_input-CTCF_1/HCT116_input-CTCF_1_filtered.bam.bai, output/HCT116_input-CTCF_1/HCT116_input-CTCF_1_aligned_flagstat.tsv, output/HCT116_input-CTCF_1/HCT116_input-CTCF_1_markdup.txt
+    jobid: 16
+    reason: Missing output files: output/HCT116_input-CTCF_1/HCT116_input-CTCF_1_filtered.bam; Input files updated by another job: output/HCT116_input-CTCF_1/HCT116_input-CTCF_1_aligned.bam
+    wildcards: sample=HCT116_input-CTCF_1
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 06:20:59 2026]
+rule filter:
+    input: output/HCT116_H3K27ac_1/HCT116_H3K27ac_1_aligned.bam, ../../data/reference/blacklist.bed.gz
+    output: output/HCT116_H3K27ac_1/HCT116_H3K27ac_1_filtered.bam, output/HCT116_H3K27ac_1/HCT116_H3K27ac_1_filtered.bam.bai, output/HCT116_H3K27ac_1/HCT116_H3K27ac_1_aligned_flagstat.tsv, output/HCT116_H3K27ac_1/HCT116_H3K27ac_1_markdup.txt
+    jobid: 20
+    reason: Missing output files: output/HCT116_H3K27ac_1/HCT116_H3K27ac_1_filtered.bam; Input files updated by another job: output/HCT116_H3K27ac_1/HCT116_H3K27ac_1_aligned.bam
+    wildcards: sample=HCT116_H3K27ac_1
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 06:20:59 2026]
+rule filter:
+    input: output/HCT116_input-H3K27ac_1/HCT116_input-H3K27ac_1_aligned.bam, ../../data/reference/blacklist.bed.gz
+    output: output/HCT116_input-H3K27ac_1/HCT116_input-H3K27ac_1_filtered.bam, output/HCT116_input-H3K27ac_1/HCT116_input-H3K27ac_1_filtered.bam.bai, output/HCT116_input-H3K27ac_1/HCT116_input-H3K27ac_1_aligned_flagstat.tsv, output/HCT116_input-H3K27ac_1/HCT116_input-H3K27ac_1_markdup.txt
+    jobid: 24
+    reason: Missing output files: output/HCT116_input-H3K27ac_1/HCT116_input-H3K27ac_1_filtered.bam; Input files updated by another job: output/HCT116_input-H3K27ac_1/HCT116_input-H3K27ac_1_aligned.bam
+    wildcards: sample=HCT116_input-H3K27ac_1
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 06:20:59 2026]
+rule filter:
+    input: output/HCT116_DNase_2/HCT116_DNase_2_aligned.bam, ../../data/reference/blacklist.bed.gz
+    output: output/HCT116_DNase_2/HCT116_DNase_2_filtered.bam, output/HCT116_DNase_2/HCT116_DNase_2_filtered.bam.bai, output/HCT116_DNase_2/HCT116_DNase_2_aligned_flagstat.tsv, output/HCT116_DNase_2/HCT116_DNase_2_markdup.txt
+    jobid: 30
+    reason: Missing output files: output/HCT116_DNase_2/HCT116_DNase_2_filtered.bam; Input files updated by another job: output/HCT116_DNase_2/HCT116_DNase_2_aligned.bam
+    wildcards: sample=HCT116_DNase_2
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 06:20:59 2026]
+rule all:
+    input: output/HCT116_CTCF_1/fastqc/HCT116_CTCF_1_fastqc.html, output/HCT116_CTCF_2/fastqc/HCT116_CTCF_2_fastqc.html, output/HCT116_input-CTCF_1/fastqc/HCT116_input-CTCF_1_fastqc.html, output/HCT116_input-CTCF_2/fastqc/HCT116_input-CTCF_2_fastqc.html, output/HCT116_H3K27ac_1/fastqc/HCT116_H3K27ac_1_fastqc.html, output/HCT116_H3K27ac_2/fastqc/HCT116_H3K27ac_2_fastqc.html, output/HCT116_input-H3K27ac_1/fastqc/HCT116_input-H3K27ac_1_fastqc.html, output/HCT116_input-H3K27ac_2/fastqc/HCT116_input-H3K27ac_2_fastqc.html, output/HCT116_DNase_1/fastqc/HCT116_DNase_1_fastqc.html, output/HCT116_DNase_2/fastqc/HCT116_DNase_2_fastqc.html, output/HCT116_CTCF_1/HCT116_CTCF_1_filtered.bam, output/HCT116_CTCF_2/HCT116_CTCF_2_filtered.bam, output/HCT116_input-CTCF_1/HCT116_input-CTCF_1_filtered.bam, output/HCT116_input-CTCF_2/HCT116_input-CTCF_2_filtered.bam, output/HCT116_H3K27ac_1/HCT116_H3K27ac_1_filtered.bam, output/HCT116_H3K27ac_2/HCT116_H3K27ac_2_filtered.bam, output/HCT116_input-H3K27ac_1/HCT116_input-H3K27ac_1_filtered.bam, output/HCT116_input-H3K27ac_2/HCT116_input-H3K27ac_2_filtered.bam, output/HCT116_DNase_1/HCT116_DNase_1_filtered.bam, output/HCT116_DNase_2/HCT116_DNase_2_filtered.bam
+    jobid: 0
+    reason: Input files updated by another job: output/HCT116_CTCF_1/HCT116_CTCF_1_filtered.bam, output/HCT116_input-CTCF_1/HCT116_input-CTCF_1_filtered.bam, output/HCT116_DNase_1/fastqc/HCT116_DNase_1_fastqc.html, output/HCT116_input-H3K27ac_1/HCT116_input-H3K27ac_1_filtered.bam, output/HCT116_DNase_2/fastqc/HCT116_DNase_2_fastqc.html, output/HCT116_CTCF_1/fastqc/HCT116_CTCF_1_fastqc.html, output/HCT116_input-H3K27ac_1/fastqc/HCT116_input-H3K27ac_1_fastqc.html, output/HCT116_input-H3K27ac_2/fastqc/HCT116_input-H3K27ac_2_fastqc.html, output/HCT116_H3K27ac_1/HCT116_H3K27ac_1_filtered.bam, output/HCT116_CTCF_2/HCT116_CTCF_2_filtered.bam, output/HCT116_input-CTCF_2/HCT116_input-CTCF_2_filtered.bam, output/HCT116_input-CTCF_2/fastqc/HCT116_input-CTCF_2_fastqc.html, output/HCT116_input-H3K27ac_2/HCT116_input-H3K27ac_2_filtered.bam, output/HCT116_CTCF_2/fastqc/HCT116_CTCF_2_fastqc.html, output/HCT116_H3K27ac_2/fastqc/HCT116_H3K27ac_2_fastqc.html, output/HCT116_DNase_2/HCT116_DNase_2_filtered.bam, output/HCT116_DNase_1/HCT116_DNase_1_filtered.bam, output/HCT116_input-CTCF_1/fastqc/HCT116_input-CTCF_1_fastqc.html, output/HCT116_H3K27ac_2/HCT116_H3K27ac_2_filtered.bam, output/HCT116_H3K27ac_1/fastqc/HCT116_H3K27ac_1_fastqc.html
+    resources: tmpdir=<TBD>
+
+Job stats:
+job              count
+-------------  -------
+align               10
+all                  1
+bowtie2_index        1
+fastqc              10
+filter              10
+total               32
+
+Reasons:
+    (check individual jobs above for details)
+    input files updated by another job:
+        align, all, filter
+    output files have to be generated:
+        align, bowtie2_index, fastqc, filter
+
+This was a dry-run (flag -n). The order of jobs does not reflect the order of execution.

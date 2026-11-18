@@ -1,0 +1,199 @@
+---
+title: "Why a workflow manager"
+subtitle: "Module 0"
+description: "What goes wrong when a folder of scripts runs the lab's analysis, and how Snakemake works backward from the files you want."
+duration: "20 min"
+format:
+  html: default
+  revealjs:
+    output-file: 00-why-slides.html
+---
+
+::: {.callout-note}
+## Learning objectives
+
+- Name three things a bash driver script cannot tell you after a change.
+- Describe a workflow as a graph of files and the steps that make them.
+- Explain what "working backward from the targets" means.
+- Know what you will build in this course and where the lab's pipelines fit.
+
+Time: 20 min
+:::
+
+## The script you already have
+
+Most analyses in the lab start like this. The course ships one in
+`snakemakeify/`: nine scripts and a driver that runs them in order.
+
+```{.bash filename="snakemakeify/run_all.sh"}
+#!/bin/bash
+# Whole HCT116 analysis, start to finish. Run from an empty folder:
+#   mkdir -p ~/snakemakeify/legacy && cd ~/snakemakeify/legacy
+#   bash ~/snakemake-course/snakemakeify/run_all.sh 2>&1 | tee run_all.log
+# Each step skips samples it has already done, so it is safe to re-run.
+
+SCRIPTS=$(dirname $0)
+
+echo "== 01 fastqc";   bash $SCRIPTS/01_fastqc.sh
+echo "== 02 align";    bash $SCRIPTS/02_align.sh
+echo "== 03 filter";   bash $SCRIPTS/03_filter.sh
+echo "== 04 peaks";    bash $SCRIPTS/04_call_peaks.sh
+...
+```
+
+::: {.content-hidden when-format="revealjs"}
+It works. It runs on the real course data and produces peaks, tracks and a
+figure. The trouble starts the second time you run it, after you change
+something.
+:::
+
+## "Safe to re-run"
+
+Each step decides for itself whether to do any work. This is the loop in
+`03_filter.sh`:
+
+```{.bash filename="snakemakeify/03_filter.sh"}
+for s in $SAMPLES; do
+    if [ -f $s.filt.bam ]; then
+        echo "$s already filtered, skipping"
+        continue
+    fi
+    ...
+    samtools view -b -q $MAPQ $s.bam > $s.q$MAPQ.bam
+```
+
+The check asks one question: does the output exist? It never asks whether the
+output is still correct.
+
+::: {.notes}
+Ask the room before showing the next slide: "I change MAPQ from 30 to 20 and
+run run_all.sh again. What happens?" Most people say "it refilters". It does
+not.
+:::
+
+## What the driver cannot tell you
+
+Suppose you lower `MAPQ` from 30 to 20 in `03_filter.sh` and run the driver
+again.
+
+- Every sample already has a `.filt.bam`, so step 03 skips all ten.
+- Step 04 finds the old peak files and skips too.
+- `06_qc_summary.py` has no skip check, so it writes a fresh table today, from
+  the old MAPQ 30 files.
+
+You now have a QC table with a new date and old numbers. To get it right you
+have to know which files depend on the filtered BAMs, delete them by hand, and
+rerun. The dependency chain lives in your head, not in the code.
+
+::: {.content-hidden when-format="revealjs"}
+There are quieter problems too. `02_align.sh` pipes `bowtie2` into
+`samtools sort` without `set -o pipefail`, so if bowtie2 dies halfway, the
+pipe still exits 0 and leaves a short BAM behind. The next run sees the BAM,
+skips the sample, and the truncated file flows into everything downstream.
+Nothing records which version of the script or which settings made a file.
+And moving the driver to the cluster means rewriting it as a set of `sbatch`
+jobs that wait for each other.
+:::
+
+## Turn it around: start from the files
+
+A workflow manager asks a different question. Instead of "run these steps in
+this order", you say "I want these files", and give it rules for how each kind
+of file is made.
+
+```text
+I want output/consensus/CTCF_consensus.bed
+  -> made from the CTCF peak files of both replicates
+     -> each made from a filtered BAM and its control's filtered BAM
+        -> each made from an aligned BAM
+           -> made from a FASTQ and the bowtie2 index
+```
+
+Snakemake builds that chain for every file you ask for, then runs only the
+steps whose outputs are missing or out of date. This is what
+"working backward from the targets" means.
+
+## The graph
+
+Every chain together forms a directed acyclic graph (DAG) of jobs. This is the
+rule graph of the finished course pipeline, one box per rule:
+
+{{< generated name="regpipe-rulegraph" alt="Rule graph of RegPipe: fastqc, bowtie2_index, align, filter, call_peaks, consensus_peaks, bigwig, frip, qc_table, ctcf_rad21_overlap, locus_plot and enhancer_activity feeding rule all" width="90%" >}}
+
+::: {.content-hidden when-format="revealjs"}
+You never write the graph. Snakemake works it out by matching the input files
+of one rule to the output files of another. The same pipeline on ten samples
+is 61 jobs; you will see those counts in the dry runs from module 1 on.
+:::
+
+## What the lab gets from it
+
+Reruns
+: Change a setting and Snakemake reruns the jobs that used it, and every job
+  downstream of them. Nothing else. In module 4 you change the MAPQ cutoff
+  and watch the dry run list the filter jobs and the peak calls after them.
+
+Provenance
+: Snakemake records which rule, command, parameters and software environment
+  made each file. `snakemake --summary` prints it per file. A failed job's
+  half-written outputs are deleted, so a truncated BAM does not survive.
+
+Cluster
+: The same Snakefile runs on your laptop and on SLURM. What changes is a
+  profile (module 5), not the rules.
+
+::: {.notes}
+The provenance point is the one people care about later. When a reviewer asks
+"which MAPQ cutoff did you use for figure 3", the answer is in the config file
+that made it, not in someone's memory.
+:::
+
+## Where the course goes
+
+You build **RegPipe** on public HCT116 data from ENCODE: CTCF and H3K27ac
+ChIP-seq with their inputs, and DNase-seq, all trimmed to a 5 Mb window of
+chr8 around *MYC* (chr8:125,000,000-130,000,000). The window is small enough
+that the whole pipeline runs on a laptop in a couple of minutes.
+
+| Day | Modules | You end with |
+|---|---|---|
+| 1 | 0-4 | aligned and filtered BAMs, peaks, consensus peaks, bigWigs (stopping point B) |
+| 2 | 5-8 | profiles for the cluster, a split-up pipeline, R and Python steps, tests (stopping point D) |
+
+The finished RegPipe has the same layout as the lab's MicroCPipe, TTpipe and
+ChromSimPipe, so the [field guide](../field-guide/index.qmd) reads those
+pipelines with the ideas you just learned.
+
+::: {.content-hidden when-format="revealjs"}
+If you fall behind at any point, copy the folder of the last stopping point
+(`stopping-points/stopA/` to `stopD/`) and keep going. The
+[schedule](../schedule.qmd) shows where each one falls.
+:::
+
+## Exercise
+
+::: {.callout-tip .exercise}
+## Exercise 0.1: Draw the chain for one file
+
+Open `snakemakeify/04_call_peaks.sh`. On paper, draw the files that have to
+exist before `peaks/HCT116_CTCF_1_peaks.narrowPeak` can be made, back to the
+raw FASTQs. Mark which script makes each file.
+
+Then suppose you delete `HCT116_input-CTCF_1.bam` and run `run_all.sh` again,
+so that one BAM is made fresh. Which files in your drawing are now out of
+date? Which of them does `run_all.sh` actually remake?
+
+[Answer](../answers/00-why-answers.qmd#ex-0.1)
+:::
+
+## Key points
+
+- A driver script runs steps in order. It does not know which files depend on
+  which, so after a change you have to work that out yourself.
+- "The output exists" is not the same as "the output is up to date".
+- Snakemake works backward from the files you ask for, through rules that say
+  how each kind of file is made, and runs only what is missing or stale.
+- The graph of those dependencies is the DAG. You describe the rules;
+  Snakemake builds the graph.
+
+Next: [Module 1, Rules](01-rules.qmd).

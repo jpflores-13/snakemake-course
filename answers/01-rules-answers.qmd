@@ -1,0 +1,125 @@
+---
+title: "Module 1 answers"
+subtitle: "Rules"
+description: "Worked answers for the module 1 exercises: a flagstat rule, predicting reruns, a FastQC output mismatch and the default target."
+---
+
+Back to [Module 1](../lessons/01-rules.qmd).
+
+## Exercise 1.1: Write a rule {#ex-1.1}
+
+```{.python filename="Snakefile"}
+rule flagstat:
+    input:
+        "output/HCT116_CTCF_1/HCT116_CTCF_1_aligned.bam",       # <1>
+    output:
+        "output/HCT116_CTCF_1/HCT116_CTCF_1_aligned_flagstat.txt",
+    shell:
+        "samtools flagstat {input} > {output}"                  # <2>
+```
+
+1. The input is the output of `align`, spelled exactly the same. That is the
+   only link between the two rules: Snakemake matches the strings.
+2. `samtools flagstat` prints its report to stdout, so the shell redirects it
+   into the declared output.
+
+```bash
+snakemake -n -p flagstat
+snakemake --cores 1 flagstat
+head -1 output/HCT116_CTCF_1/HCT116_CTCF_1_aligned_flagstat.txt
+```
+
+```text
+28634 + 0 in total (QC-passed reads + QC-failed reads)
+```
+
+28,634 reads, and the report says 28,632 of them mapped (99.99%). That high a
+rate is a property of the course data, not of bowtie2: the course FASTQs were
+made from reads ENCODE had already placed in the 5 Mb window.
+
+If `align` had not run yet, the dry run would plan two jobs (`align`, then
+`flagstat`), plus the index if that were missing too. You asked for one file
+and Snakemake found the rest.
+
+## Exercise 1.2: What reruns? {#ex-1.2}
+
+1. **Touching the aligned BAM**: nothing.
+
+   ```text
+   Nothing to be done (all requested files are present and up to date).
+   ```
+
+   A touched file is newer than before, but that only matters to jobs that
+   *read* it. `align` wrote it, so `align` is still up to date (its inputs
+   are older than its output). `fastqc` does not read it. If you had done
+   Exercise 1.1, `flagstat` would rerun, because its input is now newer than
+   its output.
+
+2. **Touching the FASTQ**: both `align` and `fastqc`, one job each, with the
+   same reason:
+
+   ```text
+       reason: Updated input files: ../../data/fastq/HCT116_CTCF_1.fastq.gz
+   ```
+
+   Both rules read that file. `bowtie2_index` does not, so it is not planned.
+
+3. **Deleting `output/reference/` and running `snakemake -n` with no target**:
+   one job, `bowtie2_index`. With no target, Snakemake makes only the first
+   rule's outputs. `align` now has missing inputs and is out of date, but you
+   did not ask for its output, so it is not planned. Ask for
+   `snakemake -n align` and you get two jobs.
+
+## Exercise 1.3: Spot the error {#ex-1.3}
+
+FastQC does not let you choose its output names. Given
+`HCT116_CTCF_1.fastq.gz`, it writes `HCT116_CTCF_1_fastqc.html` and
+`HCT116_CTCF_1_fastqc.zip`. The rule promises `HCT116_CTCF_1.html` and
+`HCT116_CTCF_1.zip`, which nobody writes. Snakemake runs the command, waits a
+few seconds for the promised files, and fails the job:
+
+<!-- GENERATE: lesson01-missing-output | stopping-points/stopA | cat > Snakefile <<'EOF'
+rule fastqc:
+    input:
+        "../../data/fastq/HCT116_CTCF_1.fastq.gz",
+    output:
+        html = "output/HCT116_CTCF_1/fastqc/HCT116_CTCF_1.html",
+        zip = "output/HCT116_CTCF_1/fastqc/HCT116_CTCF_1.zip",
+    shell:
+        "fastqc --outdir output/HCT116_CTCF_1/fastqc {input}"
+EOF
+snakemake --cores 1 2>&1 | grep -v -e JAVA_TOOL_OPTIONS -e '^application/' -e '^Started analysis' -e '^Approx' -e '^Analysis complete' || true -->
+
+{{< generated name="lesson01-missing-output" command="false" >}}
+
+Read the `MissingOutputException` block. It says the job "completed
+successfully" (FastQC exited 0), then lists each missing file with what *is*
+in its folder: `HCT116_CTCF_1_fastqc.html, HCT116_CTCF_1_fastqc.zip`. The
+answer is in the error message.
+
+The dry run could not catch this. A dry run checks that the inputs exist or
+can be made; it cannot know what a tool will name its files.
+
+The smallest fix is to declare the names FastQC writes:
+
+```{.python filename="Snakefile"}
+    output:
+        html = "output/HCT116_CTCF_1/fastqc/HCT116_CTCF_1_fastqc.html",   # <1>
+        zip = "output/HCT116_CTCF_1/fastqc/HCT116_CTCF_1_fastqc.zip",
+```
+
+1. Match the tool, not your preferred naming. If you need a different name,
+   rename the file in the shell command (`mv`) so the declared output really
+   exists when the job ends. Stopping point B does that, because there the
+   FASTQ name and the sample name need not agree.
+
+## Exercise 1.4: The default target {#ex-1.4}
+
+One job: `fastqc` for `HCT116_CTCF_1`. With no target on the command line,
+Snakemake makes the outputs of whichever rule comes first in the file. The
+order of the other rules does not matter at all; Snakemake orders jobs by
+their inputs and outputs, not by their place in the file.
+
+That is why every Snakefile in the course, and in the lab's pipelines, starts
+with `rule all`: a rule that only lists the final files, so that plain
+`snakemake` builds everything. Module 2 writes it.

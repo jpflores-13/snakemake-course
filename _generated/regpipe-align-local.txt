@@ -1,0 +1,10 @@
+rule align:
+    input: ../data/fastq/HCT116_H3K27ac_1.fastq.gz, output/reference/bowtie2_index
+    output: output/HCT116_H3K27ac_1/HCT116_H3K27ac_1_aligned.bam
+    log: output/logs/align/HCT116_H3K27ac_1.log
+    jobid: 17
+    benchmark: output/benchmarks/align/HCT116_H3K27ac_1.tsv
+    reason: Missing output files: output/HCT116_H3K27ac_1/HCT116_H3K27ac_1_aligned.bam; Input files updated by another job: output/reference/bowtie2_index
+    wildcards: sample=HCT116_H3K27ac_1
+    threads: 4
+    resources: tmpdir=<TBD>, mem_mb=2000, mem_mib=1908

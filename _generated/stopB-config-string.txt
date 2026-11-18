@@ -1,0 +1,4 @@
+Config file config/RegConfig.yaml is extended by additional config specified via the command line.
+{'start': '128000000', 'chrom': 'chr8', 'end': 130000000}
+Building DAG of jobs...
+Nothing to be done (all requested files are present and up to date).

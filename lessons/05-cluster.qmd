@@ -1,0 +1,415 @@
+---
+title: "Running on a cluster"
+subtitle: "Module 5"
+description: "Move RegPipe from your laptop to a SLURM cluster by changing a profile, not the pipeline."
+duration: "40 min"
+format:
+  html: default
+  revealjs:
+    output-file: 05-cluster-slides.html
+---
+
+<!--
+Untested in this build (no SLURM in the container): real sbatch submission through the
+executor plugin, `sbatch RegPipe.sh`, --slurm-logdir, the Longleaf partition/account values,
+ChromSimPipe's GPU request, and how Longleaf handles TIME_LIMIT. Dry runs with
+--profile profiles/longleaf DO work here (the plugin, 2.8.0, is installed) and are what
+the command outputs below show.
+-->
+
+<!-- GENERATE: regpipe-align-local | course-pipeline | snakemake -n -s workflows/RegPipe.snakefile --profile profiles/local 2>&1 | grep -m1 -A9 "^rule align:" -->
+<!-- GENERATE: regpipe-align-longleaf | course-pipeline | snakemake -n -s workflows/RegPipe.snakefile --profile profiles/longleaf 2>&1 | grep -m1 -A9 "^rule align:" -->
+
+::: {.callout-note}
+## Learning objectives
+
+- Read a Snakemake profile and say what each line changes.
+- Give rules threads, memory and time from the profile, not from the Snakefile.
+- Start RegPipe on SLURM with the launcher, and recover when a run dies.
+- Keep cluster details out of the repository with `REGPIPE_PROFILE` and `REGPIPE_OUTPUT_ROOT`.
+- Write a profile for a cluster the lab has not used yet.
+
+Time: 40 min
+:::
+
+## The same pipeline on a different machine
+
+At the end of day 1 you ran RegPipe with something like:
+
+```bash
+snakemake --cores 4 --use-conda
+```
+
+On a cluster you do not want Snakemake to run `bowtie2` on the login node. You
+want it to send each job to the scheduler, with the right number of CPUs, the
+right memory and a time limit. None of that belongs in the rules. A rule says
+*what* to run. Where and with how much is a property of the machine.
+
+Snakemake keeps that in a **profile**: a folder with a `config.yaml` whose keys
+are command-line options. `--profile profiles/longleaf` is the same as typing
+every option in that file.
+
+::: {.notes}
+Ask who has submitted an sbatch job before. Most have; the point here is that
+they will not write sbatch scripts for each step any more.
+:::
+
+## Two profiles, one pipeline
+
+RegPipe ships three: `profiles/local`, `profiles/longleaf` and
+`profiles/slurm-template`. Compare the first two.
+
+::: {.panel-tabset group="site"}
+
+### Laptop: `profiles/local`
+
+{{< snippet repo="regpipe" file="profiles/local/config.yaml" lines="1-23" >}}
+
+### SLURM: `profiles/longleaf`
+
+{{< snippet repo="regpipe" file="profiles/longleaf/config.yaml" lines="1-27" >}}
+
+### MicroCPipe on Longleaf
+
+{{< snippet repo="microcpipe" file="profiles/longleaf/config.yaml" lines="1-27" >}}
+
+:::
+
+::: {.content-hidden when-format="revealjs"}
+The rules are the same in both runs. What changes:
+
+- `executor: slurm` turns every job into an `sbatch` submission. Without it,
+  jobs run as processes on the machine you are on.
+- `cores` and `jobs` mean different things in the two places (next slide).
+- `latency-wait` is 60 seconds locally and 500 on the cluster. A shared file
+  system can take a while to show a file that a compute node just wrote.
+  Snakemake waits this long before it decides a job failed to make its output.
+- `default-resources` gives every job an account, a partition, a time limit
+  (`runtime`, in minutes) and memory (`mem_mb`), unless the rule's own entry
+  says otherwise.
+- `set-threads` and `set-resources` are per rule. `align` gets 4 threads and
+  2 GB on a laptop, 8 threads and 16 GB on Longleaf.
+
+MicroCPipe's Longleaf profile has the same shape with bigger numbers, because
+Micro-C libraries are much bigger than the course data. That is the lab
+pattern: one profile per site, and the same keys in every pipeline.
+:::
+
+## Resources belong to the profile
+
+The rule files set only `threads:`, as a default. Memory and time live in the
+profile, and `set-threads` overrides the default. A dry run shows what one job
+will ask for. Here is the same `align` job under each profile:
+
+::: {.panel-tabset group="site"}
+
+### Laptop
+
+{{< generated name="regpipe-align-local" >}}
+
+### SLURM
+
+{{< generated name="regpipe-align-longleaf" >}}
+
+:::
+
+::: {.content-hidden when-format="revealjs"}
+`slurm_account` and `slurm_partition` show as `<TBD>` in a dry run. The plugin
+fills them in when it submits the job. The lab keeps every number out of the
+rules for one reason: the same rule has to run on a laptop with 8 GB and on a
+large-memory cluster node, and the person who knows the right numbers for a cluster is
+the person using it. The field guide compares how the three lab pipelines do
+this in [Resources only in profiles](../field-guide/conventions.qmd#resources).
+
+Change resources by editing the profile. A `--set-resources` on the command
+line does not add to the profile's block, it replaces all of it: with
+`--set-resources align:runtime=1440`, every other rule loses its own memory
+and time and falls back to `default-resources`.
+:::
+
+::: {.notes}
+Point at `threads: 4` vs `threads: 8`. The rule file says `threads: 4`; the
+local profile agrees, the Longleaf profile overrides it.
+:::
+
+## `cores` and `jobs`
+
+| | Laptop (`profiles/local`) | SLURM (`profiles/longleaf`) |
+|---|---|---|
+| `cores` | `all`: the CPUs Snakemake may use at once, here | `100`: the most cores in use at once across submitted jobs, and the ceiling on any rule's `threads` |
+| `jobs` | not set (an alias for `cores` locally) | `100`: the most jobs queued or running at once |
+| `resources` | `mem_mb=6000`: total memory for jobs running together | not set: the scheduler handles memory |
+
+::: {.content-hidden when-format="revealjs"}
+The trap is `cores` on the cluster. If you leave it out, Snakemake caps every
+rule's `threads` at the CPUs of the job Snakemake itself is running in. The
+launcher asks SLURM for one CPU (`#SBATCH -c 1`), so `align` would quietly run
+with one thread instead of eight. The comment in the profile says exactly this,
+and MicroCPipe's says the same.
+:::
+
+## The SLURM executor plugin
+
+Since Snakemake 8, talking to a scheduler is a plugin. RegPipe installs it from
+`config/requirements.txt`:
+
+{{< snippet repo="regpipe" file="config/requirements.txt" >}}
+
+With `executor: slurm`, Snakemake writes an `sbatch` call for each job from its
+resources: `runtime` becomes `-t`, `mem_mb` becomes `--mem`, `threads` becomes
+`--cpus-per-task`, `slurm_partition` becomes `-p`, `slurm_account` becomes `-A`.
+It then polls SLURM to see which jobs finished.
+
+::: {.content-hidden when-format="revealjs"}
+You never write a job script per rule. If you used the old `--cluster "sbatch ..."`
+option from Snakemake 7, it is gone in 8. The plugin replaces it. Its
+documentation lists every resource it understands, including the GPU ones that
+module 7 uses: see the
+[SLURM plugin page](https://snakemake.github.io/snakemake-plugin-catalog/plugins/executor/slurm.html).
+:::
+
+## When a run dies
+
+Cluster runs fail in ways laptop runs do not: a node goes away, a job hits its
+time limit, the Snakemake process itself is killed. The launcher passes three
+options to help:
+
+| Option | What it does |
+|---|---|
+| `--rerun-incomplete` | A job that was running when Snakemake died left a half-written output. Snakemake marks it incomplete; this option reruns it instead of stopping. |
+| `--keep-going` | One sample's `call_peaks` fails; the other samples carry on. Without it, Snakemake stops starting new jobs at the first failure. |
+| `latency-wait` (profile) | Wait this many seconds for an output to appear on a shared file system before calling the job a failure. |
+
+If Snakemake was killed hard, its lock stays in `.snakemake/locks/` and the next
+run refuses to start. Release it with:
+
+```bash
+bash unlock.sh
+```
+
+::: {.content-hidden when-format="revealjs"}
+`unlock.sh` picks the profile the same way the launcher does and runs
+`snakemake --unlock`. It does not delete anything. Run it only when you are
+sure no other Snakemake is running in that folder.
+:::
+
+::: {.callout-tip .exercise}
+## Exercise 5.1: A job hit its time limit
+
+You started `sbatch RegPipe.sh` on Longleaf with whole-genome data. The next
+morning the log in `output/logs_slurm/` says one `align` job was cancelled for
+`TIME LIMIT`, and the other samples finished. What happened to the other jobs,
+what do you change, and how do you restart?
+
+[Answer](../answers/05-cluster-answers.qmd#ex-5.1)
+:::
+
+## The launcher: `RegPipe.sh`
+
+You do not type the long `snakemake` command. The lab pipelines each have a
+launcher script that works on a laptop (`bash RegPipe.sh`) and on SLURM
+(`sbatch RegPipe.sh`):
+
+{{< snippet repo="regpipe" file="RegPipe.sh" lines="44-83" >}}
+
+::: {.content-hidden when-format="revealjs"}
+In order, it:
+
+1. picks the profile: `--profile`, then `$REGPIPE_PROFILE`, then `hpcProfile` in the config;
+2. works out the output folder the same way `common.smk` does;
+3. stops if the profile still has an unedited `<placeholder>`, such as `slurm_account: <account>`;
+4. sources the profile's `env.sh`, which makes `python3` and `conda` available;
+5. creates a venv with Snakemake in `env/` and installs `config/requirements.txt`;
+6. on SLURM, puts the per-job SLURM logs in `<outputDir>/logs_slurm` and slows down submission and status checks so the scheduler is not flooded;
+7. runs Snakemake with `--rerun-incomplete --keep-going -p` and anything else you passed, such as `-n`.
+
+The `#SBATCH` lines at the top of the file are for the launcher job itself: one
+CPU, 8 GB, two days. That job only runs Snakemake, which submits the real work.
+:::
+
+::: {.notes}
+Step 3 is new since the first versions of these launchers. Without it, a run
+with `<account>` fails much later with an sbatch error that is hard to read.
+:::
+
+## Why the launcher does not activate the venv
+
+Look at step 5 again. The launcher calls `env/bin/python3 -m snakemake` and
+never runs `source env/bin/activate`. MicroCPipe explains why:
+
+{{< snippet repo="microcpipe" file="MicroCPipe.sh" lines="69-73" >}}
+
+::: {.content-hidden when-format="revealjs"}
+Linux reads at most 127 characters of a script's first line, the `#!` line
+that names its interpreter. When conda installs a Python tool into an
+environment whose path is longer than that, it writes `#!/usr/bin/env python3`
+instead of the full path. Snakemake keeps its conda environments under
+`.snakemake/conda/<hash>/` inside your working folder, and on a deep scratch
+path that is easily over 127 characters. Now the tool runs whichever `python3`
+comes first on `PATH`. If you activated the launcher's venv, that can be the
+venv's Python, which does not have the tool's packages, and the job dies with
+`No module named ...`.
+
+RegPipe follows MicroCPipe. TTpipe and ChromSimPipe still activate the venv:
+
+{{< snippet repo="ttpipe" file="TTpipe.sh" lines="62-65" >}}
+
+They work for the people who wrote them, on the paths they use. The field guide
+lists bringing them in line with MicroCPipe as the first thing worth changing
+([What is worth changing](../field-guide/conventions.qmd#ranked)). Module 6
+shows the same problem from the other side: a `script:` rule without a
+`conda:` env runs with the venv's Python.
+:::
+
+## Keep the repository cluster-neutral
+
+Two environment variables let everyone in the lab use the same clone, or the
+same git history, on different machines:
+
+```bash
+## in ~/.bashrc on the cluster
+export REGPIPE_PROFILE=profiles/longleaf        # which profile the launcher uses
+export REGPIPE_OUTPUT_ROOT=/work/users/$USER    # where a relative outputDir goes
+```
+
+::: {.content-hidden when-format="revealjs"}
+With these set, `config/RegConfig.yaml` can keep `hpcProfile: 'profiles/local'`
+and `outputDir: 'output'`, and nobody commits a path that only exists on one
+cluster. On your laptop neither variable is set, so results go to `output/`
+next to the launcher. On Longleaf the same config writes to
+`/work/users/$USER/output`. Here is how `common.smk` resolves it:
+
+{{< snippet repo="regpipe" file="workflows/rules/common.smk" def="outdir" >}}
+
+`REGPIPE_EMAIL` works the same way for the notification address (module 6),
+and `REGPIPE_CONDA_ROOT` tells `env.sh` where your Miniforge lives if it is not
+`~/miniforge3`. MicroCPipe and TTpipe use the same idea with their own prefixes
+(`MICROC_PROFILE`, `TTPIPE_EMAIL`).
+:::
+
+::: {.callout-tip .exercise}
+## Exercise 5.2: Where do the results go?
+
+`REGPIPE_OUTPUT_ROOT=/work/users/$USER` is set. Where does RegPipe write in each
+case, and which one would you avoid?
+
+1. `outputDir: 'output'`, launched from `~/RegPipe`.
+2. `outputDir: 'output'`, launched from `~/RegPipe-test`, a second clone.
+3. `outputDir: '~/results/regpipe'`.
+4. `outputDir: '/proj/mylab/regpipe_hct116'`.
+
+[Answer](../answers/05-cluster-answers.qmd#ex-5.2)
+:::
+
+## Run it
+
+::: {.panel-tabset group="cluster"}
+
+### Laptop
+
+```bash
+cd course-pipeline
+bash RegPipe.sh -n     # dry run
+bash RegPipe.sh        # profiles/local
+```
+
+### Longleaf
+
+```bash
+cd course-pipeline
+## once: put your account in profiles/longleaf/config.yaml (or delete that line)
+export REGPIPE_PROFILE=profiles/longleaf
+bash RegPipe.sh -n     # dry run on the login node: no jobs submitted
+sbatch RegPipe.sh      # the launcher becomes one SLURM job; it submits the rest
+squeue -u $USER        # watch the jobs appear
+```
+
+:::
+
+::: {.callout-tip .exercise}
+## Exercise 5.3: Read the job before you submit it
+
+Run a dry run with the Longleaf profile. Nothing is submitted, so you can do it
+on your laptop. Call Snakemake directly: the launcher would stop at the
+`<account>` placeholder. The launcher's venv has the SLURM plugin, so use it
+once `bash RegPipe.sh -n` has created `env/`:
+
+```bash
+env/bin/python3 -m snakemake -n -s workflows/RegPipe.snakefile --profile profiles/longleaf
+```
+
+Find the `bigwig` job for
+`HCT116_DNase_1`. How many threads, how much memory and how much time will it
+ask for, and where does each number come from?
+
+[Answer](../answers/05-cluster-answers.qmd#ex-5.3)
+:::
+
+## Writing a profile for your own cluster
+
+Every SLURM cluster differs in the same few places. Start from the template:
+
+```bash
+cp -r profiles/slurm-template profiles/mycluster
+```
+
+{{< snippet repo="regpipe" file="profiles/slurm-template/config.yaml" lines="1-21" >}}
+
+::: {.content-hidden when-format="revealjs"}
+The `<...>` values are the ones you have to fill in. The launcher refuses to
+start while any are left. The `env.sh` next to it decides how `python3` and
+`conda` get onto `PATH`:
+
+{{< snippet repo="regpipe" file="profiles/slurm-template/env.sh" >}}
+:::
+
+::: {.callout-tip .exercise}
+## Exercise 5.4: A profile for a new cluster
+
+Write `profiles/<cluster>/` for a SLURM cluster you have an account on (or,
+if you only have Longleaf, for Longleaf from the template, then compare with
+`profiles/longleaf`). Work through this checklist; each item is a line in
+`config.yaml` or `env.sh`.
+
+- [ ] Scheduler: is it SLURM? (`sinfo --version`). If not, find its executor plugin first.
+- [ ] CPU partition for ordinary jobs (`sinfo -s`), and its time limit.
+- [ ] Account, and whether jobs need one (`sacctmgr show assoc user=$USER`).
+- [ ] QOS, if the cluster asks for one on some partitions.
+- [ ] GPU partition and how GPUs are requested, if you will run anything like ChromSimPipe.
+- [ ] How you get conda: your own Miniforge, or a module (`module avail conda`).
+- [ ] A scratch or work file system for `REGPIPE_OUTPUT_ROOT`, and its purge policy.
+- [ ] A dry run with your profile, then a real run on the course data.
+
+[Answer](../answers/05-cluster-answers.qmd#ex-5.4)
+:::
+
+## Snakemake 9
+
+::: {.callout-note}
+## What changes in Snakemake 9
+
+The lab pins Snakemake 8.27.1 (`config/requirements.txt`). Snakemake 9.0.0
+(March 2025) lists one breaking change: logging was rewritten around logger
+plugins. Profiles, the SLURM plugin and the rules in this course work the same
+way. Two things to check before you upgrade a lab pipeline:
+
+- The dry-run tests in module 8 read the `Job stats` table that Snakemake
+  prints. If the printed log changes, the parser in `tests/test_dryrun.py` is
+  the first thing to break.
+- 9.0 added `--replace-workflow-config`, which makes `--configfile` replace the
+  Snakefile's `configfile:` instead of merging with it. ChromSimPipe does this
+  by hand today. In 8.27.1 the two files are merged (module 6 uses that).
+
+Upgrade on a branch, run the tests, and pin the new version.
+:::
+
+## Key points
+
+- A profile is a folder of command-line defaults, one per site. The pipeline does not change between laptop and cluster.
+- Threads, memory and time go in `set-threads`, `set-resources` and `default-resources`, never in the rules.
+- On SLURM, set `cores` in the profile, or every rule gets the launcher's single CPU.
+- `--rerun-incomplete` and `--keep-going` in the launcher, `latency-wait` in the profile, and `unlock.sh` after a hard crash cover most failed runs.
+- The launcher runs `env/bin/python3 -m snakemake` without activating the venv, so a tool can never pick up the venv's Python.
+- `REGPIPE_PROFILE` and `REGPIPE_OUTPUT_ROOT` in `~/.bashrc` keep cluster paths out of git.
+
+Next: [Module 6: Structuring a pipeline](06-structure.qmd)

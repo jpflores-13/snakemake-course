@@ -1,0 +1,310 @@
+---
+title: "Testing and reproducibility"
+subtitle: "Module 8"
+description: "Check a pipeline without running it: graphs, summaries, dry-run tests with pytest, CI, the linter, and the version pins that let someone rerun it next year."
+duration: "35 min"
+format:
+  html: default
+  revealjs:
+    output-file: 08-testing-slides.html
+---
+
+<!--
+Untested in this build: the GitHub Actions workflows (TTpipe's ci.yml and the RegPipe CI
+in answer 8.3) were read, not run. Everything else was run here with Snakemake 8.27.1.
+-->
+
+<!-- GENERATE: regpipe-pytest | course-pipeline | pytest -q tests/ -->
+<!-- GENERATE: regpipe-lint | course-pipeline | snakemake --lint -s workflows/RegPipe.snakefile || true -->
+<!-- GENERATE: regpipe-list-changes | course-pipeline | snakemake --list-changes params -s workflows/RegPipe.snakefile --cores 1 2>&1 | tail -3 -->
+<!-- GENERATE: regpipe-summary-changed | course-pipeline | snakemake -s workflows/RegPipe.snakefile --cores 4 --quiet all -- $PWD/output/HCT116_CTCF_1/HCT116_CTCF_1_filtered.bam > /dev/null 2>&1 && snakemake --summary -s workflows/RegPipe.snakefile --cores 1 --config minMapq=20 2>/dev/null | awk 'NR==1 || /HCT116_CTCF_1\//' -->
+
+::: {.callout-note}
+## Learning objectives
+
+- Draw a pipeline's rule graph and job graph, and read what is done and what is pending.
+- Write a pytest test that dry-runs the pipeline and checks job counts worked out from the samplesheet.
+- Run those tests on every push with GitHub Actions.
+- Read `snakemake --lint` output and decide which findings matter.
+- Pin what a rerun next year needs, and keep a record of what ran.
+
+Time: 35 min
+:::
+
+## What you can check without running anything
+
+A dry run reads the samplesheet and the config, builds every job, checks that
+every input file exists, and stops. It takes seconds and needs no tools and no
+conda environments. Most bugs in a pipeline are wiring bugs: a switch that
+pulls in the wrong rules, a control matched to the wrong sample, a typo in a
+path. A dry run catches all of those.
+
+What it cannot catch: a wrong flag to `macs3`, a tool that crashes, a script
+with a bug. For those you need a real run on small data. On the course data, a
+full RegPipe run takes a few minutes once the conda envs exist.
+
+## The rule graph
+
+```bash
+snakemake --rulegraph -s workflows/RegPipe.snakefile --cores 1 | dot -Tsvg > rulegraph.svg
+```
+
+{{< generated name="regpipe-rulegraph" alt="RegPipe rule graph: one box per rule, arrows from each rule to the rules that use its outputs" >}}
+
+::: {.content-hidden when-format="revealjs"}
+One box per rule, an arrow where one rule's output is another's input. This
+is the picture to put in a README. `--dag` draws one box per *job* instead: 61
+boxes for RegPipe, useful to check that each ChIP sample points at its own
+control, unreadable for a pipeline with hundreds of samples. TTpipe keeps its
+rule graph in the docs and has a test that fails when the picture is out of
+date ([Rule graph](../field-guide/ttpipe.qmd#tt-rulegraph)).
+
+`dot` comes from Graphviz, which is in the course env (`envs/course.yml`).
+:::
+
+## What is done, what is pending: `--summary`
+
+`--summary` lists every output file with its rule, date and status. Here, after
+making one filtered BAM, with `minMapq` changed to 20:
+
+{{< generated name="regpipe-summary-changed" command="false" >}}
+
+::: {.content-hidden when-format="revealjs"}
+Read the `status` column: `missing` (never made), `ok`, `removed temp file`
+(the `temp()` aligned BAM), and `params changed`. The command was:
+
+```bash
+snakemake --summary -s workflows/RegPipe.snakefile --cores 1 --config minMapq=20
+```
+
+It is long, one row per file. Pipe it through `grep` or open it in a
+spreadsheet.
+:::
+
+## `--list-changes` in 8.27.1
+
+`snakemake --list-changes params` should print the output files whose params
+changed. In Snakemake 8.27.1 it crashes, before it looks at any file:
+
+{{< generated name="regpipe-list-changes" >}}
+
+::: {.content-hidden when-format="revealjs"}
+`--list-changes code` fails too, with a different `TypeError`;
+`--list-changes input` works. The bug was fixed in Snakemake 9.5.0. Until the
+lab pipelines move to 9, use the `status` column of `--summary` above, or the
+`reason:` lines of a dry run (module 7), to see what changed.
+:::
+
+## A dry-run test
+
+`tests/test_dryrun.py` runs Snakemake with `-n` and checks the job counts. The
+expected counts are not typed in. They are worked out from the samplesheet,
+the same way the workflow does it:
+
+{{< snippet repo="regpipe" file="tests/test_dryrun.py" def="expected_jobs" >}}
+
+## Running the dry run from a test
+
+{{< snippet repo="regpipe" file="tests/test_dryrun.py" def="dry_run" >}}
+
+{{< snippet repo="regpipe" file="tests/test_dryrun.py" def="test_dry_run_job_counts" >}}
+
+::: {.content-hidden when-format="revealjs"}
+`job_counts()` (in the same file) reads the `Job stats` table that a dry run
+prints. Two details make the test trustworthy:
+
+- `outputDir={tmp_path}` sends the dry run to an empty folder, so every job is
+  listed even if you have a finished run in `output/`.
+- `expected_jobs()` reads the samplesheet with `keep_default_na=False`, like
+  `common.smk`. Without it, pandas reads the `Control` value `NA` as missing,
+  the controls are counted wrong, and the test fails for a reason that has
+  nothing to do with the workflow.
+
+If you add two samples to the samplesheet, the test still passes, because the
+expected counts move with it. A test that asserts `total == 61` would fail and
+teach you nothing.
+:::
+
+## Run the tests
+
+```bash
+cd course-pipeline
+python -m pytest tests/
+```
+
+{{< generated name="regpipe-pytest" >}}
+
+::: {.content-hidden when-format="revealjs"}
+Four tests: the job counts, that each ChIP's `macs3` command names its own
+control and DNase gets none, the counts with `scatter_chunks=3`, and that a
+`Control` naming no sample stops the run before anything starts. They skip
+themselves when Snakemake or the course data are missing, so a `pytest` on a
+machine without them reports skips rather than failures.
+:::
+
+::: {.callout-tip .exercise}
+## Exercise 8.1: Test a switch
+
+Add a test to `tests/test_dryrun.py` that checks `make_locus_plot=False` removes
+the `locus_plot` job and changes nothing else. Then change `False` to `false` in
+your test and run it again. What happens, and what does that tell you about the
+test?
+
+[Answer](../answers/08-testing-answers.qmd#ex-8.1)
+:::
+
+## How TTpipe tests its switches
+
+TTpipe has more switches, so most of its tests are about job-count differences:
+
+{{< snippet repo="ttpipe" file="tests/test_dryrun.py" lines="50-60" >}}
+
+::: {.content-hidden when-format="revealjs"}
+TTpipe does not ship real data in its repository, so its tests run against
+placeholder files in `tests/dryrun/` and a config that points at them. A dry
+run only checks that files exist, so placeholders are enough. RegPipe can use
+the real course data instead, because the course repository carries a 39 MB
+subset. The field guide compares this with the community's `.test/` folders in
+[Tests](../field-guide/conventions.qmd#tests).
+:::
+
+## CI: run the tests on every push
+
+TTpipe runs its tests on GitHub Actions for every push and pull request:
+
+{{< snippet repo="ttpipe" file=".github/workflows/ci.yml" lang="yaml" >}}
+
+::: {.content-hidden when-format="revealjs"}
+No conda, no tools, no data: Snakemake from `config/requirements.txt` and
+pytest. It tells you, on the pull request page, whether the change broke the
+wiring. `bash -n` checks that the
+launcher scripts at least parse. MicroCPipe has the same workflow
+([tests](../field-guide/microcpipe.qmd#mc-tests)).
+:::
+
+::: {.callout-tip .exercise}
+## Exercise 8.2: CI for RegPipe
+
+Write `.github/workflows/ci.yml` for RegPipe, starting from TTpipe's. What has to
+be different, given that RegPipe's tests need the course data and skip without
+it?
+
+[Answer](../answers/08-testing-answers.qmd#ex-8.2)
+:::
+
+## `snakemake --lint`
+
+The linter reads the workflow and suggests style fixes. On RegPipe:
+
+{{< generated name="regpipe-lint" lines="1-14" >}}
+
+::: {.content-hidden when-format="revealjs"}
+The full output is about 960 lines. We counted the findings: 156, of two kinds,
+85 "absolute path" and 71 "path composition with `+`". Both come from the same
+habit, `OUT + "/{sample}/..."`. `OUT` comes from the config, so nothing is
+really hard-coded, but the linter cannot know that. There are no rule-level
+findings: every rule has a `log:`, no shell command uses a variable from
+outside the rule, and there is no `run:` block.
+
+The field guide has the same analysis for the three lab pipelines, with what
+each finding means for lab style: see
+[What `snakemake --lint` says](../field-guide/conventions.qmd#lint).
+:::
+
+::: {.callout-tip .exercise}
+## Exercise 8.3: Read the lint
+
+Pick the `fastqc` rule. Rewrite its paths so the linter would accept them, and
+check that the dry run still lists 61 jobs. Is it worth doing for the whole
+pipeline?
+
+[Answer](../answers/08-testing-answers.qmd#ex-8.3)
+:::
+
+## Pin what a rerun needs
+
+Someone reruns your analysis in a year. What has to be the same?
+
+| What | Where RegPipe pins it |
+|---|---|
+| Snakemake | `config/requirements.txt`: `snakemake==8.27.1` |
+| Tools | `envs/*.yml`: `bowtie2=2.5.5`, `samtools=1.24`, ... |
+| Channels | `envs/*.yml`: conda-forge, bioconda, `nodefaults` |
+| Pipeline code | the git commit |
+| Settings | `config/RegConfig.yaml` and the samplesheet |
+| Reference data | `data/README.md`: ENCODE and GEO accessions |
+
+{{< snippet repo="regpipe" file="envs/regpipe_align.yml" >}}
+
+::: {.content-hidden when-format="revealjs"}
+One gap: `snakemake-executor-plugin-slurm>=1.0` has no upper bound, so a new
+install gets the newest plugin that pip finds. The container this course was
+built in has 2.8.0. If a cluster run breaks after a fresh install, pin the
+plugin to the version that worked.
+
+Snakemake also warns on every run that conda is not set to strict channel
+priority. Set it once with `conda config --set channel_priority strict`; the
+env files assume it.
+:::
+
+## Keep a record of what ran
+
+Each run leaves a record. Keep it with the results:
+
+- `.snakemake/log/<date>.snakemake.log`: every job, its command and its result.
+- `output/logs/<rule>/`: each tool's own messages.
+- `output/benchmarks/<rule>/`: time and memory per job.
+- `snakemake --summary`: every output with the rule and the date that made it.
+- The commit you ran: `git rev-parse --short HEAD`, in your notebook entry.
+
+::: {.content-hidden when-format="revealjs"}
+Snakemake does not record the git commit for you. The simplest habit is to
+commit before a real run and write the short hash next to the results. The
+`onstart` hook from module 6 is a good place to print it if you want it in the
+log automatically.
+:::
+
+## Stopping point D
+
+::: {.callout-important .stopping-point}
+## Stopping point D
+
+This is RegPipe as it ships in `course-pipeline/`: the lab layout, switches,
+scatter-gather, `directory()` for the index, and dry-run tests. If you fell
+behind, copy `stopping-points/stopD/` (the same pipeline, with `dataDir` set
+for its folder) and check it:
+
+```bash
+cp -r stopping-points/stopD my-regpipe
+cd my-regpipe
+bash RegPipe.sh -n          # 61 jobs
+python -m pytest tests/     # 4 passed
+```
+
+This is where the two workshop days end.
+:::
+
+## What next
+
+Two ways to keep going:
+
+- [Snakemake-ify](../exercises/snakemakeify.qmd): ten old lab scripts to turn
+  into rules, one at a time, ending with a whole `run_all.sh` as one Snakefile.
+  Each one practices something from modules 1-8.
+- [The capstone](../capstone.qmd): take an analysis you actually run and turn
+  it into a pipeline in the lab layout, with a launcher, profiles and a dry-run
+  test. You pair up with someone and review each other's.
+
+Pick your capstone analysis before you leave today, and find a partner.
+
+## Key points
+
+- A dry run is a test of the wiring. It takes seconds and needs no tools or data beyond the inputs existing.
+- Work out expected job counts from the samplesheet in the test, so the test survives new samples.
+- `--rulegraph` for the README, `--dag` to check one sample's wiring, `--summary` for what is done.
+- In 8.27.1, `--list-changes params` crashes; use `--summary` or dry-run reasons.
+- Run the tests in CI on every push; `bash -n` the launchers too.
+- Most `--lint` findings in lab pipelines are about `+` path building. They are style, not bugs.
+- Pin Snakemake, the tools and the plugin, and write down the commit you ran.
+
+Next: [The capstone project](../capstone.qmd)

@@ -1,0 +1,323 @@
+---
+title: "Config and samplesheets"
+subtitle: "Module 3"
+description: "Move sample names and settings out of the Snakefile into a samplesheet and a config file, and use input functions to find each ChIP sample's control."
+duration: "45 min"
+format:
+  html: default
+  revealjs:
+    output-file: 03-config-slides.html
+---
+
+::: {.callout-note}
+## Learning objectives
+
+- Read settings from a YAML file with `configfile:` and the `config` dictionary.
+- Read a samplesheet with pandas and build sample names from its columns.
+- Write an input function that looks up a sample's control.
+- Group samples by a column (all replicates of one target) for a rule that
+  combines them.
+- Override config values from the command line, and know when not to.
+
+Time: 45 min
+:::
+
+## What is still in the code
+
+Stopping point A has two things that change from project to project written
+into the Snakefile:
+
+```{.python filename="stopping-points/stopA/Snakefile"}
+SAMPLES = [
+    "HCT116_CTCF_1", "HCT116_CTCF_2",
+    ...
+]
+MIN_MAPQ = 30
+```
+
+A new project means editing the workflow, and nothing says which MAPQ a given
+result used, except the code as it was that day. The lab pipelines keep both
+outside: a **samplesheet** for the samples, a **config file** for the
+settings. This module starts from stopping point A (copy it if you need to).
+
+## A config file
+
+{{< snippet repo="stopB" file="config/RegConfig.yaml" lines="48-52" >}}
+
+Point the Snakefile at it:
+
+{{< snippet repo="stopB" file="Snakefile" lines="14-19" >}}
+
+`configfile:` reads the YAML into a dictionary called `config` before any rule
+is defined. `config["minMapq"]` is `30`, an integer, because YAML says so.
+
+::: {.content-hidden when-format="revealjs"}
+For now, keep stopping point A's `filter` rule as it is and only change where
+the numbers come from:
+
+```{.python filename="Snakefile"}
+MIN_MAPQ = config["minMapq"]
+EXCLUDE_FLAGS = config["excludeFlags"]
+```
+
+Module 4 moves them into the rule's `params:`, for a reason you will see there.
+The paths `../../data` and `output` become config keys too (`dataDir`,
+`outputDir`), so the pipeline can run from anywhere.
+:::
+
+## The samplesheet
+
+One row per sequencing library, tab-separated. The columns are the same as in
+the lab's other pipelines:
+
+{{< snippet repo="stopB" file="RegSamplesheet.txt" lang="text" >}}
+
+`Control` holds the *name* of the control sample, or `NA`. The config says
+where the sheet is and which columns make a name:
+
+{{< snippet repo="stopB" file="config/RegConfig.yaml" lines="9-13" >}}
+
+## Reading it with pandas
+
+{{< snippet repo="stopB" file="Snakefile" lines="27-37" >}}
+
+::: {.content-hidden when-format="revealjs"}
+- `dtype=str` keeps every column as text. Without it, `Bio_Rep` is read as the
+  integer `1`, and `"_".join` stops with
+  `TypeError: sequence item 2: expected str instance, int found`.
+- Line 33 joins the `fileNamesFrom` columns: `HCT116`, `CTCF`, `1` become
+  `HCT116_CTCF_1`. Change the config to `['Target', 'Bio_Rep']` and every
+  name, and every output path, changes with it.
+- `SAMPLE_TABLE` is the same table indexed by sample name, so
+  `SAMPLE_TABLE.loc["HCT116_CTCF_1", "Control"]` is one lookup.
+- `SAMPLES` is the list `rule all` used to have typed in.
+:::
+
+## The `NA` trap
+
+`keep_default_na=False` on line 30 matters. By default pandas turns the text
+`NA` into a missing value (`NaN`), so the test `control == "NA"` is false for
+DNase, and the pipeline looks for a control called `nan`:
+
+<!-- GENERATE: stopB-no-keep-na | stopping-points/stopB | sed -i 's/, keep_default_na=False//' Snakefile && snakemake -n 2>&1 | grep -v 'strict channel priorities' || true -->
+
+{{< generated name="stopB-no-keep-na" command="false" >}}
+
+`output/nan/nan_filtered.bam` is the clue. When a path contains `nan`, look at
+how the table was read.
+
+::: {.notes}
+This one cost a real afternoon while the course pipeline was being written.
+It is worth the slide.
+:::
+
+## Inputs that come from a lookup
+
+So far every input was a pattern: fill in `{sample}`, get a path. The FASTQ
+path now comes from the samplesheet (`Sequencing_Directory` plus `Read1`),
+which need not look like the sample name at all. For that, `input:` takes a
+**function**:
+
+{{< snippet repo="stopB" file="Snakefile" def="fastq" >}}
+
+```{.python filename="Snakefile"}
+rule fastqc:
+    input:
+        fastq = fastq,          # the function itself, not fastq()
+```
+
+Snakemake calls the function once per job with that job's `wildcards` and
+uses whatever path it returns. You pass the function, without parentheses.
+
+## The control lookup
+
+Peak calling needs each ChIP sample's control, and DNase has none:
+
+{{< snippet repo="stopB" file="Snakefile" def="control_bam" >}}
+
+{{< snippet repo="stopB" file="Snakefile" lines="220-227" >}}
+
+::: {.content-hidden when-format="revealjs"}
+For `HCT116_CTCF_1` the function returns
+`output/HCT116_input-CTCF_1/HCT116_input-CTCF_1_filtered.bam`, so the peak
+job waits for that control to be filtered too. For `HCT116_DNase_1` it
+returns an empty list, which means "no input here", and the job runs with the
+treatment BAM only.
+
+`treatment` is a `lambda`, a one-line function written in place. It does the
+same as a `def` and is handy when the body is a single expression.
+`filtered_bam()` is a small helper (lines 59-60) so the path is spelled once,
+in one place, and `rule all` and the rules cannot drift apart.
+:::
+
+## Which samples get peaks
+
+{{< snippet repo="stopB" file="Snakefile" lines="39-45" >}}
+
+A sample is a control if another row names it. Every other sample (the four
+ChIP samples and the two DNase samples) gets peaks. `TARGETS` is
+`['CTCF', 'H3K27ac', 'DNase']`, and `SAMPLES_BY_TARGET` maps each target to
+its replicates.
+
+## One job per target
+
+Consensus peaks combine the replicates of one target, so the wildcard is
+`{target}`, and the input function returns a different number of files per
+target:
+
+{{< snippet repo="stopB" file="Snakefile" lines="252-257" >}}
+
+::: {.content-hidden when-format="revealjs"}
+The output has `{target}`, so `rule all` asks for
+`output/consensus/CTCF_consensus.bed` and Snakemake sets `target=CTCF`. The
+input function uses that to fetch the peak files of `HCT116_CTCF_1` (as
+`first`) and `HCT116_CTCF_2` (in `others`). A third CTCF replicate in the
+samplesheet would join `others`, with no change to the rule.
+:::
+
+## Lists of files with `expand()` in an input function
+
+MicroCPipe does the same kind of grouping with `expand()`. Its `dedup` rule
+merges every sequencing run of one library:
+
+{{< snippet repo="microcpipe" file="workflows/MicroCPipe.snakefile" rule="dedup" >}}
+
+::: {.content-hidden when-format="revealjs"}
+`expand()` fills in `{run}` from the list for this group. `{{group}}` is an
+escaped brace: `expand()` leaves it as a literal `{group}` instead of
+complaining that you gave it no `group` list. Snakemake then fills that
+`{group}` from the job's own wildcards. The [field guide](../field-guide/microcpipe.qmd#mc-input-functions)
+walks through it line by line.
+:::
+
+## Keep wildcards to real names
+
+With names now coming from the samplesheet, stopping point B restricts the
+wildcards to them, the same way MicroCPipe does (module 2):
+
+{{< snippet repo="stopB" file="Snakefile" lines="47-51" >}}
+
+Without them, `{sample}` in `output/peaks/{sample}_peaks.narrowPeak` would
+match any text at all. With them it can only be a name from the samplesheet,
+and a typo in a target fails at once with "No rule to produce".
+
+::: {.content-hidden when-format="revealjs"}
+At this point, with `call_peaks` and `consensus_peaks` added to your
+Snakefile and to `rule all`, a dry run plans 41 jobs: the 31 from stopping
+point A, 6 `call_peaks`, 3 `consensus_peaks` and `all`. Module 4 adds the
+bigWigs and brings it to stopping point B.
+:::
+
+## Changing a setting for one run
+
+`--config` sets a value on the command line, on top of the config file:
+
+```bash
+snakemake -n --config minMapq=20
+```
+
+That works for a top-level number. For anything nested, it does not do what
+you expect. This tiny Snakefile prints `config["window"]`:
+
+```bash
+printf 'configfile: "config/RegConfig.yaml"\nprint(config["window"])\n' > show.smk
+snakemake -s show.smk -n --config 'window={"start": 128000000}'
+```
+
+<!-- GENERATE: stopB-config-string | stopping-points/stopB | printf 'configfile: "config/RegConfig.yaml"\nprint(config["window"])\n' > show.smk && snakemake -s show.smk -n --config 'window={"start": 128000000}' -->
+
+{{< generated name="stopB-config-string" command="false" >}}
+
+The other keys survive, but `start` is now the **string** `'128000000'`. Values
+inside a `--config` dictionary all arrive as text, so `{"enabled": false}`
+arrives as `'false'`, and a non-empty string counts as true in Python. The
+course pipeline's `ttseq: enabled: false` cannot be switched off this way.
+
+## Use `--configfile` for anything nested
+
+Put the change in a small YAML file instead:
+
+```{.yaml filename="narrow.yaml"}
+window:
+  start: 128000000
+```
+
+<!-- GENERATE: stopB-configfile-int | stopping-points/stopB | printf 'configfile: "config/RegConfig.yaml"\nprint(config["window"])\n' > show.smk && printf 'window:\n  start: 128000000\n' > narrow.yaml && snakemake -s show.smk -n --configfile narrow.yaml -->
+
+```bash
+snakemake -s show.smk -n --configfile narrow.yaml
+```
+
+{{< generated name="stopB-configfile-int" command="false" >}}
+
+The file named in `configfile:` is read first, then yours on top, key by key.
+Types are YAML's, so the number is a number.
+
+::: {.callout-warning}
+## `--config` and `--configfile` take more than one value
+
+Both options swallow every word after them, so a target written last is read
+as another config entry (or another file) and the run fails before it starts.
+Put targets first, or end the list with `--`:
+
+```bash
+snakemake -n output/peaks/HCT116_CTCF_1_peaks.narrowPeak --config minMapq=20
+snakemake -n --config minMapq=20 -- output/peaks/HCT116_CTCF_1_peaks.narrowPeak
+```
+:::
+
+## Exercises
+
+::: {.callout-tip .exercise}
+## Exercise 3.1: Fewer samples
+
+In your copy of stopping point B, make a samplesheet without the
+`HCT116_DNase_2` row (`grep -v DNase_2 RegSamplesheet.txt > fewer.txt`) and
+dry-run with `--config samplesheet=fewer.txt`. Before you run it: how many
+jobs per rule? Does `consensus_peaks` still run for DNase, with one replicate?
+
+[Answer](../answers/03-config-answers.qmd#ex-3.1)
+:::
+
+::: {.callout-tip .exercise}
+## Exercise 3.2: Write the control lookup
+
+Without looking at stopping point B, write `control_bam(wildcards)`: given
+`SAMPLE_TABLE` (indexed by sample name, with a `Control` column), return the
+filtered BAM of the sample's control, or nothing when `Control` is `NA`. Then
+use it in `call_peaks` and pass `-c` to MACS3 only when there is a control.
+
+[Answer](../answers/03-config-answers.qmd#ex-3.2)
+:::
+
+::: {.callout-tip .exercise}
+## Exercise 3.3: Debug a KeyError
+
+A labmate renamed the `Bio_Rep` column of the samplesheet to `Rep`, because
+it is shorter. Now even `snakemake -n` fails:
+
+```bash
+sed -i '1s/Bio_Rep/Rep/' RegSamplesheet.txt
+snakemake -n
+```
+
+Run it, read the error, and find the two ways to fix it. Which one would you
+choose for a pipeline other people use?
+
+[Answer](../answers/03-config-answers.qmd#ex-3.3)
+:::
+
+## Key points
+
+- `configfile:` loads YAML into `config`. Paths, thresholds and switches live
+  there, not in the rules.
+- Read the samplesheet with `dtype=str, keep_default_na=False`; build sample
+  names from the columns listed in `fileNamesFrom`.
+- An input function receives `wildcards` and returns the job's inputs. Use it
+  for lookups (the control) and for groups (the replicates of a target).
+  Returning `[]` means "no input".
+- `{{name}}` inside `expand()` leaves a wildcard for Snakemake to fill later.
+- `--config key=value` is fine for top-level values. For nested keys, use a
+  small YAML file with `--configfile`.
+
+Next: [Module 4, Rules that behave](04-rules-that-behave.qmd).

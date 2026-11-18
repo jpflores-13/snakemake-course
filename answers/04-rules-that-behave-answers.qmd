@@ -1,0 +1,199 @@
+---
+title: "Module 4 answers"
+subtitle: "Rules that behave"
+description: "Worked answers for the module 4 exercises: a broken shell command, logs and benchmarks for filter, reading benchmark files and the mtime rerun trigger."
+---
+
+Back to [Module 4](../lessons/04-rules-that-behave.qmd).
+
+## Exercise 4.1: Fix the rule {#ex-4.1}
+
+The first problem stops the job before anything runs:
+
+<!-- GENERATE: stopB-count-reads-broken | stopping-points/stopB | cat >> Snakefile <<'EOF'
+rule count_reads:
+    input:
+        bam = OUT + "/{sample}/{sample}_filtered.bam",
+    output:
+        OUT + "/{sample}/{sample}_read_count.txt",
+    log:
+        LOGS + "/count_reads/{sample}.log",
+    threads: 2
+    shell:
+        """
+        samtools view -c -@ {threads} {input.bam} | awk '{print "{wildcards.sample}", $1}' > {output} 2> {log}
+        """
+EOF
+snakemake -n -p output/HCT116_CTCF_1/HCT116_CTCF_1_read_count.txt 2>&1 | sed -n '/^RuleException/,$p' || true -->
+
+{{< generated name="stopB-count-reads-broken" command="false" >}}
+
+The awk program's braces are read as a Snakemake placeholder, and
+`{print "{wildcards.sample}"` is not a valid one. The message is less clear
+than the `NameError` in the lesson, because here a real placeholder sits
+inside the awk braces. The fix is the same: double awk's braces, and leave
+Snakemake's single.
+
+The second problem does not raise an error, which makes it worse. `2> {log}`
+at the end of the line belongs to `awk` only. If samtools fails or warns, its
+message goes to the terminal (or the cluster's job log), not to the rule's
+log. Redirect each command:
+
+```{.python filename="Snakefile"}
+    shell:
+        """
+        samtools view -c -@ {threads} {input.bam} 2> {log} \
+            | awk '{{print "{wildcards.sample}", $1}}' > {output} 2>> {log}
+        """
+```
+
+- `2> {log}` right after the samtools command catches its stderr and starts
+  the log fresh.
+- `{{print ...}}` becomes `{print ...}` for awk, while `{wildcards.sample}`
+  in between is still filled in by Snakemake.
+- `2>> {log}` appends awk's stderr instead of overwriting samtools'.
+
+<!-- GENERATE: stopB-count-reads-fixed | stopping-points/stopB | cat >> Snakefile <<'EOF'
+rule count_reads:
+    input:
+        bam = OUT + "/{sample}/{sample}_filtered.bam",
+    output:
+        OUT + "/{sample}/{sample}_read_count.txt",
+    log:
+        LOGS + "/count_reads/{sample}.log",
+    threads: 2
+    shell:
+        """
+        samtools view -c -@ {threads} {input.bam} 2> {log} \
+            | awk '{{print "{wildcards.sample}", $1}}' > {output} 2>> {log}
+        """
+EOF
+snakemake --cores 4 output/HCT116_CTCF_1/HCT116_CTCF_1_read_count.txt > /dev/null 2>&1; cat output/HCT116_CTCF_1/HCT116_CTCF_1_read_count.txt -->
+
+```bash
+snakemake --cores 4 output/HCT116_CTCF_1/HCT116_CTCF_1_read_count.txt
+cat output/HCT116_CTCF_1/HCT116_CTCF_1_read_count.txt
+```
+
+{{< generated name="stopB-count-reads-fixed" command="false" >}}
+
+24,434 reads survive filtering for CTCF replicate 1, out of 28,634 that went
+in. Strict mode (`set -euo pipefail`) is what makes a samtools failure fail
+the job here; the log is what tells you why.
+
+## Exercise 4.2: Add a log and a benchmark {#ex-4.2}
+
+```{.python filename="Snakefile"}
+rule filter:
+    input:
+        bam = OUT + "/{sample}/{sample}_aligned.bam",
+        blacklist = DATA + "/reference/blacklist.bed.gz",
+    output:
+        bam = OUT + "/{sample}/{sample}_filtered.bam",
+        bai = OUT + "/{sample}/{sample}_filtered.bam.bai",
+        flagstat = OUT + "/{sample}/{sample}_aligned_flagstat.tsv",
+        markdup = OUT + "/{sample}/{sample}_markdup.txt",
+    log:
+        OUT + "/logs/filter/{sample}.log",                                    # <1>
+    benchmark:
+        OUT + "/benchmarks/filter/{sample}.tsv",                              # <2>
+    shell:
+        """
+        samtools flagstat -O tsv {input.bam} > {output.flagstat} 2> {log}     # <3>
+        samtools view -u -q {MIN_MAPQ} -F {EXCLUDE_FLAGS} {input.bam} 2>> {log} \
+            | bedtools intersect -v -abam stdin -b {input.blacklist} 2>> {log} \
+            | samtools markdup -r -f {output.markdup} - {output.bam} 2>> {log}  # <4>
+        samtools index {output.bam} 2>> {log}
+        """
+```
+
+1. Same `{sample}` wildcard as the outputs. Every wildcard in `log:` and
+   `benchmark:` must also appear in the output, or Snakemake cannot fill it.
+2. One TSV per job, written by Snakemake itself. Nothing in the command
+   refers to it.
+3. The first command creates the log with `2>`. Its stdout already goes to
+   the flagstat file, so only stderr is redirected.
+4. Every other command appends with `2>>`, each in its own place in the pipe.
+   `samtools markdup` warns about library size estimates on single-end data;
+   that warning now lands in the log instead of the terminal.
+
+Stopping point B's version also has `threads:` and moves the two settings into
+`params:`:
+
+{{< snippet repo="stopB" file="Snakefile" rule="filter" >}}
+
+## Exercise 4.3: Read a benchmark {#ex-4.3}
+
+Compare `cpu_time` with `s`. In the benchmark shown on the lesson page,
+bowtie2-build ran for a few seconds of wall-clock time and used roughly twice
+as many CPU seconds, so on average it kept about two cores busy, not four.
+`mean_load` says the same in percent (about 200, where 400 would be four full
+cores). The exact numbers change from run to run.<!-- VERIFY-DATA -->
+
+That is normal for bowtie2-build on a small genome: parts of the build are
+single-threaded. `threads: 4` is still right, because the threaded parts get
+faster. What you learn from the benchmark is not to raise it further.
+
+To compare rules after a full run, read every benchmark into one table. In R:
+
+```{.r filename="bench.R"}
+files <- list.files("output/benchmarks", pattern = "\\.tsv$",
+                    recursive = TRUE, full.names = TRUE)                  # <1>
+bench <- files |>
+  lapply(\(f) cbind(rule = basename(dirname(f)), read.delim(f))) |>     # <2>
+  do.call(what = rbind)
+bench |>
+  aggregate(cbind(s, max_rss) ~ rule, data = _, FUN = max) |>          # <3>
+  print(row.names = FALSE)
+```
+
+1. `output/benchmarks/<rule>/<sample>.tsv`, one file per job.
+2. The folder name is the rule name, so it becomes a column.
+3. The slowest job and the largest memory peak per rule.
+
+One run of stopping point B on a 4-core Linux machine gave:
+
+```text
+            rule      s max_rss
+           align 2.5829  109.15
+          bigwig 0.4643    9.36
+   bowtie2_index 4.6919   52.27
+      call_peaks 0.4309   10.57
+ consensus_peaks 0.0201    3.45
+          fastqc 4.3722  242.85
+          filter 1.6987   21.05
+```
+
+FastQC used the most memory (about 240 MB per job). It is a Java program and
+starts a whole JVM for every FASTQ. On the full genome the alignment numbers
+would be far larger; on the 5 Mb course window they are tiny.
+
+Treat numbers for jobs that last a second or less with suspicion. Snakemake
+samples the job's processes while they run, and a job that is over before the
+first samples are taken can show `cpu_time` of 0 and a `max_rss` that is only
+the shell. In this run, every `bigwig` and `call_peaks` job reported
+`cpu_time` 0.00, which is not what deepTools and MACS3 really used.
+
+## Exercise 4.4: What does `--rerun-triggers mtime` change? {#ex-4.4}
+
+`qvalue` is a `param` of `call_peaks`. With the default triggers:
+
+<!-- GENERATE: stopB-qvalue-rerun | stopping-points/stopB | snakemake --cores 4 > /dev/null 2>&1; sed -i 's/qvalue: 0.01/qvalue: 0.05/' config/RegConfig.yaml && snakemake -n 2>&1 | awk '/^Job stats/ && !done {on=1} on {print} /^total/ && on {on=0; done=1}'; echo; echo '$ snakemake -n --rerun-triggers mtime'; snakemake -n --rerun-triggers mtime 2>&1 | tail -1 -->
+
+{{< generated name="stopB-qvalue-rerun" command="false" >}}
+
+- All 6 `call_peaks` jobs, with the reason `Params have changed since last
+  execution`.
+- All 3 `consensus_peaks` jobs, because their inputs will be new.
+- `all`.
+- Nothing upstream: no alignment, filtering or FastQC, and no bigWigs (they
+  do not use peaks).
+
+With `--rerun-triggers mtime`, nothing. No file is newer than anything that
+depends on it, and timestamps are all that is checked.
+
+The second run leaves you with `config/RegConfig.yaml` saying 0.05 and every
+file under `output/peaks/` and `output/consensus/` made with 0.01. Nothing on
+disk tells you so. That is the risk: `mtime` is right when you know the change
+cannot affect results (a comment, a log path, a switch to conda for the same
+tool versions), and wrong for any change to a setting.

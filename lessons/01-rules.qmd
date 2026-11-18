@@ -1,0 +1,363 @@
+---
+title: "Rules"
+subtitle: "Module 1"
+description: "Write your first rules for the bowtie2 index, an alignment and FastQC, and see how Snakemake decides what to run."
+duration: "40 min"
+format:
+  html: default
+  revealjs:
+    output-file: 01-rules-slides.html
+---
+
+::: {.callout-note}
+## Learning objectives
+
+- Write a rule with `input:`, `output:` and `shell:`.
+- Ask for a target on the command line, and read a dry run (`-n`, `-p`).
+- Predict when Snakemake reruns a job because a file changed.
+- Match a rule's `output:` to the files a tool really writes.
+
+Time: 40 min
+:::
+
+## Where you work
+
+Make a folder two levels below the course root, so the course data are at
+`../../data` (the stopping points use the same layout):
+
+```bash
+cd snakemake-course
+mkdir -p work/regpipe
+cd work/regpipe
+```
+
+Everything in this module goes into one file, `work/regpipe/Snakefile`.
+Snakemake looks for a file with that name in the folder you run it from.
+
+::: {.content-hidden when-format="revealjs"}
+Keep the course environment active (`conda activate snakemake-course`) in the
+terminal you use. All the tools in this module, `bowtie2`, `samtools` and
+`fastqc`, come from it.
+:::
+
+## A first rule
+
+The bowtie2 index is the step every alignment waits for. As a rule:
+
+```{.python filename="Snakefile"}
+rule bowtie2_index:
+    input:
+        "../../data/reference/chr8_course.fa.gz",
+    output:
+        multiext("output/reference/bowtie2_index/genome",
+                 ".1.bt2", ".2.bt2", ".3.bt2", ".4.bt2", ".rev.1.bt2", ".rev.2.bt2"),
+    shell:
+        "bowtie2-build {input} output/reference/bowtie2_index/genome"
+```
+
+- `input:` the files the step reads. They must exist, or another rule must
+  make them.
+- `output:` the files the step writes. `bowtie2-build` writes six files that
+  share one prefix; `multiext()` lists them without typing the prefix six
+  times.
+- `shell:` the command. `{input}` is replaced by the input path when the job
+  runs.
+
+::: {.notes}
+Point out that the rule is a recipe. Writing it runs nothing. Nothing happens
+until something asks for one of its outputs.
+:::
+
+## Dry run first
+
+Before running anything, ask Snakemake what it would do:
+
+```bash
+snakemake -n -p
+```
+
+`-n` (`--dry-run`) plans the jobs and runs none of them. `-p` prints each shell
+command with the paths filled in.
+
+<!-- GENERATE: lesson01-dryrun | stopping-points/stopA | cat > Snakefile <<'EOF'
+rule bowtie2_index:
+    input:
+        "../../data/reference/chr8_course.fa.gz",
+    output:
+        multiext("output/reference/bowtie2_index/genome",
+                 ".1.bt2", ".2.bt2", ".3.bt2", ".4.bt2", ".rev.1.bt2", ".rev.2.bt2"),
+    shell:
+        "bowtie2-build {input} output/reference/bowtie2_index/genome"
+EOF
+snakemake -n -p -->
+
+{{< generated name="lesson01-dryrun" command="false" >}}
+
+::: {.content-hidden when-format="revealjs"}
+Read it from the top. The job stats table counts jobs per rule (one here). Each
+job then shows its input, output, and the `reason` it has to run: the outputs
+are missing. The last lines repeat the counts. "This was a dry-run" at the end
+means nothing ran.
+:::
+
+## Run it
+
+```bash
+snakemake --cores 4
+```
+
+`--cores` says how many CPU cores Snakemake may use at once. The index takes
+a few seconds on the course reference (6.3 s on a 4-core laptop). Now run the
+same command again:
+
+```text
+Building DAG of jobs...
+Nothing to be done (all requested files are present and up to date).
+```
+
+The outputs exist and are newer than the input, so there is nothing to do.
+That is the first idea in Snakemake: a job runs because its output is missing
+or out of date, never just because it is in the file.
+
+## A second rule: align one sample
+
+Add this below the index rule. It aligns one sample, written out in full:
+
+```{.python filename="Snakefile"}
+rule align:
+    input:
+        fastq = "../../data/fastq/HCT116_CTCF_1.fastq.gz",
+        index = rules.bowtie2_index.output,
+    output:
+        bam = "output/HCT116_CTCF_1/HCT116_CTCF_1_aligned.bam",
+    shell:
+        """
+        bowtie2 -x output/reference/bowtie2_index/genome -U {input.fastq} \
+            | samtools sort -o {output.bam} -
+        """
+```
+
+- Inputs and outputs can have names. `{input.fastq}` is one file;
+  `{input}` alone would be all of them, separated by spaces.
+- `rules.bowtie2_index.output` is the output list of the other rule. The
+  index files are inputs of `align`, so Snakemake knows `align` has to wait
+  for `bowtie2_index`.
+- A triple-quoted string holds a multi-line command. Snakemake runs it with
+  bash in strict mode (`set -euo pipefail`), so if `bowtie2` fails in the
+  middle of the pipe, the job fails.
+
+## Targets on the command line
+
+Run `snakemake -n` now and it still plans nothing. With no target, Snakemake
+makes the outputs of the **first rule in the file**, and those exist. Name
+what you want instead, either a file or a rule:
+
+```bash
+snakemake -n -p output/HCT116_CTCF_1/HCT116_CTCF_1_aligned.bam
+snakemake -n -p align          # the same, by rule name
+```
+
+<!-- GENERATE: lesson01-dryrun-align | stopping-points/stopA | cat > Snakefile <<'EOF'
+rule bowtie2_index:
+    input:
+        "../../data/reference/chr8_course.fa.gz",
+    output:
+        multiext("output/reference/bowtie2_index/genome",
+                 ".1.bt2", ".2.bt2", ".3.bt2", ".4.bt2", ".rev.1.bt2", ".rev.2.bt2"),
+    shell:
+        "bowtie2-build {input} output/reference/bowtie2_index/genome"
+rule align:
+    input:
+        fastq = "../../data/fastq/HCT116_CTCF_1.fastq.gz",
+        index = rules.bowtie2_index.output,
+    output:
+        bam = "output/HCT116_CTCF_1/HCT116_CTCF_1_aligned.bam",
+    shell:
+        """
+        bowtie2 -x output/reference/bowtie2_index/genome -U {input.fastq} \
+            | samtools sort -o {output.bam} -
+        """
+EOF
+snakemake --cores 4 bowtie2_index > /dev/null 2>&1
+snakemake -n -p align -->
+
+{{< generated name="lesson01-dryrun-align" command="false" >}}
+
+::: {.content-hidden when-format="revealjs"}
+The index is already built, so only `align` is planned. If you had deleted
+`output/`, the same command would plan both jobs, index first. Asking by rule
+name only works for a rule whose outputs are fixed names, like these two. In
+module 2 rules get wildcards, and then you ask for files.
+:::
+
+Run it for real with `snakemake --cores 4 align`.
+
+## How Snakemake decides a file is out of date
+
+The basic rule is about modification times. A job reruns when one of its
+inputs is newer than its outputs. Touch one index file and ask again:
+
+```bash
+touch output/reference/bowtie2_index/genome.1.bt2
+snakemake -n align
+```
+
+<!-- GENERATE: lesson01-touch | stopping-points/stopA | cat > Snakefile <<'EOF'
+rule bowtie2_index:
+    input:
+        "../../data/reference/chr8_course.fa.gz",
+    output:
+        multiext("output/reference/bowtie2_index/genome",
+                 ".1.bt2", ".2.bt2", ".3.bt2", ".4.bt2", ".rev.1.bt2", ".rev.2.bt2"),
+    shell:
+        "bowtie2-build {input} output/reference/bowtie2_index/genome"
+rule align:
+    input:
+        fastq = "../../data/fastq/HCT116_CTCF_1.fastq.gz",
+        index = rules.bowtie2_index.output,
+    output:
+        bam = "output/HCT116_CTCF_1/HCT116_CTCF_1_aligned.bam",
+    shell:
+        """
+        bowtie2 -x output/reference/bowtie2_index/genome -U {input.fastq} \
+            | samtools sort -o {output.bam} -
+        """
+EOF
+snakemake --cores 4 align > /dev/null 2>&1
+touch output/reference/bowtie2_index/genome.1.bt2
+snakemake -n align -->
+
+{{< generated name="lesson01-touch" command="false" >}}
+
+::: {.content-hidden when-format="revealjs"}
+The reason line names the file: `Updated input files`. The index itself is
+not rebuilt, because its own input (the FASTA) is older than it.
+
+Timestamps are not the only trigger. Snakemake 8 also reruns a job when the
+rule's code, its `params`, its list of input files or its software
+environment changed since the output was made. It keeps those records in the
+hidden `.snakemake/` folder. Module 4 shows the `params` case and how to
+switch the extra triggers off.
+:::
+
+::: {.notes}
+Real use: someone rebuilds the index "just to be safe" and every alignment
+reruns. Module 4 shows `protected()` for exactly this.
+:::
+
+## A third rule: FastQC
+
+```{.python filename="Snakefile"}
+rule fastqc:
+    input:
+        "../../data/fastq/HCT116_CTCF_1.fastq.gz",
+    output:
+        html = "output/HCT116_CTCF_1/fastqc/HCT116_CTCF_1_fastqc.html",
+        zip = "output/HCT116_CTCF_1/fastqc/HCT116_CTCF_1_fastqc.zip",
+    shell:
+        "fastqc --outdir output/HCT116_CTCF_1/fastqc {input}"
+```
+
+FastQC chooses its own file names: it takes the FASTQ name, drops
+`.fastq.gz` and adds `_fastqc.html` and `_fastqc.zip`. The `output:` has to
+say exactly those names. Snakemake does not tell the tool where to write;
+it checks afterwards that the files you promised are there.
+
+```bash
+snakemake -n fastqc
+snakemake --cores 4 fastqc
+```
+
+::: {.content-hidden when-format="revealjs"}
+Snakemake creates the folder of each output before the job starts, so
+`output/HCT116_CTCF_1/fastqc/` exists when FastQC writes into it. You do not
+need `mkdir -p` for the parents of declared files.
+:::
+
+## What you have
+
+```text
+work/regpipe/
+├── Snakefile                 # bowtie2_index, align, fastqc
+└── output/
+    ├── reference/bowtie2_index/genome.{1,2,3,4,rev.1,rev.2}.bt2
+    └── HCT116_CTCF_1/
+        ├── HCT116_CTCF_1_aligned.bam
+        └── fastqc/HCT116_CTCF_1_fastqc.{html,zip}
+```
+
+Every path for `HCT116_CTCF_1` is typed out. Ten samples would mean ten copies
+of `align`. Module 2 fixes that with wildcards.
+
+## Exercises
+
+::: {.callout-tip .exercise}
+## Exercise 1.1: Write a rule
+
+Add a rule `flagstat` that runs `samtools flagstat` on
+`output/HCT116_CTCF_1/HCT116_CTCF_1_aligned.bam` and writes the report to
+`output/HCT116_CTCF_1/HCT116_CTCF_1_aligned_flagstat.txt`
+(`samtools flagstat` prints to stdout). Dry-run it, then run it. How many
+reads went in?
+
+[Answer](../answers/01-rules-answers.qmd#ex-1.1)
+:::
+
+::: {.callout-tip .exercise}
+## Exercise 1.2: What reruns?
+
+All three rules have run and everything is up to date. For each change,
+predict which jobs `snakemake -n align fastqc` plans, then check:
+
+1. `touch output/HCT116_CTCF_1/HCT116_CTCF_1_aligned.bam`
+2. `touch ../../data/fastq/HCT116_CTCF_1.fastq.gz` (only in your own copy of
+   the data, or think it through)
+3. You delete `output/reference/` and run `snakemake -n` with no target.
+
+[Answer](../answers/01-rules-answers.qmd#ex-1.2)
+:::
+
+::: {.callout-tip .exercise}
+## Exercise 1.3: Spot the error
+
+A labmate's FastQC rule dry-runs without complaint but fails every time it
+runs, even though FastQC itself finishes. Why?
+
+```{.python filename="Snakefile"}
+rule fastqc:
+    input:
+        "../../data/fastq/HCT116_CTCF_1.fastq.gz",
+    output:
+        html = "output/HCT116_CTCF_1/fastqc/HCT116_CTCF_1.html",
+        zip = "output/HCT116_CTCF_1/fastqc/HCT116_CTCF_1.zip",
+    shell:
+        "fastqc --outdir output/HCT116_CTCF_1/fastqc {input}"
+```
+
+What error do you expect, and what is the smallest fix?
+
+[Answer](../answers/01-rules-answers.qmd#ex-1.3)
+:::
+
+::: {.callout-tip .exercise}
+## Exercise 1.4: The default target
+
+Move `rule fastqc` to the top of the Snakefile and run `snakemake -n` in a
+fresh folder (no `output/`). What is planned now, and why did it change?
+
+[Answer](../answers/01-rules-answers.qmd#ex-1.4)
+:::
+
+## Key points
+
+- A rule says which files it reads (`input:`), which it writes (`output:`)
+  and how (`shell:`). It runs only when something needs its outputs.
+- With no target, Snakemake makes the first rule's outputs. Otherwise name a
+  file or a rule on the command line.
+- Always dry-run first: `snakemake -n -p` shows the jobs, the reason for each
+  and the exact commands.
+- A job reruns when an input is newer than its outputs (and, in Snakemake 8,
+  when its code, params or software changed).
+- `output:` must match what the tool writes, name for name.
+
+Next: [Module 2, Wildcards](02-wildcards.qmd).

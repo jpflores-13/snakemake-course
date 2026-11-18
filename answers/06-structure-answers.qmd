@@ -1,0 +1,179 @@
+---
+title: "Module 6 answers: Structuring a pipeline"
+description: "Worked answers for the module 6 exercises: a new switch, the DAG without TT-seq, run: to script:, and moving a rule into its own file."
+code-annotations: below
+---
+
+<!--
+All four answers were run: 6.1 and 6.4 in a scratch copy of course-pipeline (dry runs,
+Snakemake 8.27.1), 6.2 is the regpipe-dryrun-nottseq command output, and 6.3 in a
+scratch copy of TTpipe at ebdc210 with its tests/dryrun config (real run of
+sample_table, output diffed against the run: version).
+-->
+
+Back to [Module 6](../lessons/06-structure.qmd).
+
+## Exercise 6.1: Add a switch {#ex-6.1}
+
+Two edits in `workflows/rules/common.smk`, next to the other switches and in
+the target function:
+
+```python
+##### Switches #####
+SCATTER = int(config.get("scatter_chunks", 0))
+MAKE_LOCUS_PLOT = bool(config.get("make_locus_plot", True))
+RUN_FASTQC = bool(config.get("run_fastqc", True))             # <1>
+```
+1. `config.get(..., True)` keeps old configs working: a config without the key
+   behaves as before.
+
+```python
+def all_targets():
+    """Everything `rule all` asks for."""
+    t = []
+    if RUN_FASTQC:                                              # <1>
+        t += [f"{OUT}/{s}/fastqc/{s}_fastqc.html" for s in SAMPLES]
+    t += [filtered_bam(s) for s in SAMPLES]
+    ...
+```
+1. Nothing else asks for FastQC output, so leaving it out of `rule all` is
+   enough. The `fastqc` rule can stay defined; with no job asking for its
+   output, it never runs.
+
+And in `config/RegConfig.yaml`:
+
+```yaml
+## Run FastQC on the raw reads (one job per sample).
+run_fastqc: true
+```
+
+The dry run lists 61 jobs with the switch on and 51 with it off: the ten
+`fastqc` jobs, one per sample, are gone. To try it without editing the config,
+use a capital F:
+
+```bash
+snakemake -n -s workflows/RegPipe.snakefile --cores 1 --config run_fastqc=False
+```
+
+With `run_fastqc=false` you would still get 61, because the text `"false"` is
+true in Python.
+
+Why not put `rule fastqc` under `if RUN_FASTQC:`? You can, but you do not need
+to here. Defining a rule under `if` matters when the rule cannot even be
+written with the switch off, like `enhancer_activity`, whose inputs come from
+config keys that only exist when TT-seq is on.
+
+## Exercise 6.2: Predict the DAG without TT-seq {#ex-6.2}
+
+With `ttseq.enabled: false`:
+
+- `enhancer_activity` (1 job) is gone. It is defined under `if TTSEQ_ENABLED:`
+  and `all_targets()` no longer asks for its table.
+- `locus_plot` stays, but changes. Its `ttseq` and `annotations` inputs become
+  empty lists, so the figure has no TT-seq or enhancer tracks. The job count
+  does not change.
+- Everything else is the same. No other rule reads the TT-seq files.
+
+So 60 jobs. The dry run agrees:
+
+{{< generated name="regpipe-dryrun-nottseq" lines="1-18" >}}
+
+If you got 61, check how you turned it off. `--config 'ttseq={"enabled": false}'`
+does not work in Snakemake 8.27.1, because the value arrives as the text
+`"false"`. A small YAML file with only the changed key does:
+
+```yaml
+## no_ttseq.yaml
+ttseq:
+  enabled: false        # <1>
+```
+1. Snakemake merges this into the `configfile:` the Snakefile loads, one key at
+   a time, so `ttseq.bigwigs` and the rest of the config are kept. Here YAML
+   reads `false` as a real boolean.
+
+## Exercise 6.3: From `run:` to `script:` {#ex-6.3}
+
+A script runs in its own process and cannot see the Snakefile's variables. So
+everything it needs goes through the rule, here as `params:`:
+
+```python
+rule sample_table:
+    input:
+        config["samplesheet"],                                       # <1>
+    output:
+        SAMPLES_DESEQ2,
+    log:
+        OUT + "/logs/sample_table.log",                              # <2>
+    params:
+        samples = SAMPLES,                                           # <3>
+        conditions = [SAMPLE_TABLE.loc[s, "Condition"] for s in SAMPLES],
+        replicates = [SAMPLE_TABLE.loc[s, "Replicate"] for s in SAMPLES],
+    script:
+        "../scripts/sample_table.py"                                 # <4>
+```
+1. Keep the samplesheet as an input. It is the whole reason this rule reruns
+   when you edit the samplesheet.
+2. The `log:` the linter asked for.
+3. Three lists in the same order. The values are worked out at parse time from
+   the samplesheet Snakemake already read, as in the `run:` version.
+4. Relative to the file that holds the rule, `workflows/TTpipe.snakefile`.
+
+```python
+"""Sample metadata for DESeq2 (rule sample_table), run by Snakemake's `script:`."""
+import sys
+
+sys.stderr = open(snakemake.log[0], "w")                             # <1>
+
+p = snakemake.params
+with open(snakemake.output[0], "w") as fh:                           # <2>
+    fh.write("sample\tcondition\treplicate\n")
+    for sample, condition, replicate in zip(p.samples, p.conditions, p.replicates):
+        fh.write(f"{sample}\t{condition}\t{replicate}\n")
+```
+1. Anything the script prints to stderr, including a traceback, lands in the
+   log.
+2. No `os.makedirs`: Snakemake creates the folders of a rule's outputs before
+   the job starts, so the line in the `run:` version was not needed.
+
+We ran both versions on TTpipe's dry-run fixture and diffed the outputs: the
+tables are identical. Two things to notice:
+
+- The script only uses the standard library, so it can run without a `conda:`
+  env. As soon as it imports `pandas`, give the rule an env (see the venv-python
+  trap in the lesson).
+- Params are part of what Snakemake checks before it decides to rerun. If you
+  change a sample's condition, the params change, and the table is rebuilt
+  even if you forgot the samplesheet input. Keep the input anyway: it also
+  covers edits that do not change these three columns but should still
+  invalidate the analysis, and it makes the dependency visible to a reader.
+
+## Exercise 6.4: Move a rule into its own file {#ex-6.4}
+
+Cut the rule (with its comment) from `report.smk` into
+`workflows/rules/frip.smk`, then include it:
+
+```python
+include: "rules/align.smk"
+include: "rules/peaks.smk"
+include: "rules/tracks.smk"
+include: "rules/frip.smk"             # <1>
+include: "rules/report.smk"
+```
+1. Any line after `include: "rules/common.smk"` works. `frip` uses `OUT`,
+   `LOGS`, `filtered_bam()` and `peak_file()`, all from `common.smk`.
+
+The dry run still lists 61 jobs. Where the line **cannot** go:
+
+- Before `include: "rules/common.smk"`. The rule's `output:` line uses `OUT`,
+  which does not exist yet, and Snakemake stops with a `NameError` while
+  reading the file.
+- Anywhere if some other rule refers to it as `rules.frip.output` before it is
+  defined. No RegPipe rule does, so here the order of the rule files does not
+  matter. We checked by moving `include: "rules/align.smk"` to the end: still
+  61 jobs. Inside `align.smk` the order does matter, because `align` uses
+  `rules.bowtie2_index.output`.
+
+Rule order does not decide the order in which jobs run. That comes from the
+inputs and outputs. The only thing order changes, apart from the name lookups
+above, is which rule is the default target: the first rule in the main
+Snakefile, which is why `rule all` comes before the rule files.

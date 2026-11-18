@@ -1,0 +1,14 @@
+Job stats:
+job              count
+-------------  -------
+align                1
+bowtie2_index        1
+filter               1
+total                3
+Job stats:
+job              count
+-------------  -------
+align                1
+bowtie2_index        1
+index_bam            1
+total                3

@@ -1,0 +1,145 @@
+---
+title: "Module 2 answers"
+subtitle: "Wildcards"
+description: "Worked answers for the module 2 exercises: the stopA job stats, an ambiguous rule, adding samples and wildcards in shell commands."
+---
+
+Back to [Module 2](../lessons/02-wildcards.qmd).
+
+## Exercise 2.1: Predict the job stats {#ex-2.1}
+
+Count from `rule all` backward. It asks for a FastQC report and a filtered BAM
+for each of the ten samples:
+
+| Rule | Jobs | Why |
+|---|---:|---|
+| `fastqc` | 10 | one per sample (`{sample}` in the output) |
+| `filter` | 10 | one per sample |
+| `align` | 10 | each `filter` job needs one aligned BAM |
+| `bowtie2_index` | 1 | no wildcard: one job, shared by all ten `align` jobs |
+| `all` | 1 | the target rule is a job too |
+| **total** | **32** | |
+
+The dry run agrees:
+
+{{< generated name="stopA-dryrun" head="14" >}}
+
+The rule that people miss is `all`. It runs no command, but Snakemake still
+counts it as a job. The other thing to notice is that the table is sorted by
+rule name, not by the order in which jobs run.
+
+## Exercise 2.2: Make it ambiguous, then fix it {#ex-2.2}
+
+The new rule's output, `{prefix}.bam.bai`, matches any file ending in
+`.bam.bai`. `filter` also lists `{sample}_filtered.bam.bai` as an output. For
+`output/HCT116_CTCF_1/HCT116_CTCF_1_filtered.bam.bai` both rules fit, and
+both have inputs Snakemake knows how to make:
+
+<!-- GENERATE: stopA-ambiguous | stopping-points/stopA | cat >> Snakefile <<'EOF'
+rule index_bam:
+    input:
+        "{prefix}.bam",
+    output:
+        "{prefix}.bam.bai",
+    shell:
+        "samtools index {input}"
+EOF
+snakemake -n output/HCT116_CTCF_1/HCT116_CTCF_1_filtered.bam.bai || true -->
+
+{{< generated name="stopA-ambiguous" command="false" >}}
+
+The message is unusually helpful. It shows what each rule would set its
+wildcards to (`prefix=output/HCT116_CTCF_1/HCT116_CTCF_1_filtered`: a wildcard
+happily matches slashes) and suggests three fixes. The one asked for here is a
+constraint, so `index_bam` only matches the BAMs nothing else indexes, the
+aligned ones:
+
+```{.python filename="Snakefile"}
+rule index_bam:
+    input:
+        "{prefix}.bam",
+    output:
+        "{prefix}.bam.bai",
+    wildcard_constraints:
+        prefix = r".*_aligned",            # <1>
+    shell:
+        "samtools index {input}"
+```
+
+1. A regular expression the whole wildcard value must match. `.*_aligned`
+   allows any path that ends in `_aligned`, so
+   `output/HCT116_CTCF_1/HCT116_CTCF_1_filtered` no longer fits and only
+   `filter` can make the filtered index.
+
+<!-- GENERATE: stopA-ambiguous-fixed | stopping-points/stopA | cat >> Snakefile <<'EOF'
+rule index_bam:
+    input:
+        "{prefix}.bam",
+    output:
+        "{prefix}.bam.bai",
+    wildcard_constraints:
+        prefix = r".*_aligned",
+    shell:
+        "samtools index {input}"
+EOF
+snakemake -n output/HCT116_CTCF_1/HCT116_CTCF_1_filtered.bam.bai | awk '/^Job stats/ && !done {on=1} on {print} /^total/ && on {on=0; done=1}'
+snakemake -n output/HCT116_CTCF_1/HCT116_CTCF_1_aligned.bam.bai | awk '/^Job stats/ && !done {on=1} on {print} /^total/ && on {on=0; done=1}' -->
+
+{{< generated name="stopA-ambiguous-fixed" command="false" >}}
+
+The first table is for the filtered index (made by `filter`), the second for
+the aligned index (made by `index_bam`).
+
+A constraint inside a rule applies to that rule only. The block at the top of
+stopping point B (`wildcard_constraints:` outside any rule) applies to every
+rule. `ruleorder: filter > index_bam` would also work, but it hides the
+overlap instead of removing it. Giving the general rule a narrower pattern
+says what you meant.
+
+## Exercise 2.3: Add samples {#ex-2.3}
+
+After the first run with four CTCF samples (14 jobs: 4 each of `fastqc`,
+`align` and `filter`, the index, and `all`), adding the two DNase samples
+gives:
+
+<!-- GENERATE: stopA-add-samples | stopping-points/stopA | sed -i -e '/"HCT116_H3K27ac_1", "HCT116_H3K27ac_2",/d' -e '/"HCT116_input-H3K27ac_1", "HCT116_input-H3K27ac_2",/d' -e '/"HCT116_DNase_1", "HCT116_DNase_2",/d' Snakefile
+snakemake --cores 4 > /dev/null 2>&1
+sed -i 's/^    "HCT116_input-CTCF_1", "HCT116_input-CTCF_2",/&\n    "HCT116_DNase_1", "HCT116_DNase_2",/' Snakefile
+snakemake -n | awk '/^Job stats/ && !done {on=1} on {print} /^total/ && on {on=0; done=1}' -->
+
+{{< generated name="stopA-add-samples" command="false" >}}
+
+- Two of each per-sample rule, for the two new samples only. The CTCF
+  outputs exist and are up to date, so they are not touched.
+- No `bowtie2_index`: it exists and nothing it depends on changed.
+- `all` runs again, because its input list grew.
+
+This is what you want when a sequencing run comes back late: add the names
+and run again, and only the new samples are processed. Module 3 makes it even
+simpler, since you add a row to the samplesheet instead of editing code.
+
+## Exercise 2.4: `{sample}` in the shell {#ex-2.4}
+
+<!-- GENERATE: lesson02-shell-wildcard | stopping-points/stopA | cat > Snakefile <<'EOF'
+rule fastqc:
+    input:
+        "../../data/fastq/{sample}.fastq.gz",
+    output:
+        html = "output/{sample}/fastqc/{sample}_fastqc.html",
+        zip = "output/{sample}/fastqc/{sample}_fastqc.zip",
+    shell:
+        "fastqc --outdir output/{sample}/fastqc {input}"
+EOF
+snakemake -n -p output/HCT116_CTCF_2/fastqc/HCT116_CTCF_2_fastqc.html || true -->
+
+{{< generated name="lesson02-shell-wildcard" command="false" >}}
+
+The shell string is formatted with a fixed set of names (`input`, `output`,
+`wildcards`, `params`, `threads`, `log`, `resources`, plus your global
+variables). `sample` is not one of them, and Snakemake even suggests the
+right spelling. With `-p` the dry run formats the command, so it catches the
+mistake before anything runs. Without `-p`, you would only find out when the
+job starts.
+
+In `input:` and `output:` you write `{sample}`, because there it is a pattern.
+In `shell:`, the value already exists and lives on the `wildcards` object.

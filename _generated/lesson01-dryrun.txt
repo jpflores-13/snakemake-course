@@ -1,0 +1,29 @@
+Building DAG of jobs...
+Job stats:
+job              count
+-------------  -------
+bowtie2_index        1
+total                1
+
+
+[Wed Nov 18 06:19:09 2026]
+rule bowtie2_index:
+    input: ../../data/reference/chr8_course.fa.gz
+    output: output/reference/bowtie2_index/genome.1.bt2, output/reference/bowtie2_index/genome.2.bt2, output/reference/bowtie2_index/genome.3.bt2, output/reference/bowtie2_index/genome.4.bt2, output/reference/bowtie2_index/genome.rev.1.bt2, output/reference/bowtie2_index/genome.rev.2.bt2
+    jobid: 0
+    reason: Missing output files: output/reference/bowtie2_index/genome.4.bt2, output/reference/bowtie2_index/genome.rev.1.bt2, output/reference/bowtie2_index/genome.rev.2.bt2, output/reference/bowtie2_index/genome.1.bt2, output/reference/bowtie2_index/genome.2.bt2, output/reference/bowtie2_index/genome.3.bt2
+    resources: tmpdir=<TBD>
+
+bowtie2-build ../../data/reference/chr8_course.fa.gz output/reference/bowtie2_index/genome
+Job stats:
+job              count
+-------------  -------
+bowtie2_index        1
+total                1
+
+Reasons:
+    (check individual jobs above for details)
+    output files have to be generated:
+        bowtie2_index
+
+This was a dry-run (flag -n). The order of jobs does not reflect the order of execution.

@@ -1,0 +1,32 @@
+Assuming unrestricted shared filesystem usage.
+Building DAG of jobs...
+Using shell: /usr/bin/bash
+Provided cores: 1 (use --cores to define parallelism)
+Rules claiming more threads will be scaled down.
+Job stats:
+job       count
+------  -------
+fastqc        1
+total         1
+
+Select jobs to execute...
+Execute 1 jobs...
+
+[Wed Nov 18 06:21:04 2026]
+localrule fastqc:
+    input: ../../data/fastq/HCT116_CTCF_1.fastq.gz
+    output: output/HCT116_CTCF_1/fastqc/HCT116_CTCF_1.html, output/HCT116_CTCF_1/fastqc/HCT116_CTCF_1.zip
+    jobid: 0
+    reason: Missing output files: output/HCT116_CTCF_1/fastqc/HCT116_CTCF_1.html, output/HCT116_CTCF_1/fastqc/HCT116_CTCF_1.zip
+    resources: tmpdir=/tmp
+
+Waiting at most 5 seconds for missing files.
+MissingOutputException in rule fastqc in file Snakefile, line 1:
+Job 0 completed successfully, but some output files are missing. Missing files after 5 seconds. This might be due to filesystem latency. If that is the case, consider to increase the wait time with --latency-wait:
+output/HCT116_CTCF_1/fastqc/HCT116_CTCF_1.html (missing locally, parent dir contents: HCT116_CTCF_1_fastqc.html, HCT116_CTCF_1_fastqc.zip)
+output/HCT116_CTCF_1/fastqc/HCT116_CTCF_1.zip (missing locally, parent dir contents: HCT116_CTCF_1_fastqc.html, HCT116_CTCF_1_fastqc.zip)
+Shutting down, this might take some time.
+Exiting because a job execution failed. Look above for error message
+Complete log: .snakemake/log/2026-11-18T062104.750522.snakemake.log
+WorkflowError:
+At least one job did not complete successfully.

@@ -1,0 +1,154 @@
+---
+title: "Module 7 answers: Beyond one file per step"
+description: "Worked answers for the module 7 exercises: a sentinel for the bowtie2 index, scatter job counts, temp() and reruns, and making ChromSimPipe notice config changes."
+code-annotations: below
+---
+
+<!--
+7.1, 7.2 and 7.3 were run in scratch copies of course-pipeline (Snakemake 8.27.1, tools from
+the course env, the course data). 7.4 is a description only: ChromSimPipe needs a GPU and its
+own data, so the suggested changes were not run.
+-->
+
+Back to [Module 7](../lessons/07-beyond-files.qmd).
+
+## Exercise 7.1: A sentinel for the index {#ex-7.1}
+
+```python
+rule bowtie2_index:
+    input:
+        fasta = data_path(config["reference"]["fasta"]),
+    output:
+        done = touch(OUT + "/reference/bowtie2_index.done"),          # <1>
+    log:
+        LOGS + "/bowtie2_index/bowtie2_index.log",
+    benchmark:
+        BENCH + "/bowtie2_index/bowtie2_index.tsv",
+    threads: 4
+    conda: ENVS + "/regpipe_align.yml"
+    params:
+        prefix = OUT + "/reference/bowtie2_index/genome",
+    shell:
+        """
+        mkdir -p $(dirname {params.prefix})                            # <2>
+        bowtie2-build --threads {threads} {input.fasta} {params.prefix} > {log} 2>&1
+        """
+```
+1. `touch()` makes Snakemake create the marker itself after the command
+   succeeds, so the shell command does not need a `touch {output}` line.
+   ChromSimPipe writes `touch {output.done}` by hand instead; the effect is
+   the same.
+2. Our first try left this out and failed: `bowtie2-build` does not create
+   the folder for its prefix, and Snakemake only creates the folders of
+   *declared* outputs. It made `output/reference/` for the marker, not
+   `output/reference/bowtie2_index/`.
+
+`align` needs no change. Its input is `rules.bowtie2_index.output`, which is
+now the marker, and its `params.index` is still the prefix `INDEX_PREFIX`. The
+dry run still lists 61 jobs, and the filtered BAM for `HCT116_CTCF_1` has the
+same 24,434 reads as with `directory()`.
+
+Then we deleted `output/reference/bowtie2_index/genome.1.bt2` and ran the dry
+run again:
+
+```
+Nothing to be done (all requested files are present and up to date).
+```
+
+The marker is there, so Snakemake is satisfied, and the next new `align` job
+would fail inside bowtie2. That is the price of a sentinel. `directory()`
+behaves the same way here; only `multiext()`, which names each file, notices.
+
+## Exercise 7.2: Count the jobs {#ex-7.2}
+
+Scatter replaces each of the 10 `align` jobs with one `split_fastq`, N
+`align_chunk` and one `merge_chunks`:
+
+```
+jobs = 61 - 10 + 10 + 10 * N + 10 = 71 + 10 * N
+```
+
+| `scatter_chunks` | jobs |
+|---:|---:|
+| 0 (off) | 61 |
+| 1 | 81 |
+| 3 | 101 |
+| 4 | 111 |
+
+We checked 1, 3 and 4 with dry runs, and `tests/test_dryrun.py` checks 3
+(module 8).
+
+`scatter_chunks: 1` is not useful for speed: it adds a split and a merge around
+one alignment, 20 extra jobs that do nothing. It is useful as a test. It runs
+the scatter code path with the smallest number of jobs, so if you change
+`split_fastq.py` or the merge you can check the result is the same as with
+scatter off.
+
+## Exercise 7.3: Why did align rerun? {#ex-7.3}
+
+The aligned BAM is `temp()`:
+
+```python
+    output:
+        bam = temp(OUT + "/{sample}/{sample}_aligned.bam"),    # <1>
+```
+1. Snakemake deleted this file as soon as `filter`, the only job that reads it,
+   had finished.
+
+When `minMapq` changes, `filter` has to run again, and its input no longer
+exists. The only way to get it back is to run `align` again. The dry run says so:
+`align` has `reason: Missing output files`.
+
+To rerun only `filter`, keep the aligned BAMs: remove `temp()` from the
+`align` output (and from `merge_chunks`, which writes the same file when
+scatter is on). We tried it on a fresh output folder: after the change, the
+same `minMapq=20` dry run lists one job, `filter`.
+
+The cost is disk space. You keep a second BAM per sample: 1.5 MB for
+`HCT116_CTCF_1` on the course data, far more on a whole-genome library. The
+lab default is `temp()`, because a MAPQ change is rare and an alignment is
+cheap compared with keeping every intermediate file. If you are about to tune
+the filter, remove `temp()` for a while, or run with `--notemp`, which keeps
+`temp()` files for that run.
+
+## Exercise 7.4: Make ChromSimPipe notice {#ex-7.4}
+
+Two ways, with different costs.
+
+The first is to make the config file an input:
+
+```python
+rule simulateShard:
+    input:
+        validated = f"{L('done')}/validateCTCF.done",
+        config    = CONFIGFILE,                         # <1>
+        ...
+```
+1. Now the `mtime` trigger sees the file. Any edit to it reruns every shard of
+   every condition and locus.
+
+This is one line and it is never wrong, but it is blunt. Fixing a comment, or
+changing an analysis setting that the simulation never reads, reruns every
+GPU job.
+
+The second is to pass the values the rule uses as params:
+
+```python
+    params:
+        configfile = CONFIGFILE,
+        condition_settings = lambda wildcards: str(COND_LOOKUP[wildcards.condition]),   # <1>
+```
+1. The settings of this job's condition, as text. The `params` trigger compares
+   it with the stored value, so only conditions whose settings changed rerun.
+   `COND_LOOKUP` is ChromSimPipe's per-condition dictionary; the scripts would
+   still read the file, this param only tells Snakemake what to watch.
+
+This reruns exactly what changed, but only for the values you listed. A
+parameter the script reads that is not in the param is invisible again, so
+someone has to keep the list in step with `configs/parameters.py`.
+
+A third option is the one the repository documents today: delete the `.done`
+markers of the steps you want to redo. It costs nothing to set up and relies
+on you remembering. For a pipeline where one rerun is hours of GPU time,
+params for the simulation settings are probably worth the upkeep, and the
+config file as an input is fine for the cheap analysis steps.

@@ -1,0 +1,369 @@
+---
+title: "Structuring a pipeline"
+subtitle: "Module 6"
+description: "Split RegPipe into rule files, turn parts of it on and off from the config, and move logic out of the Snakefile into Python and R scripts."
+duration: "50 min"
+format:
+  html: default
+  revealjs:
+    output-file: 06-structure-slides.html
+---
+
+<!-- GENERATE: stopc-dryrun | stopping-points/stopC | snakemake -n -s workflows/RegPipe.snakefile --cores 1 -->
+<!-- GENERATE: regpipe-config-false | course-pipeline | for v in False false; do echo "--config make_locus_plot=$v"; snakemake -n -s workflows/RegPipe.snakefile --cores 1 --config make_locus_plot=$v 2>&1 | grep -m1 "^total"; done -->
+<!-- GENERATE: regpipe-dryrun-nottseq | course-pipeline | printf 'ttseq:\n  enabled: false\n' > no_ttseq.yaml && snakemake -n -s workflows/RegPipe.snakefile --cores 1 --configfile no_ttseq.yaml -->
+
+::: {.callout-note}
+## Learning objectives
+
+- Split a long Snakefile into rule files with `include:`, with shared code in `common.smk`.
+- Add a config switch that turns a part of the pipeline on or off, and predict how the job list changes.
+- Choose between `shell:`, `run:` and `script:`, and read rule inputs from Python and R scripts.
+- Use `onstart`, `onsuccess` and `onerror` to report on a run.
+
+Time: 50 min
+:::
+
+## From one file to many
+
+At stopping point B, RegPipe was one `Snakefile` of about 300 lines. That works
+until two people edit it in the same week. The lab pipelines all split it the
+same way:
+
+```
+workflows/
+  RegPipe.snakefile        # config, hooks, rule all, include: lines
+  rules/
+    common.smk             # samplesheet, paths, switches, helper functions
+    align.smk              # fastqc, bowtie2_index, align, filter
+    peaks.smk              # call_peaks, consensus_peaks
+    tracks.smk             # bigwig, locus_plot
+    report.smk             # frip, qc_table, ctcf_rad21_overlap, enhancer_activity
+```
+
+::: {.content-hidden when-format="revealjs"}
+Nothing about the rules changes when you split them. Snakemake reads the
+included files as if their text were pasted at the `include:` line. The
+point is that a person looking for the peak caller opens `peaks.smk` and finds
+it, and a diff of a pull request touches one small file. The field guide's
+[Lab layout](../field-guide/conventions.qmd#layouts) section compares this
+with the community's `workflow/Snakefile` layout.
+:::
+
+## `include:`
+
+The main file is short. It loads the config, includes `common.smk` first,
+declares the hooks and `rule all`, then includes the rule files:
+
+{{< snippet repo="regpipe" file="workflows/RegPipe.snakefile" lines="15-39" >}}
+
+::: {.content-hidden when-format="revealjs"}
+Order matters in two places:
+
+- `common.smk` must come before any rule file, because the rules use its
+  names (`OUT`, `LOGS`, `fastq`, `filtered_bam`, ...). Python reads top to
+  bottom; a name that is not defined yet is an error at parse time.
+- `rules.bowtie2_index.output` (in `align`) only works if `bowtie2_index` was
+  defined earlier. Both rules are in `align.smk`, so the order inside that
+  file takes care of it.
+
+Paths in `include:` are relative to the file that contains the line, so
+`"rules/align.smk"` means `workflows/rules/align.smk`. The same is true for
+`script:` paths. RegPipe builds them from `workflow.basedir` (the folder of
+the main Snakefile) to make that explicit:
+
+{{< snippet repo="regpipe" file="workflows/rules/common.smk" lines="24-27" >}}
+:::
+
+::: {.notes}
+`configfile:` loads the default config. When the launcher passes
+`--configfile`, Snakemake 8 merges that file on top, key by key. That is why a
+small YAML with only the keys you change works (exercise 6.4).
+:::
+
+## `common.smk` holds what every rule needs
+
+Read the samplesheet once, name the outputs once, and every rule file uses the
+same names. One helper per kind of output keeps `rule all` and the rules in
+step:
+
+{{< snippet repo="regpipe" file="workflows/rules/common.smk" lines="109-123" >}}
+
+::: {.content-hidden when-format="revealjs"}
+If `call_peaks` writes `peak_file(s)` and `rule all` asks for `peak_file(s)`,
+a change of folder in one place cannot break the other. Module 3 built the
+samplesheet parsing; it moved here unchanged.
+:::
+
+## Switches
+
+Some parts of RegPipe are optional. The locus figure needs R and plotgardener,
+which has no Apple-silicon build. The TT-seq tables need files from GEO. Each is
+a switch in `config/RegConfig.yaml`:
+
+```yaml
+make_locus_plot: true
+ttseq:
+  enabled: true
+```
+
+`common.smk` turns them into Python booleans, once:
+
+{{< snippet repo="regpipe" file="workflows/rules/common.smk" lines="79-81" >}}
+
+{{< snippet repo="regpipe" file="workflows/rules/common.smk" lines="90-91" >}}
+
+## A switch does two things
+
+First, it decides what `rule all` asks for. This is a target function:
+
+{{< snippet repo="regpipe" file="workflows/rules/common.smk" def="all_targets" >}}
+
+Second, it can decide whether a rule exists at all:
+
+{{< snippet repo="regpipe" file="workflows/rules/report.smk" lines="72-77" >}}
+
+::: {.content-hidden when-format="revealjs"}
+The first is enough to keep a job out of the run: if nothing asks for
+`enhancer_activity.tsv`, Snakemake never schedules the rule. The second goes
+further. With `ttseq.enabled: false`, `TTSEQ` has no `bigwigs` and
+`TTSEQ_TRACKS` is empty, so the rule's inputs would not even make sense.
+Defining it under `if` means Snakemake never sees it. `locus_plot` is defined
+under `if MAKE_LOCUS_PLOT:` for the same reason.
+:::
+
+## TTpipe does the same, bigger
+
+TTpipe has more switches (`run_processing`, `run_analysis`, `trim`,
+`spike_in.enabled`, ...). Its target function reads like a table of contents:
+
+{{< snippet repo="ttpipe" file="workflows/rules/common.smk" def="all_targets" >}}
+
+and a whole rule file can be switched:
+
+{{< snippet repo="ttpipe" file="workflows/TTpipe.snakefile" lines="52-59" >}}
+
+::: {.content-hidden when-format="revealjs"}
+Most of `processing.smk` sits under `if RUN_PROCESSING:`, so an analysis-only
+run on an existing count matrix has no alignment rules at all. The field guide
+walks through all of TTpipe's switches in
+[Switches](../field-guide/ttpipe.qmd#tt-switches) and
+[Rules defined under `if`](../field-guide/ttpipe.qmd#tt-conditional-rules).
+:::
+
+::: {.callout-tip .exercise}
+## Exercise 6.1: Add a switch
+
+Add `run_fastqc: true` to the config. When it is `false`, no `fastqc` job
+should run. Change only `common.smk` and the config. How many jobs does the dry
+run list with the switch on, and with it off?
+
+[Answer](../answers/06-structure-answers.qmd#ex-6.1)
+:::
+
+## Switching from the command line
+
+You can flip a top-level switch for one run with `--config`. Watch the case:
+
+{{< generated name="regpipe-config-false" >}}
+
+::: {.content-hidden when-format="revealjs"}
+Snakemake 8.27.1 turns `True` and `False` into booleans, but leaves `false` as
+the text `"false"`. `bool("false")` is `True` in Python, so the plot stays in,
+and nothing warns you. The same thing happens inside nested values:
+`--config 'ttseq={"enabled": false}'` sets `enabled` to the text `"false"`.
+
+For anything nested, write a small YAML file with only the keys you change and
+pass it with `--configfile`. Snakemake merges it into the default config:
+
+```bash
+printf 'ttseq:\n  enabled: false\n' > no_ttseq.yaml
+snakemake -n -s workflows/RegPipe.snakefile --cores 1 --configfile no_ttseq.yaml
+```
+
+For a run through the launcher, copy `config/RegConfig.yaml`, edit the copy,
+and pass the whole file: `bash RegPipe.sh --configfile config/no_ttseq.yaml`.
+The launcher reads `hpcProfile` and `outputDir` from the file you give it.
+:::
+
+::: {.notes}
+This one bites people. Run the two commands live if there is time.
+:::
+
+::: {.callout-tip .exercise}
+## Exercise 6.2: Predict the DAG without TT-seq
+
+Before you run anything: with `ttseq.enabled: false`, which jobs disappear,
+which stay but change, and how many jobs are left of the 61? Then check with a
+dry run.
+
+[Answer](../answers/06-structure-answers.qmd#ex-6.2)
+:::
+
+## `shell:`, `run:` and `script:`
+
+A rule's action can take three forms.
+
+| | Runs | Use it for |
+|---|---|---|
+| `shell:` | a bash command, in the rule's conda env | any command-line tool |
+| `run:` | Python, inside the Snakemake process itself | a few lines that need the samplesheet or config |
+| `script:` | a `.py` or `.R` file, in the rule's conda env | anything longer than a few lines, and all R |
+
+::: {.content-hidden when-format="revealjs"}
+`run:` code runs in the same Python that runs Snakemake. It can see every
+variable in the Snakefile, which is handy, but it cannot use a `conda:` env,
+cannot be tested on its own, and `snakemake --lint` flags long `run:` blocks.
+`script:` code runs in the rule's environment, gets everything it needs from a
+`snakemake` object, and is an ordinary file you can open in your editor.
+:::
+
+## `run:` in TTpipe
+
+TTpipe's only `run:` block writes the sample table for DESeq2:
+
+{{< snippet repo="ttpipe" file="workflows/TTpipe.snakefile" rule="sample_table" >}}
+
+::: {.content-hidden when-format="revealjs"}
+Read the comment above the rule. The samplesheet is listed as an **input**.
+The table is built from Snakemake's parsed copy of the samplesheet, so the
+file is not needed to make it. It is there so that editing the samplesheet
+makes the table out of date. Without it, a run after adding samples kept the
+old table, and DESeq2 failed because the sample names did not match the count
+matrix. That happened on a real run. If a rule's output depends on a file,
+make the file an input, even if the rule never opens it. The field guide has
+the full story in [Samplesheet as input](../field-guide/ttpipe.qmd#tt-sample-table).
+:::
+
+## `script:` in Python
+
+RegPipe's `frip` rule hands its files to a Python script:
+
+{{< snippet repo="regpipe" file="workflows/rules/report.smk" rule="frip" >}}
+
+Inside the script, the rule's directives are attributes of `snakemake`:
+
+{{< snippet repo="regpipe" file="scripts/frip.py" lines="36-57" >}}
+
+::: {.content-hidden when-format="revealjs"}
+`snakemake.input.bam`, `snakemake.output.tsv`, `snakemake.wildcards.sample`,
+`snakemake.log[0]`: the names are the ones in the rule. There are no
+command-line arguments to parse. The script needs `pysam`, which is in
+`envs/regpipe_peaks.yml`, the rule's `conda:` env.
+:::
+
+## `script:` in R
+
+R gets an S4 object, so you use `@` and `$`:
+
+{{< snippet repo="regpipe" file="scripts/locus_plot.R" lines="33-46" >}}
+
+::: {.content-hidden when-format="revealjs"}
+`snakemake@input$bigwigs` is a list, one entry per file, in the order the rule
+listed them. The rule also passes parallel lists in `params:` (sample names,
+their targets) so the script can match them up. The lab's R style applies
+here as anywhere: the native pipe `|>`, and Bioconductor (`rtracklayer`,
+`GenomicRanges`, `plotgardener`) for genomic data.
+:::
+
+## The venv-python trap
+
+`script:` runs a `.py` file with the Python of the rule's conda env. If the rule
+has no env, or you run without conda, it uses the Python that runs Snakemake.
+For the launcher, that is the venv in `env/`, which has Snakemake and pandas
+and nothing else:
+
+```
+ModuleNotFoundError: No module named 'pysam'
+```
+
+::: {.content-hidden when-format="revealjs"}
+We hit this while building RegPipe, running the `script:` rules without
+`--use-conda`. The fix is not to install `pysam` into the venv. Give every
+`script:` rule a `conda:` env that has what the script imports, and run with
+the profile (which sets `software-deployment-method: conda`). This is the same
+problem as the interpreter-line issue in [module 5](05-cluster.qmd), seen from
+the other side: the venv's Python must never be the one that runs your
+analysis code.
+:::
+
+::: {.callout-tip .exercise}
+## Exercise 6.3: From `run:` to `script:`
+
+Rewrite TTpipe's `sample_table` so that the Python lives in
+`scripts/sample_table.py` and the rule uses `script:`. The script cannot see
+`SAMPLES` or `SAMPLE_TABLE`. How does it get them? Add a `log:` while you are
+at it (the linter asks for one). Work in a copy of TTpipe and check that the
+table is byte-identical to the one the `run:` version writes.
+
+[Answer](../answers/06-structure-answers.qmd#ex-6.3)
+:::
+
+## Hooks: `onstart`, `onsuccess`, `onerror`
+
+Three blocks of Python that run once per run, on the machine where Snakemake
+runs (your laptop, or the launcher job on the cluster):
+
+{{< snippet repo="regpipe" file="workflows/RegPipe.snakefile" lines="21-30" >}}
+
+::: {.content-hidden when-format="revealjs"}
+`notify()` is in `common.smk`. It sends one email per event if an address is
+set (`REGPIPE_EMAIL` in `~/.bashrc`, or `notify: email:` in the config), and it
+never lets a failed email fail the run:
+
+{{< snippet repo="regpipe" file="workflows/rules/common.smk" def="notify" >}}
+
+Three things to know about hooks:
+
+- They do not run in a dry run, or when there is nothing to do.
+- `onerror` runs when a job fails. It does not run for a mistake in the
+  Snakefile itself: that stops Snakemake before any hook is set up.
+- `log` inside the hook is the path of Snakemake's own log for this run.
+
+MicroCPipe, TTpipe and ChromSimPipe all have the same `notify()`. TTpipe's
+`onerror` adds the last lines of the log to the email
+([hooks](../field-guide/microcpipe.qmd#mc-hooks)).
+:::
+
+::: {.callout-tip .exercise}
+## Exercise 6.4: Move a rule into its own file
+
+Move `frip` out of `report.smk` into a new `workflows/rules/frip.smk` and
+include it. Where can the new `include:` line go, and where can it not? Check
+that the dry run still lists 61 jobs.
+
+[Answer](../answers/06-structure-answers.qmd#ex-6.4)
+:::
+
+## Stopping point C
+
+::: {.callout-important .stopping-point}
+## Stopping point C
+
+You now have the lab layout: launcher, profiles, rule files, switches,
+`script:` rules in Python and R, and hooks. If you fell behind, copy
+`stopping-points/stopC/` and carry on from there:
+
+```bash
+cp -r stopping-points/stopC my-regpipe
+cd my-regpipe
+bash RegPipe.sh -n
+```
+
+A dry run of stopC lists 61 jobs:
+
+{{< generated name="stopc-dryrun" lines="1-18" >}}
+
+This is a clean place to end a session.
+:::
+
+## Key points
+
+- `include:` pastes a rule file in place. Include `common.smk` first; define a rule before another rule uses `rules.X`.
+- Name each kind of output once, in a helper in `common.smk`, and use it in the rule and in `rule all`.
+- A switch is a boolean in `common.smk`. It decides what the target function asks for, and it can put rules under `if` so they do not exist.
+- On the command line, `--config key=False` with a capital F. For nested keys, use a small YAML file and `--configfile`.
+- `shell:` for tools, `script:` for anything longer than a few lines and all R, `run:` only for a few lines. Every `script:` rule needs a `conda:` env.
+- If a file changes what a rule writes, make it an input.
+
+Next: [Module 7: Beyond one file per step](07-beyond-files.qmd)

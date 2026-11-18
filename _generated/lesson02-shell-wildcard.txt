@@ -1,0 +1,20 @@
+Building DAG of jobs...
+Job stats:
+job       count
+------  -------
+fastqc        1
+total         1
+
+
+[Wed Nov 18 06:22:06 2026]
+rule fastqc:
+    input: ../../data/fastq/HCT116_CTCF_2.fastq.gz
+    output: output/HCT116_CTCF_2/fastqc/HCT116_CTCF_2_fastqc.html, output/HCT116_CTCF_2/fastqc/HCT116_CTCF_2_fastqc.zip
+    jobid: 0
+    reason: Missing output files: output/HCT116_CTCF_2/fastqc/HCT116_CTCF_2_fastqc.html
+    wildcards: sample=HCT116_CTCF_2
+    resources: tmpdir=<TBD>
+
+RuleException in rule fastqc in file Snakefile, line 1:
+NameError: The name 'sample' is unknown in this context. Did you mean 'wildcards.sample'?, when formatting the following:
+fastqc --outdir output/{sample}/fastqc {input}

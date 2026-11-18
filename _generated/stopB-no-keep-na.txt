@@ -1,0 +1,7 @@
+Building DAG of jobs...
+MissingInputException in rule call_peaks in file Snakefile, line 220:
+Missing input files for rule call_peaks:
+    output: output/peaks/HCT116_DNase_1_peaks.narrowPeak, output/peaks/HCT116_DNase_1_peaks.xls, output/peaks/HCT116_DNase_1_summits.bed
+    wildcards: sample=HCT116_DNase_1
+    affected files:
+        output/nan/nan_filtered.bam

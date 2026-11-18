@@ -1,0 +1,10 @@
+Job stats:
+job                count
+---------------  -------
+all                    1
+call_peaks             6
+consensus_peaks        3
+total                 10
+
+$ snakemake -n --rerun-triggers mtime
+Nothing to be done (all requested files are present and up to date).

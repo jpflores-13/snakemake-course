@@ -1,0 +1,8 @@
+Job stats:
+job       count
+------  -------
+align         2
+all           1
+fastqc        2
+filter        2
+total         7

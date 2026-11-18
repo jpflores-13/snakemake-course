@@ -1,0 +1,57 @@
+Config file config/RegConfig.yaml is extended by additional config specified via the command line.
+Building DAG of jobs...
+Your conda installation is not configured to use strict channel priorities. This is however important for having robust and correct environments (for details, see https://conda-forge.org/docs/user/tipsandtricks.html). Please consider to configure strict priorities by executing 'conda config --set channel_priority strict'.
+Job stats:
+job       count
+------  -------
+align         1
+filter        1
+total         2
+
+
+[Wed Nov 18 06:25:17 2026]
+rule align:
+    input: ../data/fastq/HCT116_CTCF_1.fastq.gz, output/reference/bowtie2_index
+    output: output/HCT116_CTCF_1/HCT116_CTCF_1_aligned.bam
+    log: output/logs/align/HCT116_CTCF_1.log
+    jobid: 1
+    benchmark: output/benchmarks/align/HCT116_CTCF_1.tsv
+    reason: Missing output files: output/HCT116_CTCF_1/HCT116_CTCF_1_aligned.bam
+    wildcards: sample=HCT116_CTCF_1
+    resources: tmpdir=<TBD>
+
+
+[Wed Nov 18 06:25:17 2026]
+rule filter:
+    input: output/HCT116_CTCF_1/HCT116_CTCF_1_aligned.bam, ../data/reference/blacklist.bed.gz
+    output: output/HCT116_CTCF_1/HCT116_CTCF_1_filtered.bam, output/HCT116_CTCF_1/HCT116_CTCF_1_filtered.bam.bai, output/HCT116_CTCF_1/HCT116_CTCF_1_aligned_flagstat.tsv, output/HCT116_CTCF_1/HCT116_CTCF_1_markdup.txt
+    log: output/logs/filter/HCT116_CTCF_1.log
+    jobid: 0
+    benchmark: output/benchmarks/filter/HCT116_CTCF_1.tsv
+    reason: Input files updated by another job: output/HCT116_CTCF_1/HCT116_CTCF_1_aligned.bam; Params have changed since last execution: Union of exclusive params before and now across all output: before: 30 now: 20
+    wildcards: sample=HCT116_CTCF_1
+    resources: tmpdir=<TBD>
+
+Would remove temporary output output/HCT116_CTCF_1/HCT116_CTCF_1_aligned.bam
+Job stats:
+job       count
+------  -------
+align         1
+filter        1
+total         2
+
+Reasons:
+    (check individual jobs above for details)
+    input files updated by another job:
+        filter
+    output files have to be generated:
+        align
+    params have changed since last execution:
+        filter
+Some jobs were triggered by provenance information, see 'reason' section in the rule displays above.
+If you prefer that only modification time is used to determine whether a job shall be executed, use the command line option '--rerun-triggers mtime' (also see --help).
+If you are sure that a change for a certain output file (say, <outfile>) won't change the result (e.g. because you just changed the formatting of a script or environment definition), you can also wipe its metadata to skip such a trigger via 'snakemake --cleanup-metadata <outfile>'.
+Rules with provenance triggered jobs: filter
+
+
+This was a dry-run (flag -n). The order of jobs does not reflect the order of execution.

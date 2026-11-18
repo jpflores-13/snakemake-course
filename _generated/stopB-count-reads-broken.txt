@@ -1,0 +1,4 @@
+RuleException in rule count_reads in file Snakefile, line 303:
+ValueError: unexpected '{' in field name, when formatting the following:
+
+        samtools view -c -@ {threads} {input.bam} | awk '{print "{wildcards.sample}", $1}' > {output} 2> {log}

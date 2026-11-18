@@ -1,0 +1,126 @@
+---
+title: "Module 3 answers"
+subtitle: "Config and samplesheets"
+description: "Worked answers for the module 3 exercises: job counts after a samplesheet change, the control lookup and a KeyError from a renamed column."
+---
+
+Back to [Module 3](../lessons/03-config.qmd).
+
+## Exercise 3.1: Fewer samples {#ex-3.1}
+
+Stopping point B plans 51 jobs for ten samples. Remove one DNase sample and
+count again, rule by rule:
+
+- Per-sample rules (`fastqc`, `align`, `filter`, `bigwig`) lose one job each:
+  9 instead of 10.
+- `call_peaks` runs on non-controls only: 5 instead of 6.
+- `consensus_peaks` stays at 3. `TARGETS` is still CTCF, H3K27ac and DNase,
+  because `HCT116_DNase_1` is still there.
+- `bowtie2_index` and `all`: 1 each.
+
+That is 9 × 4 + 5 + 3 + 1 + 1 = 46.
+
+<!-- GENERATE: stopB-fewer-samples | stopping-points/stopB | grep -v DNase_2 RegSamplesheet.txt > fewer.txt && snakemake -n --config samplesheet=fewer.txt 2>&1 | awk '/^Job stats/ && !done {on=1} on {print} /^total/ && on {on=0; done=1}' -->
+
+```bash
+grep -v DNase_2 RegSamplesheet.txt > fewer.txt
+snakemake -n --config samplesheet=fewer.txt
+```
+
+{{< generated name="stopB-fewer-samples" command="false" >}}
+
+Yes, DNase consensus still runs, with one replicate. Look at the rule:
+
+{{< snippet repo="stopB" file="Snakefile" rule="consensus_peaks" >}}
+
+With one replicate, `others` is an empty list, the `for` loop in the shell
+runs zero times, and the "consensus" is just the first replicate's peaks,
+sorted. Nothing fails. Whether that is what you want is a science question,
+not a Snakemake one: a consensus of one is not a consensus. If it matters,
+check the number of replicates when the samplesheet is read and raise a
+`ValueError` with a clear message, the way MicroCPipe checks for missing
+columns ([field guide](../field-guide/microcpipe.qmd#mc-run-group)).
+
+`--config samplesheet=fewer.txt` is safe because `samplesheet` is a
+top-level key and its value is a plain string.
+
+## Exercise 3.2: Write the control lookup {#ex-3.2}
+
+```{.python filename="Snakefile"}
+def control_bam(wildcards):
+    control = SAMPLE_TABLE.loc[wildcards.sample, "Control"]   # <1>
+    if control == "NA":                                       # <2>
+        return []                                             # <3>
+    return filtered_bam(control)                              # <4>
+
+
+rule call_peaks:
+    input:
+        treatment = lambda wildcards: filtered_bam(wildcards.sample),
+        control = control_bam,                                # <5>
+    output:
+        peaks = OUT + "/peaks/{sample}_peaks.narrowPeak",
+        xls = OUT + "/peaks/{sample}_peaks.xls",
+        summits = OUT + "/peaks/{sample}_summits.bed",
+    params:
+        control = lambda wildcards, input: f"-c {input.control}" if input.control else "",  # <6>
+    shell:
+        "macs3 callpeak -t {input.treatment} {params.control} -f BAM ... -n {wildcards.sample} --outdir {OUT}/peaks"
+```
+
+1. The function gets the job's wildcards; `wildcards.sample` is the sample
+   this peak job is for. One `.loc` lookup gives its `Control` cell.
+2. This test only works because the sheet was read with
+   `keep_default_na=False`. Otherwise the cell is `NaN` and the test is false
+   (the lesson shows the `output/nan/nan_filtered.bam` that follows).
+3. An empty list means "this job has no input under this name". The job still
+   runs, with `input.control` empty.
+4. The control's filtered BAM, built with the same helper `rule all` uses, so
+   the path matches the `filter` output exactly. Snakemake sees it as an input
+   and schedules the control's `filter` job first.
+5. Pass the function, not its result: `control_bam`, not `control_bam()`.
+6. A `params` function can also take `input`. When there is no control,
+   `input.control` is empty and the `-c` flag is left out, so one rule covers
+   ChIP and DNase. (The `...` stands for the other MACS3 options, which module
+   4 moves into `params` too.)
+
+Stopping point B has the same function, with a docstring:
+
+{{< snippet repo="stopB" file="Snakefile" def="control_bam" >}}
+
+A common first attempt returns `None` for DNase instead of `[]`. Return a list
+(or a path); that way it is clear what "nothing" means.
+
+## Exercise 3.3: Debug a KeyError {#ex-3.3}
+
+<!-- GENERATE: stopB-keyerror | stopping-points/stopB | sed -i '1s/Bio_Rep/Rep/' RegSamplesheet.txt && snakemake -n 2>&1 | grep -v 'strict channel priorities' || true -->
+
+{{< generated name="stopB-keyerror" command="false" >}}
+
+Read it from the top:
+
+- `KeyError in file Snakefile, line 33`: the error happened while the
+  Snakefile was being read, before any job was planned. That is why even a
+  dry run fails.
+- `"['Bio_Rep'] not in index"`: pandas was asked for a column called
+  `Bio_Rep` and the table has none.
+- Line 33 is `samples[config["fileNamesFrom"]].agg("_".join, axis=1)`. The
+  column name comes from the config: `fileNamesFrom: ['Cell_Type', 'Target',
+  'Bio_Rep']`.
+
+Two fixes:
+
+1. Rename the column back to `Bio_Rep` in the samplesheet.
+2. Change the config to `fileNamesFrom: ['Cell_Type', 'Target', 'Rep']`.
+   (`--config 'fileNamesFrom=[Cell_Type, Target, Rep]'` also works for one
+   run: a list of plain strings survives the command line.)
+
+Both give back the same 51 jobs. For a shared pipeline, choose the first. The
+column names are the same in every lab samplesheet (`Project Cell_Type Assay
+Target Bio_Rep Control Read1 Sequencing_Directory`), and people copy rows
+between projects and pipelines. A sheet with its own column names works in
+one place and breaks in the next.
+
+The traceback lines below the message point into pandas. You rarely need
+them: the first two lines say which file and line of *your* code, and what was
+missing.

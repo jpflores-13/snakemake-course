@@ -1,0 +1,51 @@
+---
+title: "Module 0 answers"
+subtitle: "Why a workflow manager"
+description: "Worked answer for the module 0 exercise."
+---
+
+Back to [Module 0](../lessons/00-why.qmd).
+
+## Exercise 0.1: Draw the chain for one file {#ex-0.1}
+
+Working backward from `peaks/HCT116_CTCF_1_peaks.narrowPeak`, reading the
+scripts in `snakemakeify/`:
+
+```text
+peaks/HCT116_CTCF_1_peaks.narrowPeak                       04_call_peaks.sh
+├── HCT116_CTCF_1.filt.bam                                 03_filter.sh
+│   └── HCT116_CTCF_1.bam                                  02_align.sh
+│       ├── data/fastq/HCT116_CTCF_1.fastq.gz              (raw data)
+│       └── chr8_course.*.bt2                              02_align.sh (index)
+│           └── chr8_course.fa                             02_align.sh (gunzip)
+│               └── data/reference/chr8_course.fa.gz       (raw data)
+├── HCT116_input-CTCF_1.filt.bam                           03_filter.sh
+│   └── HCT116_input-CTCF_1.bam                            02_align.sh
+│       ├── data/fastq/HCT116_input-CTCF_1.fastq.gz        (raw data)
+│       └── chr8_course.*.bt2                              (same index as above)
+└── data/samplesheet.txt                                   (says which control)
+```
+
+Two things are easy to miss. The control BAM is an input, because
+`04_call_peaks.sh` passes `-c $control.filt.bam` to MACS3. And the samplesheet
+is an input too: change the `Control` column and the right answer changes,
+even though no BAM did.
+
+Now delete `HCT116_input-CTCF_1.bam` and run `run_all.sh`. Step 02 makes a
+new BAM for that sample. After that, three files in the drawing are out of
+date:
+
+- `HCT116_input-CTCF_1.filt.bam` (made from the old BAM),
+- `peaks/HCT116_CTCF_1_peaks.narrowPeak` (used the old control),
+- and, outside the drawing, `tracks/HCT116_input-CTCF_1.bw`, which
+  `03_filter.sh` makes from the same filtered BAM.
+
+`run_all.sh` remakes **none** of them. Step 03 sees
+`HCT116_input-CTCF_1.filt.bam` exists and skips; step 04 sees the peak file
+exists and skips. To get correct results you must know the chain above and
+delete the three files yourself.
+
+In Snakemake, the new BAM is newer than the filtered BAM made from it, so the
+filter job reruns, and that makes the peak job's input newer, so it reruns as
+well. You get the same result without having to draw anything. That is the
+whole argument of module 0, and module 1 starts building it.

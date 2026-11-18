@@ -1,0 +1,414 @@
+---
+title: "Beyond one file per step"
+subtitle: "Module 7"
+description: "Steps that write many files, steps split into chunks, steps whose outputs are not known in advance, and how Snakemake decides what to rerun."
+duration: "45 min"
+format:
+  html: default
+  revealjs:
+    output-file: 07-beyond-files-slides.html
+---
+
+<!--
+Untested in this build: ChromSimPipe's GPU request on SLURM (no SLURM, no GPU here).
+Everything else on this page was run with Snakemake 8.27.1 on the course data: the
+checkpoint example in a scratch folder, the multiext/directory()/sentinel comparisons in
+scratch copies of stopC and course-pipeline, and the command outputs below.
+-->
+
+<!-- GENERATE: regpipe-dryrun-scatter4 | course-pipeline | snakemake -n -s workflows/RegPipe.snakefile --cores 1 --config scatter_chunks=4 -->
+<!-- GENERATE: regpipe-params-rerun | course-pipeline | snakemake -s workflows/RegPipe.snakefile --cores 4 --quiet all -- $PWD/output/HCT116_CTCF_1/HCT116_CTCF_1_filtered.bam > /dev/null 2>&1 && snakemake -n -s workflows/RegPipe.snakefile --cores 1 --config minMapq=20 -- $PWD/output/HCT116_CTCF_1/HCT116_CTCF_1_filtered.bam -->
+<!-- GENERATE: regpipe-params-mtime | course-pipeline | snakemake -s workflows/RegPipe.snakefile --cores 4 --quiet all -- $PWD/output/HCT116_CTCF_1/HCT116_CTCF_1_filtered.bam > /dev/null 2>&1 && snakemake -n -s workflows/RegPipe.snakefile --cores 1 --rerun-triggers mtime --config minMapq=20 -- $PWD/output/HCT116_CTCF_1/HCT116_CTCF_1_filtered.bam -->
+
+::: {.callout-note}
+## Learning objectives
+
+- Choose between `multiext()`, `directory()` and a `.done` sentinel for a step that writes many files.
+- Split a step into chunks with `scattergather:` and gather the results.
+- Say when a checkpoint is needed, and when it is not.
+- Predict what reruns after you change a parameter, and control it with `--forcerun`, `--until` and `--rerun-triggers`.
+- Request a GPU for one rule from the profile.
+
+Time: 45 min
+:::
+
+## When "one file per step" stops fitting
+
+Until now every rule wrote a file or two with names you could write down.
+Three kinds of step break that:
+
+- a tool writes a set of files you do not want to list (`bowtie2-build`);
+- one big job is faster as many small ones (aligning a deep FASTQ);
+- you only know how many outputs there are after a job has run.
+
+Each has its own tool. The first two are common in the lab pipelines. The third
+is rare, and none of them needs it.
+
+## One step, many files
+
+`bowtie2-build` writes six index files that share a prefix. RegPipe has
+declared them two ways.
+
+::: {.panel-tabset}
+
+### `multiext()` (stopA-C)
+
+{{< snippet repo="stopC" file="workflows/rules/align.smk" rule="bowtie2_index" >}}
+
+### `directory()` (stopD)
+
+{{< snippet repo="regpipe" file="workflows/rules/align.smk" rule="bowtie2_index" >}}
+
+### `.done` (ChromSimPipe)
+
+{{< snippet repo="chromsimpipe" file="workflows/ChromSimPipe.snakefile" rule="preparePolysim" >}}
+
+:::
+
+## Which to use
+
+| | `multiext()` | `directory()` | `.done` sentinel |
+|---|---|---|---|
+| You list | every file | the folder | one marker file |
+| Snakemake checks | every file exists | the folder exists | the marker exists |
+| Delete one index file | rerun | **nothing happens** | **nothing happens** |
+| Folder made for you | yes | no (`mkdir -p`) | only the marker's |
+| Breaks if the tool renames its files | yes (`.bt2l` for genomes over 4 Gb) | no | no |
+
+::: {.content-hidden when-format="revealjs"}
+We tried the "delete one file" row. In a stopC copy, removing
+`genome.rev.2.bt2` makes the dry run say
+`reason: Missing output files: output/reference/bowtie2_index/genome.rev.2.bt2`.
+In stopD, removing `genome.1.bt2` from the `directory()` output gives
+`Nothing to be done`, and the next `align` would fail.
+
+So `multiext()` is the safest when you know the names. `directory()` is
+convenient when you do not, and Snakemake does not create the folder for you,
+which is why stopD's shell command starts with `mkdir -p {output}`. A sentinel
+says only "this step ran". ChromSimPipe uses one for nearly every step, because
+its steps write into folders shared by many jobs, or write nothing Snakemake
+should track (see [Sentinels](../field-guide/chromsimpipe.qmd#cs-sentinels)).
+The cost is that Snakemake can no longer tell you when a real file is missing.
+:::
+
+## Pointing at another rule's output
+
+`align` needs the index. Instead of repeating the path, it names the rule:
+
+{{< snippet repo="regpipe" file="workflows/rules/align.smk" lines="68-71" >}}
+
+::: {.content-hidden when-format="revealjs"}
+`rules.bowtie2_index.output` is whatever that rule declares: the six files in
+stopC, the folder in stopD. When the declaration changed, `align` did not need
+editing. The one condition is that `bowtie2_index` must be defined before
+`align` (module 6). ChromSimPipe's `mergeShards` does the same with `expand()`:
+it asks for one `simulateShard` marker per shard, built from that rule's output
+pattern.
+:::
+
+::: {.callout-tip .exercise}
+## Exercise 7.1: A sentinel for the index
+
+Rewrite stopD's `bowtie2_index` so its output is
+`OUT + "/reference/bowtie2_index.done"`, using Snakemake's `touch()`. What else
+has to change in the rule, and does `align` need any change? Run it for one
+sample, then delete one index file and run the dry run again. What do you see?
+
+[Answer](../answers/07-beyond-files-answers.qmd#ex-7.1)
+:::
+
+## Scatter-gather
+
+The course FASTQs are small, but a real ChIP-seq library can take hours to
+align as one job. RegPipe can split each FASTQ into chunks, align each chunk as
+its own job, and merge. Set `scatter_chunks: 4` in the config:
+
+{{< snippet repo="regpipe" file="workflows/rules/align.smk" lines="90-112" >}}
+
+## Gather
+
+{{< snippet repo="regpipe" file="workflows/rules/align.smk" rule="merge_chunks" >}}
+
+::: {.content-hidden when-format="revealjs"}
+`scattergather: chunks = SCATTER` creates two helpers. `scatter.chunks(pattern)`
+expands `{scatteritem}` to `1-of-4`, `2-of-4`, ... `4-of-4` and returns the list
+of files; `gather.chunks(pattern)` does the same for the input of the merge.
+`{{sample}}` has double braces so it survives that expansion and stays a
+wildcard. `merge_chunks` writes the same `_aligned.bam` that `align` would have
+written, so `filter` and everything after it do not know whether scatter was
+on.
+
+The whole block sits under `if SCATTER == 0: ... else:`, a switch from module 6.
+With `scatter_chunks: 0` (the default) the `align` rule exists and the three
+scatter rules do not.
+:::
+
+## 61 jobs become 111
+
+{{< generated name="regpipe-dryrun-scatter4" lines="3-20" >}}
+
+::: {.content-hidden when-format="revealjs"}
+The ten `align` jobs are replaced by 10 `split_fastq`, 40 `align_chunk` and
+10 `merge_chunks` jobs: 61 - 10 + 60 = 111. Nothing else changes.
+
+Are the results the same? We ran the full pipeline both ways. The QC table is
+byte-identical and the peaks are identical. The one thing that can differ is
+which copy of a duplicate read `samtools markdup` keeps, because the merged BAM
+can order reads at the same position differently. The number of reads kept is
+the same.
+:::
+
+::: {.callout-tip .exercise}
+## Exercise 7.2: Count the jobs
+
+How many jobs does the dry run list with `scatter_chunks: 3`? With
+`scatter_chunks: 1`? Work it out first, then check with
+`--config scatter_chunks=3`. Is `scatter_chunks: 1` ever useful?
+
+[Answer](../answers/07-beyond-files-answers.qmd#ex-7.2)
+:::
+
+## ChromSimPipe shards by hand
+
+ChromSimPipe splits each simulation into `N_SHARDS` independent runs, without
+`scattergather:`. The shard is an ordinary wildcard:
+
+{{< snippet repo="chromsimpipe" file="workflows/ChromSimPipe.snakefile" rule="simulateShard" >}}
+
+{{< snippet repo="chromsimpipe" file="workflows/ChromSimPipe.snakefile" rule="mergeShards" >}}
+
+::: {.content-hidden when-format="revealjs"}
+It is the same idea: one job per `{shard}`, and a gather rule whose input is an
+`expand()` over `range(N_SHARDS)`. The difference is that the script does the
+splitting (`--shard-index`, `--n-shards`) and every output is a `.done` marker.
+`scattergather:` is tidier when Snakemake can make the chunks itself, as with a
+FASTQ. A hand-rolled wildcard is just as good when the program splits its own
+work.
+:::
+
+## Checkpoints
+
+Sometimes the number of outputs depends on the data. Snakemake builds the
+whole job graph before it runs anything, so it needs a way to stop, look, and
+add jobs. That is a checkpoint.
+
+None of the lab pipelines has one. RegPipe does not need one either: the number
+of samples, chunks and targets all come from the samplesheet and the config.
+Here is a small example on the course data, to show the mechanics. `split -l 50`
+cuts the RAD21 peak file into files of 50 peaks, and you do not know how many
+files until it has run:
+
+```python
+PEAKS = "../data/peaks/RAD21_ENCFF391AAM.bed.gz"
+
+rule all:
+    input:
+        "rad21_widths.tsv",
+
+checkpoint split_peaks:
+    input:
+        PEAKS,
+    output:
+        directory("rad21_chunks"),
+    shell:
+        "mkdir -p {output} && zcat {input} | split -l 50 - {output}/chunk_"
+
+rule chunk_width:
+    input:
+        "rad21_chunks/chunk_{part}",
+    output:
+        "rad21_widths/{part}.txt",
+    shell:
+        "awk '{{s += $3 - $2}} END {{print FILENAME, NR, s}}' {input} > {output}"
+
+def chunk_widths(wildcards):
+    chunks = checkpoints.split_peaks.get().output[0]
+    parts = sorted(glob_wildcards(chunks + "/chunk_{part}").part)
+    return expand("rad21_widths/{part}.txt", part=parts)
+
+rule gather_widths:
+    input:
+        chunk_widths,
+    output:
+        "rad21_widths.tsv",
+    shell:
+        "cat {input} > {output}"
+```
+
+## What a checkpoint does to the run
+
+The dry run lists 3 jobs: `split_peaks`, `gather_widths`, `all`. It cannot list
+`chunk_width`, because the chunks do not exist yet. The real run grows:
+
+```
+1 of 3 steps (33%) done
+...
+2 of 6 steps (33%) done
+```
+
+and the result has one line per chunk:
+
+```
+rad21_chunks/chunk_aa 50 13783
+rad21_chunks/chunk_ab 50 13701
+rad21_chunks/chunk_ac 44 11544
+```
+
+::: {.content-hidden when-format="revealjs"}
+`checkpoints.split_peaks.get()` raises a special exception until the checkpoint
+has run. Snakemake catches it, runs the checkpoint, then calls the input
+function again and adds the three `chunk_width` jobs. That is the whole trick.
+
+Use a checkpoint only when you really cannot know the outputs up front. If you
+could compute the number from the inputs at parse time (the samplesheet, the
+config, the size of a file that already exists), do that instead. Checkpoints
+make dry runs incomplete, which weakens the tests in module 8.
+:::
+
+::: {.notes}
+Save this file as `checkpoint-demo/Snakefile` inside the course folder if you
+want to run it live; the `../data` path assumes that location. It takes a
+couple of seconds.
+:::
+
+## What makes a job rerun
+
+By default Snakemake 8 reruns a job when any of these changed since it last ran:
+
+| Trigger | Example |
+|---|---|
+| `mtime` | an input file is newer than the output |
+| `params` | `minMapq` went from 30 to 20 |
+| `input` | the set of input files changed |
+| `code` | the shell command or script was edited |
+| `software-env` | the conda env file changed |
+
+Snakemake stores what it needs to check this in `.snakemake/metadata/`.
+
+## A parameter change, live
+
+Make one filtered BAM, then ask what a stricter MAPQ would rerun:
+
+```bash
+snakemake -s workflows/RegPipe.snakefile --cores 4 -- $PWD/output/HCT116_CTCF_1/HCT116_CTCF_1_filtered.bam
+snakemake -n -s workflows/RegPipe.snakefile --cores 1 --config minMapq=20 -- $PWD/output/HCT116_CTCF_1/HCT116_CTCF_1_filtered.bam
+```
+
+{{< generated name="regpipe-params-rerun" command="false" lines="4-33" >}}
+
+::: {.content-hidden when-format="revealjs"}
+Two things in that output. The `filter` job reruns because its params changed
+(`before: 30 now: 20`). And `align` reruns too, even though nothing about it
+changed: its BAM is `temp()`, so it was deleted after `filter` used it, and
+`filter` needs it again. A `temp()` output saves disk and costs you a rerun
+whenever something downstream changes.
+
+The `$PWD/` in the target is needed in RegPipe because `OUT` is an absolute
+path, so the rules' outputs are absolute. A relative `output/...` on the
+command line matches no rule (`MissingRuleException`).
+:::
+
+## Turning triggers off
+
+`--rerun-triggers mtime` goes back to the old behavior: only timestamps count.
+
+```bash
+snakemake -n ... --rerun-triggers mtime --config minMapq=20 -- $PWD/output/HCT116_CTCF_1/HCT116_CTCF_1_filtered.bam
+```
+
+{{< generated name="regpipe-params-mtime" command="false" >}}
+
+::: {.content-hidden when-format="revealjs"}
+When is that what you want? We hit one case while building RegPipe: switching
+from tools on `PATH` to `--use-conda` changed every rule's software
+environment, and Snakemake wanted to rerun everything. If you know the tools
+are the same versions either way, `--rerun-triggers mtime` saves that rerun.
+Use it when you know the change does not matter, and never as a default.
+:::
+
+## Choosing what runs yourself
+
+```bash
+bash RegPipe.sh --forcerun call_peaks   # rerun every call_peaks job, and all that depends on them
+bash RegPipe.sh --until filter          # run only up to filter: 21 jobs from scratch
+bash RegPipe.sh qc_table                # a rule without wildcards can be a target: 34 jobs
+```
+
+::: {.content-hidden when-format="revealjs"}
+`--forcerun` is what you use after changing something Snakemake cannot see,
+such as a MACS3 version installed outside conda. `--until` is handy on a new
+cluster: run the cheap first steps and check the logs before you commit hours
+of compute. The two job counts are from dry runs on an empty output folder.
+:::
+
+::: {.callout-tip .exercise}
+## Exercise 7.3: Why did align rerun?
+
+In the parameter-change output above, `align` reruns although `minMapq` is a
+`filter` parameter. Explain why. What would you change in the rule files so that
+changing `minMapq` reruns only `filter` and what comes after it, and what does
+that cost?
+
+[Answer](../answers/07-beyond-files-answers.qmd#ex-7.3)
+:::
+
+## Parameters Snakemake cannot see
+
+The `params` trigger only sees what is in `params:`. ChromSimPipe passes its
+scripts one param, the config file's **path**:
+
+```python
+    params:
+        configfile = CONFIGFILE,
+```
+
+::: {.content-hidden when-format="revealjs"}
+The scripts read every physics parameter from that file themselves, through
+`configs/parameters.py`. Edit a value in the file and the path is the same, so
+the params trigger sees no change. The file is not an input either, so `mtime`
+does not see it. Nothing reruns, and the old simulations stay in place.
+
+This is a deliberate trade-off. There are dozens of parameters, and passing
+them all as params would make every rule long. The repository's
+troubleshooting table says to delete the `.done` markers of the steps you want
+to redo. The field guide discusses it in
+[Parameters](../field-guide/chromsimpipe.qmd#cs-parameters). RegPipe passes
+the values themselves (`mapq = config["minMapq"]`), which is why the dry run
+above caught the change.
+:::
+
+::: {.callout-tip .exercise}
+## Exercise 7.4: Make ChromSimPipe notice
+
+Suggest two ways to make `simulateShard` rerun when a value in its config file
+changes, and say what each one costs. Do not edit the submodule; describe the
+change.
+
+[Answer](../answers/07-beyond-files-answers.qmd#ex-7.4)
+:::
+
+## GPU jobs {#gpu-jobs}
+
+ChromSimPipe's simulations run on a GPU. The rule stays the same everywhere;
+only the Longleaf profile asks for one:
+
+{{< snippet repo="chromsimpipe" file="profiles/longleaf/config.yaml" lines="34-40" >}}
+
+::: {.content-hidden when-format="revealjs"}
+`gpu: 1` asks the SLURM plugin for one GPU. The partition list lets SLURM pick
+whichever GPU partition has a free node, and the profile also sets the QOS
+those partitions use on Longleaf. The point for your own pipelines: a GPU is one more resource, and
+like memory and time it goes in the profile, per rule
+([GPU](../field-guide/chromsimpipe.qmd#cs-gpu)).
+:::
+
+## Key points
+
+- `multiext()` when you know every file name, `directory()` when you do not, a `.done` sentinel only when the files are not Snakemake's to track. Only `multiext()` notices a missing file.
+- `rules.X.output` keeps two rules in step when X's outputs change.
+- `scattergather:` splits a step into chunks and gathers them; with 4 chunks, RegPipe goes from 61 to 111 jobs with the same results.
+- A checkpoint is for outputs you cannot know until a job runs. None of the lab pipelines needs one.
+- Snakemake reruns on changed params, code, inputs and envs, not only timestamps. It cannot see values a script reads by itself.
+- A `temp()` output is deleted after use, so changing anything downstream reruns the step that made it.
+
+Next: [Module 8: Testing and reproducibility](08-testing.qmd)

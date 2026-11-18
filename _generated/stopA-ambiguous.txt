@@ -1,0 +1,13 @@
+Building DAG of jobs...
+AmbiguousRuleException:
+Rules index_bam and filter are ambiguous for the file output/HCT116_CTCF_1/HCT116_CTCF_1_filtered.bam.bai.
+Consider starting rule output with a unique prefix, constrain your wildcards, or use the ruleorder directive.
+Wildcards:
+	index_bam: prefix=output/HCT116_CTCF_1/HCT116_CTCF_1_filtered
+	filter: sample=HCT116_CTCF_1
+Expected input files:
+	index_bam: output/HCT116_CTCF_1/HCT116_CTCF_1_filtered.bam
+	filter: output/HCT116_CTCF_1/HCT116_CTCF_1_aligned.bam ../../data/reference/blacklist.bed.gz
+Expected output files:
+	index_bam: output/HCT116_CTCF_1/HCT116_CTCF_1_filtered.bam.bai
+	filter: output/HCT116_CTCF_1/HCT116_CTCF_1_filtered.bam output/HCT116_CTCF_1/HCT116_CTCF_1_filtered.bam.bai output/HCT116_CTCF_1/HCT116_CTCF_1_aligned_flagstat.tsv output/HCT116_CTCF_1/HCT116_CTCF_1_markdup.txt

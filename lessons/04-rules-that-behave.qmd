@@ -1,0 +1,419 @@
+---
+title: "Rules that behave"
+subtitle: "Module 4"
+description: "Logs, benchmarks, threads, params, temporary and protected files, and conda environments: the directives that make a rule safe to run unattended. Ends at stopping point B."
+duration: "50 min"
+format:
+  html: default
+  revealjs:
+    output-file: 04-rules-that-behave-slides.html
+---
+
+::: {.callout-note}
+## Learning objectives
+
+- Give every rule a `log:` and a `benchmark:`, and read a benchmark file.
+- Use `threads:` and `params:`, and explain why a setting belongs in `params`.
+- Mark outputs `temp()` or `protected()` and predict what that does to reruns.
+- Give a rule its own conda environment, and avoid the two traps that come
+  with it.
+- Write shell commands with literal braces, and let a known tool failure pass
+  on purpose.
+
+Time: 50 min
+:::
+
+## One rule, all the directives
+
+This is `align` at stopping point B. Compare it with the module 2 version:
+
+{{< snippet repo="stopB" file="Snakefile" rule="align" >}}
+
+::: {.content-hidden when-format="revealjs"}
+The command is the same `bowtie2 | samtools sort` pipe. Everything around it
+is new: where its messages go (`log`), how long it took (`benchmark`), how
+many cores it may use (`threads`), the settings it reads (`params`), what may
+be deleted later (`temp`) and which software it runs in (`conda`). The rest of
+this module takes them one at a time.
+:::
+
+## `log:`
+
+```python
+    log:
+        LOGS + "/align/{sample}.log",
+    shell:
+        "bowtie2 ... 2> {log} | samtools sort ... 2>> {log}"
+```
+
+`log:` declares a file per job, with the same wildcards as the output. It
+does not capture anything by itself: you redirect into `{log}` in the command.
+Here bowtie2's alignment summary goes in with `2>`, and samtools appends with
+`2>>`, so one file holds both.
+
+::: {.content-hidden when-format="revealjs"}
+Two things make logs different from outputs. A failed job's outputs are
+deleted, but its log is kept, which is exactly when you need it. And a log
+never triggers a rerun. A rule whose tool prints to stdout and stderr in one
+command uses `> {log} 2>&1` (see `bowtie2_index` and `call_peaks`). A rule
+with several commands empties the log once (`: > {log}`) and then appends
+(see `consensus_peaks`).
+:::
+
+## `benchmark:`
+
+```python
+    benchmark:
+        BENCH + "/align/{sample}.tsv",
+```
+
+Snakemake measures the job while it runs and writes one line of numbers:
+
+<!-- GENERATE: stopB-benchmark | stopping-points/stopB | snakemake --cores 4 output/HCT116_CTCF_1/HCT116_CTCF_1_filtered.bam > /dev/null 2>&1; cat output/benchmarks/bowtie2_index/bowtie2_index.tsv -->
+
+```bash
+cat output/benchmarks/bowtie2_index/bowtie2_index.tsv
+```
+
+{{< generated name="stopB-benchmark" command="false" >}}
+
+`s` is wall-clock seconds, `max_rss` the peak memory in MB, `cpu_time` the CPU
+seconds used by the job's processes. On a cluster these numbers are how you
+choose memory and time requests (module 5). Exercise 4.3 reads them.
+
+## `threads:`
+
+```python
+    threads: 4
+    shell:
+        "bowtie2 -p {threads} ..."
+```
+
+`threads:` is what the rule may use, and `{threads}` passes it to the tool.
+Snakemake fits jobs into `--cores`: with `--cores 4`, it runs one 4-thread
+`align` at a time, or two 2-thread `filter` jobs side by side. Ask for
+`--cores 2` and `align` is given 2 threads ("Rules claiming more threads will
+be scaled down").
+
+::: {.notes}
+The tool does not know about `threads:` unless the command passes it. A rule
+that says `threads: 8` and runs `bowtie2` without `-p` blocks 8 cores and
+uses 1.
+:::
+
+## `params:`: settings the rule depends on
+
+In module 3 the MAPQ cutoff became a global variable read from the config.
+That has a hole. Change `MIN_MAPQ` from 30 to 20 in stopping point A, where
+everything has run, and ask again:
+
+```text
+Building DAG of jobs...
+Nothing to be done (all requested files are present and up to date).
+```
+
+Snakemake does not see the change: the rule's code (`-q {MIN_MAPQ}`) is the
+same text, and no file changed. As a `param`, the value is recorded with each
+output:
+
+{{< snippet repo="stopB" file="Snakefile" lines="203-205" >}}
+
+## A param change reruns what used it
+
+<!-- GENERATE: stopB-params-rerun | stopping-points/stopB | snakemake --cores 4 output/peaks/HCT116_CTCF_1_peaks.narrowPeak > /dev/null 2>&1 && snakemake -n output/peaks/HCT116_CTCF_1_peaks.narrowPeak --config minMapq=20 2>&1 | grep -E '^rule |reason:' -->
+
+```bash
+snakemake -n output/peaks/HCT116_CTCF_1_peaks.narrowPeak --config minMapq=20
+```
+
+{{< generated name="stopB-params-rerun" command="false" >}}
+
+::: {.content-hidden when-format="revealjs"}
+Both `filter` jobs (the sample and its control) rerun because their params
+changed, and the peak call reruns because its inputs will be new. Why does
+`align` rerun too? Its output is `temp()`, so it was deleted after `filter`
+used it, and `filter` needs it again. That is the price of `temp()`.
+
+Params can also be functions of `wildcards`, `input` or `output`, like the
+`-c` flag in `call_peaks` (module 3) or `params.outdir` there.
+:::
+
+## Turning the extra triggers off
+
+Sometimes you do not want that. You fixed a typo in a comment, or switched
+from the course env to conda, and the results cannot have changed.
+`--rerun-triggers mtime` goes back to timestamps only:
+
+<!-- GENERATE: stopB-params-mtime | stopping-points/stopB | snakemake --cores 4 output/peaks/HCT116_CTCF_1_peaks.narrowPeak > /dev/null 2>&1 && snakemake -n output/peaks/HCT116_CTCF_1_peaks.narrowPeak --config minMapq=20 --rerun-triggers mtime 2>&1 | grep -v 'strict channel priorities' -->
+
+```bash
+snakemake -n output/peaks/HCT116_CTCF_1_peaks.narrowPeak --config minMapq=20 --rerun-triggers mtime
+```
+
+{{< generated name="stopB-params-mtime" command="false" >}}
+
+The default in Snakemake 8 is all five triggers: `mtime`, `params`, `input`,
+`software-env` and `code`. Use `mtime` alone on purpose, for one run, and know
+that the BAMs you keep were made with MAPQ 30.
+
+## `temp()` and `protected()`
+
+```python
+    output:
+        bam = temp(OUT + "/{sample}/{sample}_aligned.bam"),
+```
+
+`temp()` deletes a file as soon as every job that needs it has finished. The
+sorted-but-unfiltered BAMs are the biggest files in RegPipe and nobody looks
+at them; a full run prints `Removing temporary output ...` ten times.
+
+`protected()` does the opposite. It makes outputs read-only after the job, so
+nothing overwrites them by accident:
+
+```python
+    output:
+        protected(multiext(OUT + "/reference/bowtie2_index/genome",
+                           ".1.bt2", ".2.bt2", ".3.bt2", ".4.bt2", ".rev.1.bt2", ".rev.2.bt2")),
+```
+
+::: {.content-hidden when-format="revealjs"}
+After the job you see `Write-protecting output file ...` for each file. If a
+later run would rebuild them, Snakemake stops with an error instead of
+overwriting.<!-- VERIFY-DATA --> To rebuild on
+purpose, delete the files yourself. Use it for things that are slow to make
+and that many jobs depend on: an index, a big reference download. Rebuilding
+the index in stopping point B makes 40 jobs out of date (every `align`,
+everything after it, and `rule all`), so it is a good candidate. Stopping point B leaves
+it unprotected so you can experiment.
+:::
+
+## `conda:`
+
+```python
+    conda: "envs/regpipe_align.yml"
+```
+
+{{< snippet repo="stopB" file="envs/regpipe_align.yml" >}}
+
+```bash
+snakemake --cores 4 --sdm conda      # --use-conda is the older spelling, same effect
+```
+
+The first run builds each environment once (about a minute for the three in
+stopping point B) and keeps it in `.snakemake/conda/`. Each job then runs
+with its rule's environment activated, so you no longer depend on what
+happens to be installed in your shell.
+
+::: {.content-hidden when-format="revealjs"}
+The pins (`samtools=1.24`) are the point. A result made with this rule says
+which samtools made it, and next year's run gets the same version. Snakemake
+also warns at every start that conda is "not configured to use strict channel
+priorities"; run `conda config --set channel_priority strict` once to silence
+it and get more predictable solves.
+:::
+
+## Two conda traps
+
+The first: Snakemake 8.27.1 runs `conda info` for any rule that has a
+`conda:` directive, even when you run without `--sdm conda`. If `conda` is not
+on your `PATH`, those jobs fail with `Error running conda info`. Keep conda
+available in the shell you launch from.
+
+The second: switching how software is provided counts as a change. When we
+first ran stopping point B with tools from the course env and then again with
+`--sdm conda`, every job was planned again with the reason
+`Software environment definition has changed`. A dry run does not warn you,
+because the environments do not exist yet when it runs. Add
+`--rerun-triggers mtime` for that first conda run if the outputs are good.
+
+::: {.notes}
+The second trap also deleted four FastQC outputs as "incomplete" when that
+rerun was interrupted. Interrupt a run and Snakemake cleans up what was in
+flight; that is usually what you want, but not when the files were fine.
+:::
+
+## Which Python?
+
+Inside a job, the rule's conda environment comes first on `PATH`, but not
+always. On the cluster, the lab launchers keep a virtual environment with
+Snakemake in it, and its `bin/` can end up ahead. A bare `python` then finds
+the wrong interpreter and fails with `No module named ...`. MicroCPipe names
+the interpreter of the rule's own environment:
+
+{{< snippet repo="microcpipe" file="workflows/MicroCPipe.snakefile" lines="180-195" >}}
+
+`$CONDA_PREFIX` is set by conda inside the job. Snakemake leaves `$NAME` alone
+(it only fills `{...}`), so bash expands it when the job runs.
+
+## Literal braces in a shell command
+
+Snakemake fills in everything in `{...}`. awk uses braces too:
+
+<!-- GENERATE: stopB-awk-braces | stopping-points/stopB | cat >> Snakefile <<'EOF'
+rule count_peaks:
+    input:
+        peaks = OUT + "/peaks/{sample}_peaks.narrowPeak",
+    output:
+        OUT + "/peaks/{sample}_peak_count.txt",
+    shell:
+        "awk '{n++} END {print FILENAME, n}' {input.peaks} > {output}"
+EOF
+snakemake -n -p output/peaks/HCT116_CTCF_1_peak_count.txt 2>&1 | sed -n '/^RuleException/,$p' || true -->
+
+```{.python filename="Snakefile"}
+rule count_peaks:
+    input:
+        peaks = OUT + "/peaks/{sample}_peaks.narrowPeak",
+    output:
+        OUT + "/peaks/{sample}_peak_count.txt",
+    shell:
+        "awk '{n++} END {print FILENAME, n}' {input.peaks} > {output}"
+```
+
+{{< generated name="stopB-awk-braces" command="false" >}}
+
+The message gives the fix: double the braces that are not Snakemake's,
+`awk '{{n++}} END {{print FILENAME, n}}'`. With that, the job writes
+`output/peaks/HCT116_CTCF_1_peaks.narrowPeak 24`: 24 CTCF peaks for
+replicate 1.
+
+## Failing on purpose, gracefully
+
+Strict mode makes any failing command fail the job. Sometimes a tool fails
+for a reason that says something about the data, not the pipeline. MicroCPipe
+runs preseq, which refuses to extrapolate a library that is too shallow:
+
+{{< snippet repo="microcpipe" file="workflows/MicroCPipe.snakefile" rule="library_complexity" >}}
+
+::: {.content-hidden when-format="revealjs"}
+`preseq ... || {{ ... }}` runs the block only if preseq fails. The braces are
+bash's command grouping, doubled because they are literal. The fallback
+warns on stderr and writes a header-only table, so the output exists and the
+report downstream shows "no data" for that library. The comment above says
+which error and why it is safe to continue. Write that comment every time
+you swallow an error.
+:::
+
+## `multiext()` and the last rule
+
+`bowtie2_index` now has a log, a benchmark and threads, and still lists its
+six outputs with `multiext()`:
+
+{{< snippet repo="stopB" file="Snakefile" rule="bowtie2_index" >}}
+
+The last new rule makes a CPM-normalized bigWig per sample, for the course
+window only:
+
+{{< snippet repo="stopB" file="Snakefile" rule="bigwig" >}}
+
+## The plan for stopping point B
+
+```bash
+cd stopping-points/stopB
+snakemake -n
+```
+
+<!-- GENERATE: stopB-dryrun | stopping-points/stopB | snakemake -n 2>&1 | grep -v 'strict channel priorities' -->
+
+{{< generated name="stopB-dryrun" head="16" >}}
+
+::: {.content-hidden when-format="revealjs"}
+51 jobs: stopping point A's 32, plus 6 peak calls, 3 consensus sets and 10
+bigWigs. A full run takes about 95 s on a 4-core laptop once the conda
+environments exist. On the course data you get 24 and 64 CTCF peaks for the
+two replicates, and a CTCF consensus of 24.
+:::
+
+## Exercises
+
+::: {.callout-tip .exercise}
+## Exercise 4.1: Fix the rule
+
+This rule should write each sample's filtered read count, and send
+everything the tools print to its log. It fails. Find both problems.
+
+```{.python filename="Snakefile"}
+rule count_reads:
+    input:
+        bam = OUT + "/{sample}/{sample}_filtered.bam",
+    output:
+        OUT + "/{sample}/{sample}_read_count.txt",
+    log:
+        LOGS + "/count_reads/{sample}.log",
+    threads: 2
+    shell:
+        """
+        samtools view -c -@ {threads} {input.bam} | awk '{print "{wildcards.sample}", $1}' > {output} 2> {log}
+        """
+```
+
+[Answer](../answers/04-rules-that-behave-answers.qmd#ex-4.1)
+:::
+
+::: {.callout-tip .exercise}
+## Exercise 4.2: Add a log and a benchmark
+
+Take the `filter` rule from stopping point A and give it a `log:` and a
+`benchmark:` under `output/logs/filter/` and `output/benchmarks/filter/`.
+Every command's stderr should end up in the one log. Compare with stopping
+point B when you are done.
+
+[Answer](../answers/04-rules-that-behave-answers.qmd#ex-4.2)
+:::
+
+::: {.callout-tip .exercise}
+## Exercise 4.3: Read a benchmark
+
+Look at the `bowtie2_index` benchmark on this page. The rule has
+`threads: 4`. Did bowtie2-build use all four cores? Which two columns tell
+you? Then, after a full run of stopping point B, find the rule that used the
+most memory.
+
+[Answer](../answers/04-rules-that-behave-answers.qmd#ex-4.3)
+:::
+
+::: {.callout-tip .exercise}
+## Exercise 4.4: What does `--rerun-triggers mtime` change?
+
+Stopping point B has run to the end. You change `macs3: qvalue` from 0.01 to
+0.05 in the config. Predict what `snakemake -n` plans, then what
+`snakemake -n --rerun-triggers mtime` plans. Which result files would be
+wrong if you used the second one?
+
+[Answer](../answers/04-rules-that-behave-answers.qmd#ex-4.4)
+:::
+
+## Stopping point B
+
+::: {.callout-important .stopping-point}
+## Stopping point B: end of day 1
+
+`stopping-points/stopB/` is RegPipe at the end of day 1: the samplesheet and
+config, input functions for the controls, peaks, consensus peaks and bigWigs,
+and every rule with a log, a benchmark, threads, params and a conda
+environment. A dry run plans 51 jobs.
+
+Day 2 starts from here. If your own copy does not run, use this one:
+
+```bash
+cp -r stopping-points/stopB work/regpipe-B
+cd work/regpipe-B
+snakemake -n
+snakemake --cores 4 --sdm conda
+```
+:::
+
+## Key points
+
+- `log:` keeps each job's messages, even when it fails; you redirect into it.
+  `benchmark:` records time and memory per job.
+- `threads:` is what a job may use; pass it to the tool with `{threads}`.
+- Put settings in `params:`. Then a changed setting reruns the jobs that used
+  it, and only those.
+- `temp()` saves disk and costs a rerun later; `protected()` guards outputs
+  that are slow to rebuild.
+- `conda:` pins each rule's software. Keep conda on `PATH`, and expect one
+  full rerun the first time you switch to it (or use `--rerun-triggers mtime`).
+- Double the braces that belong to awk or bash: `{{` and `}}`.
+
+Day 2 starts with [Module 5, Running on a cluster](05-cluster.qmd).

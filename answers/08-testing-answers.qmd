@@ -1,0 +1,159 @@
+---
+title: "Module 8 answers: Testing and reproducibility"
+description: "Worked answers for the module 8 exercises: a test for a switch, CI for RegPipe, and what to do with the linter's findings."
+code-annotations: below
+---
+
+<!--
+8.1 and 8.3 were run in a scratch copy of course-pipeline (pytest 9.2.0, Snakemake 8.27.1).
+The GitHub Actions workflow in 8.2 was NOT run: there is no Actions runner here. It follows
+TTpipe's ci.yml, which runs on GitHub.
+-->
+
+Back to [Module 8](../lessons/08-testing.qmd).
+
+## Exercise 8.1: Test a switch {#ex-8.1}
+
+The helpers `dry_run()` and `job_counts()` are already in the file, so the
+test is short:
+
+```python
+def test_locus_plot_switch_removes_one_job(tmp_path):
+    """make_locus_plot=False drops the locus_plot job and nothing else."""
+    on = job_counts(dry_run(tmp_path))                               # <1>
+    r = dry_run(tmp_path, "make_locus_plot=False")                   # <2>
+    assert r.returncode == 0, r.stderr                               # <3>
+    off = job_counts(r)
+    assert "locus_plot" not in off
+    assert off["total"] == on["total"] - 1
+    assert {k: v for k, v in on.items() if k not in ("locus_plot", "total")} == \
+           {k: v for k, v in off.items() if k != "total"}            # <4>
+```
+1. The counts with the config as it is. Comparing with this, instead of with
+   61, keeps the test right when someone adds samples or turns `ttseq` off.
+2. `dry_run()` puts its extra arguments after `--config outputDir=...`, so this
+   becomes `--config outputDir=... make_locus_plot=False`.
+3. If the dry run fails, show Snakemake's error instead of a bare "assert False".
+4. Every other rule keeps its count. This is the part that catches a switch
+   that removes more than it should.
+
+With the test added, `python -m pytest tests/` reports `5 passed`.
+
+Change `False` to `false` and the test **fails** on `"locus_plot" not in off`:
+the dry run still has the plot, because `--config` passes `false` as text and
+`bool("false")` is `True`. The test is doing its job. It found the same trap
+module 6 showed, and that is the case for testing switches at all. A test
+like this also tells you that a learner (or you, in a year) typing the
+lower-case version will get the plot whether they want it or not. If that
+bothers you, make `common.smk` reject anything that is not a real boolean:
+
+```python
+MAKE_LOCUS_PLOT = config.get("make_locus_plot", True)
+if not isinstance(MAKE_LOCUS_PLOT, bool):                            # <1>
+    raise ValueError(f"make_locus_plot must be true or false, got {MAKE_LOCUS_PLOT!r} "
+                     "(on the command line, write False or True)")
+```
+1. YAML `true`/`false` in the config file and `True`/`False` on the command
+   line are booleans; the text `"false"` is not, and now stops the run with a
+   message that says how to fix it.
+
+## Exercise 8.2: CI for RegPipe {#ex-8.2}
+
+Start from TTpipe's workflow. Three things change: the folder, the launcher
+names, and the data.
+
+```yaml
+name: RegPipe tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: course-pipeline                          # <1>
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4                                   # <2>
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: course-pipeline/config/requirements.txt
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r config/requirements.txt pytest   # <3>
+
+      - name: Check launcher scripts parse
+        run: bash -n RegPipe.sh && bash -n unlock.sh
+
+      - name: Dry-run tests
+        run: python -m pytest -rs tests/                            # <4>
+
+      - name: Fail if any test was skipped
+        run: |
+          python -m pytest -q tests/ | tee pytest.out
+          ! grep -q skipped pytest.out                              # <5>
+```
+1. RegPipe lives in a subfolder of the course repository, so every `run:`
+   step starts there.
+2. The course data in `data/` are part of the repository (39 MB of FASTQ plus
+   a few MB of reference and GEO files), so a plain checkout has them. If the
+   data ever move out of git, this is where you would download them.
+3. `pandas` and `pyyaml` come with `requirements.txt`. No conda: a dry run
+   needs no tools.
+4. `-rs` prints the reason for every skip in the log.
+5. RegPipe's tests skip themselves when the data or Snakemake are missing.
+   That is right on a learner's laptop and wrong in CI, where a broken
+   checkout would then "pass" with zero tests run. This step makes a skip a
+   failure. (It runs the tests twice; for the course data that is seconds.)
+
+TTpipe does not need step 5, because its fixtures are in `tests/dryrun/` and
+its tests do not skip on missing data.
+
+## Exercise 8.3: Read the lint {#ex-8.3}
+
+The linter wants f-strings instead of `+`. For `fastqc`:
+
+```python
+rule fastqc:
+    input:
+        fastq = fastq,
+    output:
+        html = f"{OUT}/{{sample}}/fastqc/{{sample}}_fastqc.html",       # <1>
+        zip = f"{OUT}/{{sample}}/fastqc/{{sample}}_fastqc.zip",
+    log:
+        f"{LOGS}/fastqc/{{sample}}.log",
+    benchmark:
+        f"{BENCH}/fastqc/{{sample}}.tsv",
+    threads: 1
+    conda: f"{ENVS}/regpipe_align.yml"
+    params:
+        tmp = f"{OUT}/{{sample}}/fastqc/tmp",
+```
+1. In an f-string, `{OUT}` is Python's and is filled in now; `{{sample}}` comes
+   out as `{sample}`, which is Snakemake's wildcard. Forgetting to double the
+   braces is the usual mistake: `f"{OUT}/{sample}"` fails with
+   `NameError: name 'sample' is not defined`.
+
+The dry run still lists 61 jobs. The lint count drops from 156 to 145: all six
+"absolute path" findings for `fastqc` are gone, and five of the "path
+composition" ones.
+
+Is it worth doing everywhere? The findings are style, not bugs: `OUT` comes
+from the config, so nothing is hard-coded, and the paths work on any machine.
+But there are two good reasons to do it anyway. Once the 156 false alarms are
+gone, a new, real finding (a missing `log:`, a shell command using a global)
+stands out. And the f-string form is what ChromSimPipe already uses and what
+the Snakemake documentation shows, so the lab's pipelines would read the same.
+Do it in one pull request per rule file, with the dry-run tests passing after
+each. The field guide reaches the same conclusion for the three lab pipelines
+in [What `snakemake --lint` says](../field-guide/conventions.qmd#lint).
