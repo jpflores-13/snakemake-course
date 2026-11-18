@@ -128,7 +128,7 @@ Compare `cpu_time` with `s`. In the benchmark shown on the lesson page,
 bowtie2-build ran for a few seconds of wall-clock time and used roughly twice
 as many CPU seconds, so on average it kept about two cores busy, not four.
 `mean_load` says the same in percent (about 200, where 400 would be four full
-cores). The exact numbers change from run to run.<!-- VERIFY-DATA -->
+cores). The exact numbers change from run to run.
 
 That is normal for bowtie2-build on a small genome: parts of the build are
 single-threaded. `threads: 4` is still right, because the threaded parts get

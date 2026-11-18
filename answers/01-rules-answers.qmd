@@ -43,7 +43,7 @@ and Snakemake found the rest.
 
 ## Exercise 1.2: What reruns? {#ex-1.2}
 
-1. **Touching the aligned BAM**: nothing.
+1. Touching the aligned BAM plans nothing.
 
    ```text
    Nothing to be done (all requested files are present and up to date).
@@ -52,10 +52,10 @@ and Snakemake found the rest.
    A touched file is newer than before, but that only matters to jobs that
    *read* it. `align` wrote it, so `align` is still up to date (its inputs
    are older than its output). `fastqc` does not read it. If you had done
-   Exercise 1.1, `flagstat` would rerun, because its input is now newer than
-   its output.
+   Exercise 1.1, `flagstat` would now be out of date (its input is newer than
+   its output), and `snakemake -n flagstat` would plan it.
 
-2. **Touching the FASTQ**: both `align` and `fastqc`, one job each, with the
+2. Touching the FASTQ plans both `align` and `fastqc`, one job each, with the
    same reason:
 
    ```text
@@ -64,8 +64,8 @@ and Snakemake found the rest.
 
    Both rules read that file. `bowtie2_index` does not, so it is not planned.
 
-3. **Deleting `output/reference/` and running `snakemake -n` with no target**:
-   one job, `bowtie2_index`. With no target, Snakemake makes only the first
+3. Deleting `output/reference/` and running `snakemake -n` with no target
+   plans one job, `bowtie2_index`. With no target, Snakemake makes only the first
    rule's outputs. `align` now has missing inputs and is out of date, but you
    did not ask for its output, so it is not planned. Ask for
    `snakemake -n align` and you get two jobs.

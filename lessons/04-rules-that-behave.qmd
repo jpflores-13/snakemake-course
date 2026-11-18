@@ -178,9 +178,16 @@ nothing overwrites them by accident:
 
 ::: {.content-hidden when-format="revealjs"}
 After the job you see `Write-protecting output file ...` for each file. If a
-later run would rebuild them, Snakemake stops with an error instead of
-overwriting.<!-- VERIFY-DATA --> To rebuild on
-purpose, delete the files yourself. Use it for things that are slow to make
+later run would rebuild them, Snakemake stops before running anything:
+
+```
+ProtectedOutputException in rule bowtie2_index ...
+Write-protected output files for rule bowtie2_index:
+```
+
+The check works through file permissions, so it does not stop you if you run
+as root (in some containers you do). To rebuild on purpose, delete the files
+yourself. Use it for things that are slow to make
 and that many jobs depend on: an index, a big reference download. Rebuilding
 the index in stopping point B makes 40 jobs out of date (every `align`,
 everything after it, and `rule all`), so it is a good candidate. Stopping point B leaves

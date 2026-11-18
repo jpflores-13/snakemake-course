@@ -33,7 +33,6 @@ it with the experimental map (contact probability versus distance, loop pileups,
 
 <!-- GENERATE: chromsimpipe-rulegraph | pipelines/chromsimpipe | snakemake -s workflows/ChromSimPipe.snakefile --cores 1 --rulegraph -->
 
-
 If there is no graph above, or only a `MissingInputException`, that is the honest answer:
 Snakemake builds the graph from the job graph, the job graph needs the input files, and `data/` is
 empty in the repository (each cluster links its own files into it). In text, the order is the one
@@ -47,9 +46,9 @@ replicate × shard), `mergeShards` gathers the shards of each replicate, `analyz
 the replicates of each condition, and `benchmarkSummary` collects the timings.
 
 With the shipped config (one locus, three conditions, `n_replicates: 3`, `n_shards: 2`) that is
-18 `simulateShard` jobs, 9 `mergeShards` and 3 `analyzeCondition`. <!-- VERIFY-DATA -->
+18 `simulateShard` jobs, 9 `mergeShards` and 3 `analyzeCondition`.
 The test config (one condition, one replicate, one shard) is the "10-job smoke test" the code
-guide recommends running first on a new cluster. <!-- VERIFY-DATA -->
+guide recommends running first on a new cluster.
 
 ## A walk from inputs to outputs {#cs-walk}
 
@@ -255,7 +254,6 @@ cluster.
   and everything after them, without anyone deleting markers.
 - **Add a dry-run fixture and a CI job.** A tiny samplesheet and config under `tests/`, as in
   MicroCPipe and TTpipe, would let a dry run assert the 10-job and 39-job counts.
-  <!-- VERIFY-DATA -->
 - **Declare the merged folder as `directory()`.** Its name is known in the Snakefile
   (`merged_<params_name>_ctcf-<ctcf_type>_rep<N>`, all from `COND_LOOKUP`), so `mergeShards` could
   declare it and Snakemake would clear it before a rerun.
@@ -278,7 +276,7 @@ cluster.
 ## Short answers
 
 1. Per locus: 2 `orientCTCF` (one per CTCF sample), 1 `validateCTCF`, 18 `simulateShard`,
-   9 `mergeShards`, 3 `analyzeCondition`, so 33 more jobs. <!-- VERIFY-DATA --> `convertHic`,
+   9 `mergeShards`, 3 `analyzeCondition`, so 33 more jobs. `convertHic`,
    `getMotif`, `preparePolysim` and `benchmarkSummary` are shared and still run once.
 2. Nothing reruns: the markers exist, and nothing Snakemake tracks changed. Delete the
    `simulateShard_cond2_weak-ctcf_*`, `mergeShards_cond2_weak-ctcf_*` and
