@@ -1,0 +1,302 @@
+## RegPipe, stopping point B (end of module 4, end of day 1).
+##
+## FASTQ -> FastQC, filtered BAMs, MACS3 peaks (ChIP with its control, DNase without),
+## consensus peaks per target and bigWig tracks.
+## Samples come from the samplesheet, settings from config/RegConfig.yaml.
+## Run it from this folder:
+##   snakemake -n                          # dry run
+##   snakemake --cores 4 --use-conda       # each rule gets its own conda env from envs/
+
+import os
+import re
+import pandas as pd
+
+configfile: "config/RegConfig.yaml"
+
+OUT = config["outputDir"]
+LOGS = OUT + "/logs"
+BENCH = OUT + "/benchmarks"
+DATA = config["dataDir"]
+
+
+def data_path(path):
+    """A path from the samplesheet or config: relative ones are read from dataDir."""
+    return os.path.join(DATA, path)
+
+
+##### Samplesheet #####
+## keep_default_na=False: pandas would otherwise turn the text "NA" in the Control
+## column into a missing value (NaN), and "NA" is how the samplesheet says "no control".
+samples = pd.read_csv(config["samplesheet"], sep="\t", dtype=str, keep_default_na=False)
+
+## Sample name = the fileNamesFrom columns joined with '_' (e.g. HCT116_CTCF_1)
+samples["sample"] = samples[config["fileNamesFrom"]].agg("_".join, axis=1)
+samples["fastq"] = [data_path(os.path.join(d, f)) for d, f in zip(samples["Sequencing_Directory"], samples["Read1"])]
+
+SAMPLE_TABLE = samples.set_index("sample")
+SAMPLES = list(samples["sample"])
+
+## A sample is a control when another sample names it in its Control column.
+CONTROLS = [s for s in SAMPLES if s in set(samples["Control"])]
+## Peaks are called on every sample that is not a control (ChIP and DNase).
+PEAK_SAMPLES = [s for s in SAMPLES if s not in CONTROLS]
+## Targets with peaks (CTCF, H3K27ac, DNase) and their replicates
+TARGETS = list(dict.fromkeys(SAMPLE_TABLE.loc[PEAK_SAMPLES, "Target"]))
+SAMPLES_BY_TARGET = {t: [s for s in PEAK_SAMPLES if SAMPLE_TABLE.loc[s, "Target"] == t] for t in TARGETS}
+
+## Wildcards may only take these values. Without this, a pattern like
+## {sample}_peaks.narrowPeak could match a file name in more than one way.
+wildcard_constraints:
+    sample = "|".join(map(re.escape, SAMPLES)),
+    target = "|".join(map(re.escape, TARGETS)),
+
+WINDOW = config["window"]
+## deepTools writes regions as chrom:start:end (colons, not samtools' chrom:start-end)
+DEEPTOOLS_REGION = f"{WINDOW['chrom']}:{WINDOW['start']}:{WINDOW['end']}"
+
+
+##### Output files (one place, so the rules and `rule all` agree) #####
+def filtered_bam(sample):
+    return f"{OUT}/{sample}/{sample}_filtered.bam"
+
+
+def peak_file(sample):
+    return f"{OUT}/peaks/{sample}_peaks.narrowPeak"
+
+
+def consensus_file(target):
+    return f"{OUT}/consensus/{target}_consensus.bed"
+
+
+def bigwig_file(sample):
+    return f"{OUT}/tracks/{sample}.bw"
+
+
+##### Input functions #####
+def fastq(wildcards):
+    """The raw FASTQ of a sample, from the samplesheet (dataDir + Sequencing_Directory + Read1)."""
+    return SAMPLE_TABLE.loc[wildcards.sample, "fastq"]
+
+
+def control_bam(wildcards):
+    """The filtered BAM of this sample's control, or nothing when Control is NA (DNase).
+    Returning [] from an input function means "no input here", so the rule still runs."""
+    control = SAMPLE_TABLE.loc[wildcards.sample, "Control"]
+    if control == "NA":
+        return []
+    return filtered_bam(control)
+
+
+def macs3_args(wildcards):
+    """Extra MACS3 arguments for this sample's Target (config macs3: targetArgs:)."""
+    args = config["macs3"]["targetArgs"]
+    return args.get(SAMPLE_TABLE.loc[wildcards.sample, "Target"], args["default"])
+
+
+rule all:
+    input:
+        [f"{OUT}/{s}/fastqc/{s}_fastqc.html" for s in SAMPLES],
+        [filtered_bam(s) for s in SAMPLES],
+        [bigwig_file(s) for s in SAMPLES],
+        [peak_file(s) for s in PEAK_SAMPLES],
+        [consensus_file(target) for target in TARGETS],
+
+
+##### QC of the raw reads #####
+rule fastqc:
+    input:
+        fastq = fastq,
+    output:
+        html = OUT + "/{sample}/fastqc/{sample}_fastqc.html",
+        zip = OUT + "/{sample}/fastqc/{sample}_fastqc.zip",
+    log:
+        LOGS + "/fastqc/{sample}.log",
+    benchmark:
+        BENCH + "/fastqc/{sample}.tsv",
+    threads: 1
+    conda: "envs/regpipe_align.yml"
+    params:
+        tmp = OUT + "/{sample}/fastqc/tmp",
+    shell:
+        """
+        rm -rf {params.tmp} && mkdir -p {params.tmp}
+        fastqc --threads {threads} --outdir {params.tmp} {input.fastq} > {log} 2>&1
+        ## FastQC names its files after the FASTQ, which need not be the sample name
+        mv {params.tmp}/*_fastqc.html {output.html}
+        mv {params.tmp}/*_fastqc.zip {output.zip}
+        rm -rf {params.tmp}
+        """
+
+
+##### Reference index #####
+## bowtie2-build writes six index files that share one prefix; multiext() lists them.
+rule bowtie2_index:
+    input:
+        fasta = data_path(config["reference"]["fasta"]),
+    output:
+        multiext(OUT + "/reference/bowtie2_index/genome",
+                 ".1.bt2", ".2.bt2", ".3.bt2", ".4.bt2", ".rev.1.bt2", ".rev.2.bt2"),
+    log:
+        LOGS + "/bowtie2_index/bowtie2_index.log",
+    benchmark:
+        BENCH + "/bowtie2_index/bowtie2_index.tsv",
+    threads: 4
+    conda: "envs/regpipe_align.yml"
+    params:
+        prefix = OUT + "/reference/bowtie2_index/genome",
+    shell:
+        "bowtie2-build --threads {threads} {input.fasta} {params.prefix} > {log} 2>&1"
+
+
+## bowtie2 is given the index as a prefix (folder + basename), not as a folder
+INDEX_PREFIX = OUT + "/reference/bowtie2_index/genome"
+
+
+##### Alignment #####
+## The aligned BAM is temp(): Snakemake deletes it once `filter` has used it.
+## bowtie2 writes SAM to stdout; samtools sort reads it from the pipe.
+rule align:
+    input:
+        fastq = fastq,
+        index = rules.bowtie2_index.output,
+    output:
+        bam = temp(OUT + "/{sample}/{sample}_aligned.bam"),
+    log:
+        LOGS + "/align/{sample}.log",
+    benchmark:
+        BENCH + "/align/{sample}.tsv",
+    threads: 4
+    conda: "envs/regpipe_align.yml"
+    params:
+        index = INDEX_PREFIX,
+        args = config["bowtie2Args"],
+        tmp = OUT + "/{sample}/{sample}_sort_tmp",
+    shell:
+        """
+        bowtie2 -p {threads} {params.args} -x {params.index} -U {input.fastq} 2> {log} \
+            | samtools sort -@ {threads} -T {params.tmp} -o {output.bam} - 2>> {log}
+        """
+
+
+##### Filtering #####
+## 1. flagstat of everything bowtie2 wrote (unaligned reads included): reads in, reads aligned
+## 2. keep reads with MAPQ >= minMapq and none of the excludeFlags
+## 3. drop reads in ENCODE blacklist regions (bedtools intersect -v)
+## 4. remove PCR/optical duplicates (samtools markdup -r). These are single-end reads, so
+##    the coordinate-sorted BAM can go straight to markdup: `samtools fixmate -m` is
+##    only needed to add mate information to paired-end reads.
+rule filter:
+    input:
+        bam = OUT + "/{sample}/{sample}_aligned.bam",
+        blacklist = data_path(config["reference"]["blacklist"]),
+    output:
+        bam = OUT + "/{sample}/{sample}_filtered.bam",
+        bai = OUT + "/{sample}/{sample}_filtered.bam.bai",
+        flagstat = OUT + "/{sample}/{sample}_aligned_flagstat.tsv",
+        markdup = OUT + "/{sample}/{sample}_markdup.txt",
+    log:
+        LOGS + "/filter/{sample}.log",
+    benchmark:
+        BENCH + "/filter/{sample}.tsv",
+    threads: 2
+    conda: "envs/regpipe_align.yml"
+    params:
+        mapq = config["minMapq"],
+        flags = config["excludeFlags"],
+    shell:
+        """
+        samtools flagstat -@ {threads} -O tsv {input.bam} > {output.flagstat} 2> {log}
+        samtools view -u -q {params.mapq} -F {params.flags} {input.bam} 2>> {log} \
+            | bedtools intersect -v -abam stdin -b {input.blacklist} 2>> {log} \
+            | samtools markdup -r -f {output.markdup} -@ {threads} - {output.bam} 2>> {log}
+        samtools index {output.bam} 2>> {log}
+        """
+
+
+##### Peaks #####
+## MACS3 names its files after -n inside --outdir: <sample>_peaks.narrowPeak,
+## <sample>_peaks.xls and <sample>_summits.bed.
+## params.control uses `input`: the "-c" flag is only written when there is a control file.
+rule call_peaks:
+    input:
+        treatment = lambda wildcards: filtered_bam(wildcards.sample),
+        control = control_bam,
+    output:
+        peaks = OUT + "/peaks/{sample}_peaks.narrowPeak",
+        xls = OUT + "/peaks/{sample}_peaks.xls",
+        summits = OUT + "/peaks/{sample}_summits.bed",
+    log:
+        LOGS + "/call_peaks/{sample}.log",
+    benchmark:
+        BENCH + "/call_peaks/{sample}.tsv",
+    threads: 1
+    conda: "envs/regpipe_peaks.yml"
+    params:
+        outdir = lambda wildcards, output: os.path.dirname(output.peaks),
+        control = lambda wildcards, input: f"-c {input.control}" if input.control else "",
+        gsize = config["effectiveGenomeSize"],
+        qvalue = config["macs3"]["qvalue"],
+        keep_dup = config["macs3"]["keepDup"],
+        extra = macs3_args,
+    shell:
+        """
+        macs3 callpeak -t {input.treatment} {params.control} -f BAM \
+            -g {params.gsize} -q {params.qvalue} --keep-dup {params.keep_dup} {params.extra} \
+            -n {wildcards.sample} --outdir {params.outdir} > {log} 2>&1
+        """
+
+
+## Consensus peaks of one target: the peaks of the first replicate that overlap a
+## peak in every other replicate (bedtools intersect -u, once per other replicate).
+## Controls have no peaks, so they never get here (TARGETS excludes them).
+rule consensus_peaks:
+    input:
+        first = lambda wildcards: peak_file(SAMPLES_BY_TARGET[wildcards.target][0]),
+        others = lambda wildcards: [peak_file(s) for s in SAMPLES_BY_TARGET[wildcards.target][1:]],
+    output:
+        bed = OUT + "/consensus/{target}_consensus.bed",
+    log:
+        LOGS + "/consensus_peaks/{target}.log",
+    benchmark:
+        BENCH + "/consensus_peaks/{target}.tsv",
+    threads: 1
+    conda: "envs/regpipe_peaks.yml"
+    params:
+        tmp = OUT + "/consensus/{target}_consensus.tmp",
+    shell:
+        """
+        : > {log}
+        cut -f 1-6 {input.first} > {params.tmp}
+        for other in {input.others}; do
+            bedtools intersect -u -a {params.tmp} -b $other > {params.tmp}.next 2>> {log}
+            mv {params.tmp}.next {params.tmp}
+        done
+        sort -k1,1 -k2,2n {params.tmp} > {output.bed}
+        rm {params.tmp}
+        """
+
+
+##### Tracks #####
+## CPM-normalized coverage, only for the course window (--region), so the files stay small.
+rule bigwig:
+    input:
+        bam = lambda wildcards: filtered_bam(wildcards.sample),
+    output:
+        bw = OUT + "/tracks/{sample}.bw",
+    log:
+        LOGS + "/bigwig/{sample}.log",
+    benchmark:
+        BENCH + "/bigwig/{sample}.tsv",
+    threads: 2
+    conda: "envs/regpipe_tracks.yml"
+    params:
+        region = DEEPTOOLS_REGION,
+        bin_size = config["bigwig"]["binSize"],
+        norm = config["bigwig"]["normalizeUsing"],
+        extend_reads = config["bigwig"]["extendReads"],
+    shell:
+        """
+        bamCoverage -b {input.bam} -o {output.bw} -p {threads} \
+            --region {params.region} --binSize {params.bin_size} \
+            --normalizeUsing {params.norm} --extendReads {params.extend_reads} > {log} 2>&1
+        """

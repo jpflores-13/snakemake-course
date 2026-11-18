@@ -1,0 +1,15 @@
+name: regpipe_align
+## Raw-read QC, index, alignment and BAM filtering: fastqc, bowtie2_index, align,
+## split_fastq / align_chunk / merge_chunks (scatter) and filter.
+## conda-forge + bioconda only; set `conda config --set channel_priority strict`.
+## Pins checked to solve for linux-64 and osx-arm64 (see README.md).
+channels:
+  - conda-forge
+  - bioconda
+  - nodefaults
+dependencies:
+  - python=3.12
+  - fastqc=0.12.1
+  - bowtie2=2.5.5
+  - samtools=1.24
+  - bedtools=2.31.1

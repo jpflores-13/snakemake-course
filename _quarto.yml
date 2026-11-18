@@ -6,11 +6,23 @@ project:
   # only these are pages; everything else (SPEC.md, data/, course-pipeline/,
   # stopping-points/, snakemakeify/, pipelines/, README.md) is left alone
   render:
-    - "*.qmd"
+    - index.qmd
+    - schedule.qmd
+    - setup.qmd
+    - capstone.qmd
+    - glossary.qmd
+    - cheatsheet.qmd
+    - references.qmd
+    - about.qmd
     - "lessons/*.qmd"
     - "answers/*.qmd"
     - "exercises/*.qmd"
     - "field-guide/*.qmd"
+    - "!pipelines/"
+    - "!course-pipeline/"
+    - "!stopping-points/"
+    - "!snakemakeify/"
+    - "!data/"
     - "!SPEC.md"
     - "!README.md"
   resources:
@@ -19,11 +31,18 @@ project:
     - "LICENSE"
     - "LICENSE-code"
     - "envs/course.yml"
+    # small enough to serve as downloadable files next to the pages
+    - "course-pipeline/**"
+    - "!course-pipeline/output/**"
+    - "!course-pipeline/.snakemake/**"
+    - "snakemakeify/**"
 
 execute:
   freeze: auto
 
 lang: en-US
+language:
+  related-formats-title: "Also as"
 
 website:
   title: "Snakemake for genomics"
@@ -122,10 +141,6 @@ website:
       style: docked
       collapse-level: 2
       contents:
-        - text: "Schedule"
-          href: schedule.qmd
-        - text: "Setup"
-          href: setup.qmd
         - section: "Day 1"
           contents:
             - lessons/00-why.qmd
@@ -175,7 +190,7 @@ website:
         - field-guide/conventions.qmd
 
   page-footer:
-    left: "Snakemake for genomics, by JP Flores. Lessons [CC BY 4.0](about.qmd#license), code [MIT](about.qmd#license)."
+    left: "Snakemake for genomics, by JP Flores. Lessons [CC BY 4.0](/about.qmd#license), code [MIT](/about.qmd#license)."
     right:
       - text: Glossary
         href: glossary.qmd
@@ -214,5 +229,3 @@ format:
       - {format: revealjs, text: Slides, icon: easel}
       - {format: typst, text: PDF, icon: file-pdf}
       - docx
-    language:
-      other-formats-title: "Also as"

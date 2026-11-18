@@ -82,7 +82,7 @@ MAKE_LOCUS_PLOT = bool(config.get("make_locus_plot", True))
 OVERLAP_TARGET = config["overlapTarget"]
 if OVERLAP_TARGET not in TARGETS:
     raise ValueError(f"overlapTarget {OVERLAP_TARGET!r} is not a peak-called Target in the samplesheet {TARGETS}")
-for _t in config["locusPlot"]["targets"]:
+for _t in config["locusPlot"]["targets"] if MAKE_LOCUS_PLOT else []:
     if _t not in TARGETS:
         raise ValueError(f"locusPlot target {_t!r} is not a peak-called Target in the samplesheet {TARGETS}")
 

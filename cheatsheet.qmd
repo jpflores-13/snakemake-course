@@ -13,18 +13,19 @@ format:
       x: 1.2cm
       y: 1.1cm
     columns: 2
-    fontsize: 8pt
+    fontsize: 9pt
     mainfont: "Libertinus Serif"
     toc: false
     keep-typ: false
     include-in-header:
       text: |
-        #show heading.where(level: 2): it => block(above: 0.9em, below: 0.4em, text(size: 10pt, fill: rgb("#2c7bb6"), it.body))
-        #show heading.where(level: 3): it => block(above: 0.7em, below: 0.3em, text(size: 8.5pt, it.body))
-        #show raw: set text(size: 7pt)
-        #show table: set text(size: 7.4pt)
-        #set table(inset: (x: 3pt, y: 2pt), stroke: 0.4pt + luma(200))
-        #set par(spacing: 0.55em)
+        #show heading.where(level: 2): it => block(above: 0.9em, below: 0.4em, text(size: 11.5pt, fill: rgb("#2c7bb6"), it.body))
+        #show heading.where(level: 3): it => block(above: 0.7em, below: 0.3em, text(size: 9.5pt, it.body))
+        #show raw: set text(size: 8pt)
+        #show table: set text(size: 8.6pt)
+        #show table: set par(justify: false)
+        #set table(inset: (x: 3.5pt, y: 2.6pt), stroke: 0.4pt + luma(200))
+        #set par(spacing: 0.55em, justify: false)
 ---
 
 ::: {.content-visible when-format="html"}
@@ -38,7 +39,7 @@ letter or A4 pages (*Also as: PDF*, right). Everything here is Snakemake
 ## Running
 
 | Command | Does |
-|:--|:--|
+|:-------------------------|:-------------------|
 | `snakemake -n` | dry run: list jobs, run nothing |
 | `snakemake -n -p` | dry run and print each shell command |
 | `snakemake -c 4` | run with up to 4 cores (`-c` is required) |
@@ -55,7 +56,7 @@ letter or A4 pages (*Also as: PDF*, right). Everything here is Snakemake
 ## Config and profiles
 
 | Command | Does |
-|:--|:--|
+|:-------------------------|:-------------------|
 | `--configfile config/test.yaml` | load (or overlay) a config file |
 | `--config minMapq=20 outputDir=out2` | set single config values |
 | `--profile profiles/longleaf` | options from `profiles/longleaf/config.yaml` |
@@ -66,9 +67,9 @@ letter or A4 pages (*Also as: PDF*, right). Everything here is Snakemake
 ## Looking inside
 
 | Command | Shows |
-|:--|:--|
-| `--dag \| dot -Tsvg > dag.svg` | the graph of jobs |
-| `--rulegraph \| dot -Tsvg > rules.svg` | the graph of rules (one box each) |
+|:-------------------------|:-------------------|
+| `--dag` | the graph of jobs (dot text) |
+| `--rulegraph` | the graph of rules (one box each) |
 | `--list-rules` | every rule name |
 | `--summary` | every output: date, rule, status, plan |
 | `--list-changes code` | outputs whose rule code changed |
@@ -78,6 +79,8 @@ letter or A4 pages (*Also as: PDF*, right). Everything here is Snakemake
 | `--debug-dag` | why each job was (not) chosen |
 | `--show-failed-logs` | print the log of a failed job |
 
+Draw a graph: `snakemake --dag | dot -Tsvg > dag.svg`
+
 ## Why did it rerun?
 
 A job runs when an output is **missing**, **older** than an input, or when its
@@ -85,36 +88,59 @@ A job runs when an output is **missing**, **older** than an input, or when its
 (`--rerun-triggers` picks which count). The `reason:` line of a dry run says
 which one. To accept a change without rerunning: `snakemake --touch`.
 
+## Common errors
+
+| Message | Usually means |
+|:-------------------------|:-------------------|
+| `MissingInputException` | an input file does not exist and no rule makes it: check the path and wildcards |
+| `MissingOutputException` | the job finished but did not write an output (check its `log`) |
+| `WildcardError` | a wildcard in `input`/`log` is not in `output` |
+| `AmbiguousRuleException` | two rules can make the same file: `ruleorder` or `wildcard_constraints` |
+| `CyclicGraphException` | a rule's output matches its own input pattern |
+| `LockException` | another run is active, or one crashed: `--unlock` |
+| `IncompleteFilesException` | a run was killed mid-job: `--rerun-incomplete` |
+| `Nothing to be done` | every target is up to date |
+
+:::
+
+```{=typst}
+#pagebreak()
+```
+
+::: {.cheatsheet-columns}
+
 ## A rule
 
 ```python
 rule align:
     input:
         fq="data/fastq/{sample}.fastq.gz",
-        idx="output/index/chr8.1.bt2",
+        idx=multiext("idx/chr8", ".1.bt2", ".2.bt2"),
     output:
-        temp("output/{sample}/{sample}.unsorted.bam"),
+        temp("output/{sample}/aligned.bam"),
     params:
-        idx=lambda wc, input: input.idx[:-6],
+        prefix="idx/chr8",
+        args=config["bowtie2Args"],
     log:
         "output/logs/align/{sample}.log",
     benchmark:
         "output/benchmarks/align/{sample}.tsv"
     threads: 4
     resources:
-        mem_mb=8000, runtime=120,
+        mem_mb=8000,
+        runtime=120,
     conda:
         "../envs/regpipe_align.yml"
     shell:
-        "bowtie2 -p {threads} -x {params.idx} "
-        "-U {input.fq} 2> {log} "
-        "| samtools view -b -o {output} -"
+        "bowtie2 -p {threads} {params.args} "
+        "-x {params.prefix} -U {input.fq} 2> {log} "
+        "| samtools sort -o {output} - 2>> {log}"
 ```
 
 ## Directives
 
 | Directive | Holds |
-|:--|:--|
+|:----------------------|:----------------------|
 | `input:` / `output:` | files; named (`fq=`) or positional |
 | `params:` | non-file values; may use `wildcards`, `config` |
 | `log:` | per-job log file(s); redirect to `{log}` |
@@ -132,7 +158,7 @@ rule align:
 ## Helpers
 
 | Function | Use |
-|:--|:--|
+|:-------------------------|:------------------|
 | `expand("{s}.bam", s=SAMPLES)` | list of files from a pattern |
 | `temp(f)` | delete once no job needs it |
 | `protected(f)` | write-protect after creation |
