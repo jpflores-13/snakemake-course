@@ -32,3 +32,6 @@ format:
     footer: "Snakemake for genomics"
     toc: false
     link-external-newwindow: true
+
+filters:
+  - ../_filters/slides-link.lua

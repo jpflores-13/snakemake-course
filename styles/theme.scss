@@ -137,3 +137,12 @@ dl.glossary, .glossary dl {
   dt { margin-top: 0.8rem; }
 }
 .glossary dt { font-weight: 600; }
+
+/* Link to the slide version at the top of each lesson page */
+.slides-link p {
+  margin: 0 0 1rem 0;
+  font-size: 0.95rem;
+}
+.slides-link a::before {
+  content: "\25B6\00A0";
+}
