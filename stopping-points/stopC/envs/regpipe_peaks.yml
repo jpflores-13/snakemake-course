@@ -1,0 +1,14 @@
+name: regpipe_peaks
+## Peak calling and peak-based QC: call_peaks, consensus_peaks, frip, qc_table,
+## ctcf_rad21_overlap. pysam and pandas are for the `script:` rules.
+## Pins checked to solve for linux-64 and osx-arm64 (see README.md).
+channels:
+  - conda-forge
+  - bioconda
+  - nodefaults
+dependencies:
+  - python=3.12
+  - macs3=3.1.0
+  - bedtools=2.31.1
+  - pysam=0.24.0
+  - pandas=2.3

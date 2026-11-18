@@ -42,10 +42,10 @@ rule bigwig:
         "results/tracks/{sample}.bw",
     params:
         binsize=config["bigwig"]["binsize"],
-        extend=config["bigwig"]["extend"],
+        extend_reads=config["bigwig"]["extend"],
     log:
         "results/logs/bigwig/{sample}.log",
     threads: 4
     shell:
         "bamCoverage -b {input.bam} -o {output} --normalizeUsing CPM"
-        " --binSize {params.binsize} --extendReads {params.extend} -p {threads} 2> {log}"
+        " --binSize {params.binsize} --extendReads {params.extend_reads} -p {threads} 2> {log}"

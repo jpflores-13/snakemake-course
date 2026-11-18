@@ -1,0 +1,70 @@
+## UNC Longleaf (SLURM). Select it with `export REGPIPE_PROFILE=profiles/longleaf` in ~/.bashrc.
+executor: slurm
+jobs: 100
+## Upper bound for a rule's `threads`. Without it Snakemake caps `threads` at the CPUs of the
+## launcher job (often only 1-3), so `align` would run with a few threads instead of the 8 set below.
+cores: 100
+latency-wait: 500
+software-deployment-method: conda
+
+default-resources:
+  slurm_account: <account>        # <- your SLURM account (`sacctmgr show assoc user=$USER`); delete the line if your site has none
+  slurm_partition: general
+  runtime: 720
+  mem_mb: 8000
+  nodes: 1
+## SLURM job logs go to <outputDir>/logs_slurm (--slurm-logdir in RegPipe.sh)
+
+## Per-rule threads / memory / time in minutes (rules carry no resources of their own
+## besides a default `threads:`). The course data are small; for whole-genome data raise
+## align, bowtie2_index and call_peaks first.
+set-threads:
+  fastqc: 2
+  bowtie2_index: 8
+  align: 8
+  filter: 4
+  call_peaks: 1
+  consensus_peaks: 1
+  bigwig: 4
+  frip: 1
+  qc_table: 1
+  ctcf_rad21_overlap: 1
+  locus_plot: 1
+  enhancer_activity: 1
+set-resources:
+  fastqc:
+    runtime: 120
+    mem_mb: 4000
+  bowtie2_index:
+    runtime: 240
+    mem_mb: 16000
+  align:
+    runtime: 720
+    mem_mb: 16000
+  filter:
+    runtime: 240
+    mem_mb: 8000
+  call_peaks:
+    runtime: 240
+    mem_mb: 8000
+  consensus_peaks:
+    runtime: 30
+    mem_mb: 2000
+  bigwig:
+    runtime: 120
+    mem_mb: 8000
+  frip:
+    runtime: 60
+    mem_mb: 2000
+  qc_table:
+    runtime: 15
+    mem_mb: 2000
+  ctcf_rad21_overlap:
+    runtime: 15
+    mem_mb: 2000
+  locus_plot:
+    runtime: 60
+    mem_mb: 8000
+  enhancer_activity:
+    runtime: 60
+    mem_mb: 8000

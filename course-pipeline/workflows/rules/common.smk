@@ -86,6 +86,21 @@ for _t in config["locusPlot"]["targets"] if MAKE_LOCUS_PLOT else []:
     if _t not in TARGETS:
         raise ValueError(f"locusPlot target {_t!r} is not a peak-called Target in the samplesheet {TARGETS}")
 
+## TT-seq: one entry per bigWig, e.g. {"track": "TTseq_1_plus", "strand": "plus", "path": ...}
+TTSEQ = config.get("ttseq", {}) or {}
+TTSEQ_ENABLED = bool(TTSEQ.get("enabled", False))
+TTSEQ_TRACKS = []
+if TTSEQ_ENABLED:
+    for _rep, _strands in TTSEQ["bigwigs"].items():
+        for _strand, _path in _strands.items():
+            if _strand not in ("plus", "minus"):
+                raise ValueError(f"ttseq bigwigs: strand must be plus or minus, got {_strand!r} for {_rep}")
+            TTSEQ_TRACKS.append({"track": f"{_rep}_{_strand}", "strand": _strand, "path": data_path(_path)})
+    for _t in TTSEQ["overlapTargets"]:
+        if _t not in TARGETS:
+            raise ValueError(f"ttseq overlapTargets: {_t!r} is not a peak-called Target in the samplesheet {TARGETS}")
+TTSEQ_ANNOTATIONS = {name: data_path(p) for name, p in TTSEQ.get("annotations", {}).items()} if TTSEQ_ENABLED else {}
+
 WINDOW = config["window"]
 ## deepTools writes regions as chrom:start:end (colons, not samtools' chrom:start-end)
 DEEPTOOLS_REGION = f"{WINDOW['chrom']}:{WINDOW['start']}:{WINDOW['end']}"
@@ -122,6 +137,8 @@ def all_targets():
     t += [f"{OUT}/qc/qc_table.tsv", f"{OUT}/qc/ctcf_rad21_overlap.tsv"]
     if MAKE_LOCUS_PLOT:
         t.append(LOCUS_PLOT)
+    if TTSEQ_ENABLED:
+        t.append(f"{OUT}/qc/enhancer_activity.tsv")
     return t
 
 

@@ -1,0 +1,51 @@
+## Run everything on the current machine (a laptop or one interactive node): no scheduler.
+## Start with: bash RegPipe.sh
+cores: all
+software-deployment-method: conda
+latency-wait: 60
+
+## Global limit: the memory (MB) Snakemake may hand out to jobs running at the same time.
+## 6000 suits an 8 GB laptop; raise it on a bigger machine.
+resources:
+  - mem_mb=6000
+
+## Per-rule threads and memory (rules carry no resources of their own besides a default
+## `threads:`). With `cores: all`, Snakemake caps each rule's threads at the cores you have.
+set-threads:
+  fastqc: 1
+  bowtie2_index: 4
+  align: 4
+  filter: 2
+  call_peaks: 1
+  consensus_peaks: 1
+  bigwig: 2
+  frip: 1
+  qc_table: 1
+  ctcf_rad21_overlap: 1
+  locus_plot: 1
+  enhancer_activity: 1
+set-resources:
+  fastqc:
+    mem_mb: 1000
+  bowtie2_index:
+    mem_mb: 2000
+  align:
+    mem_mb: 2000
+  filter:
+    mem_mb: 1000
+  call_peaks:
+    mem_mb: 2000
+  consensus_peaks:
+    mem_mb: 500
+  bigwig:
+    mem_mb: 1000
+  frip:
+    mem_mb: 500
+  qc_table:
+    mem_mb: 500
+  ctcf_rad21_overlap:
+    mem_mb: 500
+  locus_plot:
+    mem_mb: 3000
+  enhancer_activity:
+    mem_mb: 3000

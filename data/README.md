@@ -59,15 +59,23 @@ data/
 | HCT116_DNase_1 | DNase-seq | ENCSR000ENM | ENCFF166PCV | 36 |
 | HCT116_DNase_2 | DNase-seq | ENCSR000ENM | ENCFF619LVU | 36 |
 
-Read counts per file are in `manifest.tsv` (column `read_count`).
+Read counts per file are in `manifest.tsv` (column `read_count`). As a
+check, aligning `HCT116_CTCF_1` and `HCT116_DNase_1` back to
+`chr8_course.fa.gz` with bowtie2 defaults gave 99.99% and 99.77% overall
+alignment.
 
 How each FASTQ was made:
 
 1. Download the GRCh38 **unfiltered alignments** BAM of one biological
    replicate from the experiment's ENCODE default analysis, and check its md5
    against the ENCODE metadata.
-2. Index it and keep the alignments that overlap the window
-   (`samtools view -F 0x980 bam chr8:125000000-130000000`). `-F 0x980` drops
+2. Keep the alignments that overlap the window. The ChIP-seq BAMs are
+   sorted by position, so they are indexed and queried by region
+   (`samtools view -F 0x980 bam chr8:125000000-130000000`). ENCODE's DNase-seq
+   BAMs are sorted by read name and cannot be indexed, so they are read from
+   start to end and filtered with the same window as a BED file
+   (`samtools view -F 0x980 -L window.bed bam`). Both give every alignment that
+   overlaps the window. `-F 0x980` drops
    secondary and supplementary records, so each read appears once, and drops
    read 2. All ten BAMs are single-end, so in practice no reads are lost to
    that rule; it only matters if a paired-end BAM is ever added.
@@ -82,14 +90,15 @@ each step remove reads.
 
 Things to know about these reads:
 
-- They are in coordinate order, because they came out of sorted BAMs.
-  Aligners do not care.
+- ChIP-seq reads are in coordinate order and DNase-seq reads in read-name
+  order, because that is how the source BAMs were sorted. Aligners do not care.
 - A read was kept if its ENCODE alignment overlapped the window, so a few reads
   at the edges hang over into the masked part of the reference. They align with
   a lower score or not at all. This touches only the outer read length of each
   end of a 5 Mb window.
-- ENCODE trimmed the CTCF reads to 50 bp before alignment (the BAM header shows
-  a `crop_50` step), so they are 50 bp, not the original length.
+- ENCODE's ChIP-seq pipeline crops reads to a fixed length before alignment
+  (the header of ENCFF321CBF shows a `crop_50` step), so read lengths are the
+  mapped lengths in the table above, which may be shorter than sequenced.
 
 ### Samplesheet (`samplesheet.txt`)
 
@@ -118,8 +127,10 @@ coordinates and line up with ENCODE, UCSC and GEO files. Inside the window
 the bases are exactly as UCSC wrote them, including lowercase soft-masked
 repeats. The file is bgzip-compressed, so `samtools faidx` works on it.
 
-Building the bowtie2 index of this file takes TIME_PLACEHOLDER on 4 cores
-here (`bowtie2-build --threads 4`), because the aligner skips the runs of `N`.
+Building the bowtie2 index of this file took 6.4 seconds with
+`bowtie2-build --threads 4` (bowtie2 2.5.5, 4-core Linux machine), because
+the runs of `N` are skipped. The index is about 15 MB. It is not shipped:
+building it is part of the course pipeline.
 
 `blacklist.bed.gz` is the ENCODE GRCh38 exclusion list ENCFF356LFX
 (annotation ENCSR636HFF), copied unchanged, all chromosomes.
@@ -216,7 +227,7 @@ snakemake -s data/prepare/Snakefile --cores 4
 The workflow uses Snakemake 8.27.1. It downloads about 18 GB of BAMs, at most
 two at a time (`--resources download=N` changes that), into
 `prepare/work/`, and deletes each BAM once its reads are extracted. Peak
-disk use stays under about 7 GB. `prepare/work/` and `.snakemake/` are
+disk use stays under about 6 GB. `prepare/work/` and `.snakemake/` are
 gitignored.
 
 If Snakemake 8.27.1 fails after a job with "Error running conda info", the

@@ -1,4 +1,4 @@
-# Exercise 9 solution: run_all.sh as one Snakefile.
+# Exercise 10 solution: run_all.sh as one Snakefile.
 # Run from your working folder (the one with the data/ link in it):
 #   snakemake -s path/to/answers/snakemakeify/Snakefile -c 4
 import pandas as pd
@@ -38,6 +38,7 @@ rule all:
         "results/sweep/sweep_counts.tsv",
         "results/overlap/counts.txt",
         "results/figures/MYC_locus.pdf",
+        "results/ttseq/ttseq_enhancers_all.tsv",
 
 
 # ---- 01_fastqc.sh ------------------------------------------------
@@ -141,13 +142,13 @@ rule bigwig:
         "results/tracks/{sample}.bw",
     params:
         binsize=config["bigwig"]["binsize"],
-        extend=config["bigwig"]["extend"],
+        extend_reads=config["bigwig"]["extend"],
     log:
         "results/logs/bigwig/{sample}.log",
     threads: 4
     shell:
         "bamCoverage -b {input.bam} -o {output} --normalizeUsing CPM"
-        " --binSize {params.binsize} --extendReads {params.extend} -p {threads} 2> {log}"
+        " --binSize {params.binsize} --extendReads {params.extend_reads} -p {threads} 2> {log}"
 
 
 # ---- 04_call_peaks.sh --------------------------------------------
@@ -198,11 +199,13 @@ rule sweep_call:
         "results/sweep/{sample}_q{q}_peaks.narrowPeak",
     params:
         gsize=config["macs3"]["gsize"],
+        options=config["macs3"]["with_control"],
     log:
         "results/logs/sweep/{sample}_q{q}.log",
     shell:
-        "macs3 callpeak -t {input.treatment} -c {input.control} -f BAM -g {params.gsize}"
-        " -n {wildcards.sample}_q{wildcards.q} --outdir results/sweep -q {wildcards.q} 2> {log}"
+        "macs3 callpeak -t {input.treatment} -c {input.control} {params.options} -f BAM"
+        " -g {params.gsize} -q {wildcards.q}"
+        " -n {wildcards.sample}_q{wildcards.q} --outdir results/sweep 2> {log}"
 
 
 rule sweep_counts:
@@ -302,3 +305,40 @@ rule locus_plot:
         "results/logs/locus_plot.log",
     script:
         "scripts/locus_plot.R"
+
+
+# ---- 09_ttseq_enhancers.R ----------------------------------------
+TT = config["ttseq"]
+
+
+wildcard_constraints:
+    rep=r"\d+",
+    strand="|".join(TT["strands"]),
+
+
+rule ttseq_signal:
+    input:
+        bigwig=f"{DATA}/{TT['bigwig']}",
+        enhancers=f"{DATA}/{TT['enhancers']}",
+    output:
+        "results/ttseq/rep{rep}_{strand}.tsv",
+    log:
+        "results/logs/ttseq/rep{rep}_{strand}.log",
+    script:
+        "scripts/ttseq_signal.R"
+
+
+rule ttseq_tables:
+    input:
+        expand("results/ttseq/rep{rep}_{strand}.tsv",
+               rep=TT["reps"], strand=TT["strands"]),
+    output:
+        reps=expand("results/ttseq/ttseq_enhancers_rep{rep}.tsv", rep=TT["reps"]),
+        combined="results/ttseq/ttseq_enhancers_all.tsv",
+    params:
+        reps=TT["reps"],
+        strands=TT["strands"],
+    log:
+        "results/logs/ttseq/tables.log",
+    script:
+        "scripts/ttseq_tables.R"

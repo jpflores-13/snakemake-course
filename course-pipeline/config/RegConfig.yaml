@@ -112,6 +112,30 @@ locusPlot:
   assembly: 'hg38'
   genesGtf: ''
 
+## ---- TT-seq and transcribed enhancers (GEO GSE152291, Lidschreiber et al. 2021) ----
+## Processed files from GEO, not made by this pipeline: strand-specific TT-seq
+## coverage (newly made RNA) and the authors' enhancer / eRNA annotations for HCT116.
+## When enabled, the locus plot shows them and `enhancer_activity` writes a table of
+## TT-seq signal per enhancer / eRNA with the peaks that overlap each one.
+## Paths are relative to dataDir. List only the files you have: a replicate may
+## have one strand or both.
+ttseq:
+  enabled: true
+  bigwigs:
+    TTseq_1:
+      plus: 'geo/TTseq_HCT116_1_plus.bw'
+      minus: 'geo/TTseq_HCT116_1_minus.bw'
+    TTseq_2:
+      plus: 'geo/TTseq_HCT116_2_plus.bw'
+      minus: 'geo/TTseq_HCT116_2_minus.bw'
+  ## Annotation sets (GTF), by name; each becomes a track and a block of table rows
+  annotations:
+    enhancers: 'geo/TTseq_HCT116_enhancers.gtf.gz'
+    eRNAs: 'geo/TTseq_HCT116_eRNAs.gtf.gz'
+  ## Targets whose consensus peaks are checked for overlap with each enhancer / eRNA
+  ## (the ENCODE RAD21 peaks from encodePeaks: are always checked too)
+  overlapTargets: ['H3K27ac', 'DNase', 'CTCF']
+
 ## ---- Email notifications ---------------------------------------------------
 ## One email when the workflow starts, one when it finishes, one if a job fails.
 ## Prefer `export REGPIPE_EMAIL=you@university.edu` in ~/.bashrc: it keeps your

@@ -4,7 +4,7 @@
 # Writes sweep/<sample>_q<q>_peaks.narrowPeak and sweep/sweep_counts.tsv
 #   bash 05_qvalue_sweep.sh   (after 03_filter.sh)
 
-GSIZE=hs
+GSIZE=5000001
 CONTROL=HCT116_input-CTCF_1
 QVALUES="0.05 0.01 0.001 0.0001"
 
@@ -17,7 +17,8 @@ for s in HCT116_CTCF_1 HCT116_CTCF_2; do
         fi
         echo "$s q=$q"
         macs3 callpeak -t $s.filt.bam -c $CONTROL.filt.bam -f BAM -g $GSIZE \
-            -n ${s}_q${q} --outdir sweep -q $q 2> sweep/${s}_q${q}.macs3.log
+            -n ${s}_q${q} --outdir sweep -q $q --keep-dup all --nomodel --extsize 200 \
+            2> sweep/${s}_q${q}.macs3.log
     done
 done
 

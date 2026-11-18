@@ -1,0 +1,11 @@
+Project	Cell_Type	Assay	Target	Bio_Rep	Control	Read1	Sequencing_Directory
+CourseData	HCT116	ChIP-seq	CTCF	1	HCT116_input-CTCF_1	HCT116_CTCF_1.fastq.gz	data/fastq/
+CourseData	HCT116	ChIP-seq	CTCF	2	HCT116_input-CTCF_2	HCT116_CTCF_2.fastq.gz	data/fastq/
+CourseData	HCT116	ChIP-seq	H3K27ac	1	HCT116_input-H3K27ac_1	HCT116_H3K27ac_1.fastq.gz	data/fastq/
+CourseData	HCT116	ChIP-seq	H3K27ac	2	HCT116_input-H3K27ac_2	HCT116_H3K27ac_2.fastq.gz	data/fastq/
+CourseData	HCT116	ChIP-seq	input-CTCF	1	NA	HCT116_input-CTCF_1.fastq.gz	data/fastq/
+CourseData	HCT116	ChIP-seq	input-CTCF	2	NA	HCT116_input-CTCF_2.fastq.gz	data/fastq/
+CourseData	HCT116	ChIP-seq	input-H3K27ac	1	NA	HCT116_input-H3K27ac_1.fastq.gz	data/fastq/
+CourseData	HCT116	ChIP-seq	input-H3K27ac	2	NA	HCT116_input-H3K27ac_2.fastq.gz	data/fastq/
+CourseData	HCT116	DNase-seq	DNase	1	NA	HCT116_DNase_1.fastq.gz	data/fastq/
+CourseData	HCT116	DNase-seq	DNase	2	NA	HCT116_DNase_2.fastq.gz	data/fastq/

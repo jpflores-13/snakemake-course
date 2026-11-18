@@ -1,0 +1,16 @@
+## Results and run state
+output/
+output_*/
+logs_slurm/
+*.out
+.snakemake/
+
+## The launcher's virtual environment
+env/
+
+## Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+.DS_Store

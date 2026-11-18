@@ -97,18 +97,22 @@ rule download_bam:
         """
 
 
-rule index_bam:
-    input:
-        f"{SCRATCH}/bam/{{file}}.bam",
+rule window_bed:
     output:
-        temp(f"{SCRATCH}/bam/{{file}}.bam.bai"),
-    priority: 10
-    conda:
-        "envs/prepare.yml"
+        f"{SCRATCH}/window.bed",
+    params:
+        chrom=W["chrom"],
+        start0=W["start"] - 1,
+        end=W["end"],
     shell:
-        "samtools index {input}"
+        "printf '%s\\t%s\\t%s\\n' {params.chrom} {params.start0} {params.end} > {output}"
 
 
+# Coordinate-sorted BAMs (the ChIP-seq ones) are indexed and queried by
+# region. ENCODE's DNase-seq BAMs are sorted by read name and cannot be
+# indexed, so for those the whole BAM is streamed and filtered with the same
+# window as a BED file (-L). Both keep every alignment that overlaps the window.
+#
 # -F 0x980 drops read 2 (0x80), secondary (0x100) and supplementary (0x800)
 # records. Single-end reads carry none of these flags, so they all pass; for a
 # paired BAM only read 1 would be kept. samtools fastq reverse-complements
@@ -117,11 +121,13 @@ rule index_bam:
 rule bam_to_fastq:
     input:
         bam=lambda wc: f"{SCRATCH}/bam/{SAMPLES[wc.sample]['file']}.bam",
-        bai=lambda wc: f"{SCRATCH}/bam/{SAMPLES[wc.sample]['file']}.bam.bai",
+        bed=f"{SCRATCH}/window.bed",
     output:
         "fastq/{sample}.fastq.gz",
     params:
         region=REGION,
+        bai=lambda wc: f"{SCRATCH}/bam/{SAMPLES[wc.sample]['file']}.bam.bai",
+        window_bam=lambda wc: f"{SCRATCH}/bam/{wc.sample}.window.bam",
     threads: 2
     priority: 10
     log:
@@ -130,9 +136,17 @@ rule bam_to_fastq:
         "envs/prepare.yml"
     shell:
         """
-        samtools view -u -F 0x980 {input.bam} {params.region} \
-          | samtools fastq -n - 2> {log} \
-          | bgzip -@ {threads} -c > {output}
+        order=$(samtools view -H {input.bam} | awk -F '\\t' '$1 == "@HD" {{for (i = 2; i <= NF; i++) if ($i ~ /^SO:/) print substr($i, 4)}}')
+        echo "BAM sort order: $order" > {log}
+        if [ "$order" = "coordinate" ]; then
+            samtools index -@ {threads} {input.bam} {params.bai}
+            samtools view -u -F 0x980 {input.bam} {params.region} > {params.window_bam}
+            rm {params.bai}
+        else
+            samtools view -u -F 0x980 -L {input.bed} {input.bam} > {params.window_bam}
+        fi
+        samtools fastq -n {params.window_bam} 2>> {log} | bgzip -@ {threads} -c > {output}
+        rm {params.window_bam}
         """
 
 

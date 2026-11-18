@@ -4,8 +4,10 @@
 ## holds the rule's input, output, params and log, e.g. snakemake@input$bigwigs.
 ## There are no command-line arguments.
 ##
-## Tracks, top to bottom: one signal track per sample (bigWig, CPM), one consensus
-## peak track per target, the ENCODE RAD21 peaks, the genes, the genome axis.
+## Tracks, top to bottom: one signal track per sample (bigWig, CPM), TT-seq signal per
+## replicate and strand, one consensus peak track per target, the ENCODE RAD21 peaks,
+## the enhancer / eRNA annotations, the genes, the genome axis. The TT-seq and
+## annotation tracks are only drawn when ttseq: is enabled in the config.
 
 ## Send messages and warnings to the rule's log file
 log <- file(snakemake@log[[1]], open = "wt")
@@ -64,6 +66,19 @@ if (length(genes_gtf) > 0) {
   genes_assembly <- p$assembly
 }
 
+## TT-seq (optional, config ttseq:): one track per bigWig (replicate x strand), and the
+## enhancer / eRNA annotation sets. Empty when ttseq is disabled.
+ttseq_tracks <- unlist(p$ttseq_tracks)
+ttseq_strands <- unlist(p$ttseq_strands)
+ttseq <- lapply(unlist(snakemake@input$ttseq), \(f) import(f, which = window))
+names(ttseq) <- ttseq_tracks
+## One y-axis per strand: highly transcribed genes (MYC is on the plus strand) would
+## otherwise flatten the other strand
+ttseq_top <- vapply(ttseq, \(s) max(s$score, 0), numeric(1))
+strand_max <- tapply(ttseq_top, ttseq_strands, max)
+annotations <- lapply(unlist(snakemake@input$annotations), \(f) import(f, format = "gtf"))
+names(annotations) <- unlist(p$annotation_names)
+
 message("Signal tracks: ", length(signals), "; consensus peaks: ",
         paste(names(consensus), lengths(consensus), sep = "=", collapse = ", "),
         "; RAD21 peaks in window: ", length(rad21))
@@ -74,7 +89,7 @@ width <- 5.9
 signal_h <- 0.45
 peak_h <- 0.15
 gap <- 0.08
-n_tracks <- length(signals) + length(consensus) + 1
+n_tracks <- length(signals) + length(ttseq) + length(consensus) + length(annotations) + 1
 page_h <- 0.6 + n_tracks * (signal_h + gap) + 1.6
 
 pdf(snakemake@output$pdf, width = 7.5, height = page_h)
@@ -106,6 +121,18 @@ for (s in samples) {
   y <- y + signal_h + gap
 }
 
+## ---- TT-seq tracks: plus strand in red, minus strand in blue --------------------------
+strand_color <- c(plus = "#B2182B", minus = "#2166AC")
+for (i in seq_along(ttseq)) {
+  top <- strand_max[[ttseq_strands[i]]]
+  track <- plotSignal(data = ttseq[[i]], params = region, y = y, height = signal_h,
+                      range = c(0, top), fill = strand_color[[ttseq_strands[i]]],
+                      linecolor = strand_color[[ttseq_strands[i]]])
+  annoYaxis(plot = track, at = c(0, round(top)), fontsize = 5)
+  label(ttseq_tracks[i], y, signal_h, strand_color[[ttseq_strands[i]]])
+  y <- y + signal_h + gap
+}
+
 ## ---- Peak tracks ------------------------------------------------------------
 for (t in targets) {
   plotRanges(data = consensus[[t]], params = region, y = y, height = peak_h,
@@ -116,7 +143,14 @@ for (t in targets) {
 plotRanges(data = rad21, params = region, y = y, height = peak_h,
            fill = "grey30", linecolor = NA, collapse = TRUE)
 label("RAD21 (ENCODE)", y, peak_h)
-y <- y + peak_h + 2 * gap
+y <- y + peak_h + gap
+for (a in names(annotations)) {
+  plotRanges(data = annotations[[a]], params = region, y = y, height = peak_h,
+             fill = "#E69F00", linecolor = NA, collapse = TRUE)
+  label(paste(a, "(TT-seq)"), y, peak_h)
+  y <- y + peak_h + gap
+}
+y <- y + gap
 
 ## ---- Genes and axis ---------------------------------------------------------
 ## plotGenes takes gene models from the assembly's TxDb and gene names from org.Hs.eg.db

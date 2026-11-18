@@ -1,0 +1,4 @@
+snakemake==8.27.1
+snakemake-executor-plugin-slurm>=1.0
+pandas
+pyyaml

@@ -1,4 +1,5 @@
-## QC and summaries: frip (per sample), qc_table and ctcf_rad21_overlap (once).
+## QC and summaries: frip (per sample), qc_table, ctcf_rad21_overlap and
+## enhancer_activity (once).
 
 
 ## Fraction of reads in peaks. A Python script run with `script:`: inside it, the
@@ -66,3 +67,34 @@ rule ctcf_rad21_overlap:
         end = WINDOW["end"],
     script:
         SCRIPTS + "/peak_overlap.py"
+
+
+## TT-seq signal (newly made RNA, per replicate and strand) over the published enhancers
+## and eRNAs, and which of them overlap our consensus peaks and the ENCODE RAD21 peaks.
+## An R script run with `script:`; switched on and off with ttseq: enabled:.
+if TTSEQ_ENABLED:
+
+    rule enhancer_activity:
+        input:
+            ttseq = [t["path"] for t in TTSEQ_TRACKS],
+            annotations = list(TTSEQ_ANNOTATIONS.values()),
+            consensus = [consensus_file(t) for t in TTSEQ["overlapTargets"]],
+            rad21 = data_path(config["encodePeaks"]["rad21"]),
+        output:
+            tsv = OUT + "/qc/enhancer_activity.tsv",
+        log:
+            LOGS + "/enhancer_activity/enhancer_activity.log",
+        benchmark:
+            BENCH + "/enhancer_activity/enhancer_activity.tsv",
+        threads: 1
+        conda: ENVS + "/regpipe_r.yml"
+        params:
+            ## names in the same order as the input lists above
+            ttseq_tracks = [t["track"] for t in TTSEQ_TRACKS],
+            annotation_names = list(TTSEQ_ANNOTATIONS),
+            overlap_targets = TTSEQ["overlapTargets"],
+            chrom = WINDOW["chrom"],
+            start = WINDOW["start"],
+            end = WINDOW["end"],
+        script:
+            SCRIPTS + "/enhancer_activity.R"

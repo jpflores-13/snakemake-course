@@ -11,11 +11,13 @@ rule sweep_call:
         "results/sweep/{sample}_q{q}_peaks.narrowPeak",
     params:
         gsize=config["macs3"]["gsize"],
+        options=config["macs3"]["with_control"],
     log:
         "results/logs/sweep/{sample}_q{q}.log",
     shell:
-        "macs3 callpeak -t {input.treatment} -c {input.control} -f BAM -g {params.gsize}"
-        " -n {wildcards.sample}_q{wildcards.q} --outdir results/sweep -q {wildcards.q} 2> {log}"
+        "macs3 callpeak -t {input.treatment} -c {input.control} {params.options} -f BAM"
+        " -g {params.gsize} -q {wildcards.q}"
+        " -n {wildcards.sample}_q{wildcards.q} --outdir results/sweep 2> {log}"
 
 
 rule sweep_counts:

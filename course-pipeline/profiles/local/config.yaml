@@ -26,6 +26,7 @@ set-threads:
   qc_table: 1
   ctcf_rad21_overlap: 1
   locus_plot: 1
+  enhancer_activity: 1
 set-resources:
   fastqc:
     mem_mb: 1000
@@ -54,4 +55,6 @@ set-resources:
   ctcf_rad21_overlap:
     mem_mb: 500
   locus_plot:
+    mem_mb: 3000
+  enhancer_activity:
     mem_mb: 3000

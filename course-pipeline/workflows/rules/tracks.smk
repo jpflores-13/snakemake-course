@@ -27,7 +27,8 @@ rule bigwig:
 
 
 ## One PDF of the window: signal for every sample of the chosen targets, their consensus
-## peaks, the ENCODE RAD21 peaks and the genes. The R script reads everything from the
+## peaks, the ENCODE RAD21 peaks, the genes and, with ttseq: enabled, the TT-seq
+## signal and the enhancer / eRNA annotations. The R script reads everything from the
 ## `snakemake` object (snakemake@input, snakemake@params, ...), so it has no arguments.
 if MAKE_LOCUS_PLOT:
 
@@ -42,6 +43,9 @@ if MAKE_LOCUS_PLOT:
             rad21 = data_path(config["encodePeaks"]["rad21"]),
             ## optional: an empty list when genes come from the assembly's packages
             genes_gtf = [data_path(GENES_GTF)] if GENES_GTF else [],
+            ## optional: TT-seq bigWigs and enhancer / eRNA GTFs (config ttseq:)
+            ttseq = [t["path"] for t in TTSEQ_TRACKS],
+            annotations = list(TTSEQ_ANNOTATIONS.values()),
         output:
             pdf = LOCUS_PLOT,
         log:
@@ -59,5 +63,8 @@ if MAKE_LOCUS_PLOT:
             end = WINDOW["end"],
             assembly = config["locusPlot"]["assembly"],
             title = config["locusPlot"]["name"],
+            ttseq_tracks = [t["track"] for t in TTSEQ_TRACKS],
+            ttseq_strands = [t["strand"] for t in TTSEQ_TRACKS],
+            annotation_names = list(TTSEQ_ANNOTATIONS),
         script:
             SCRIPTS + "/locus_plot.R"

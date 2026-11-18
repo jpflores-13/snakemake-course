@@ -15,11 +15,11 @@ bigwig:
   extend: 200
 
 macs3:
-  gsize: "hs"
+  gsize: 5000001       # mappable bases in the 5 Mb course window
   qvalue: "0.01"
-  # extra options for samples with and without a control
-  with_control: ""
-  no_control: "--nomodel --shift -100 --extsize 200"
+  # options for samples with and without a control
+  with_control: "--keep-dup all --nomodel --extsize 200"
+  no_control: "--keep-dup all --nomodel --shift -75 --extsize 150"
 
 # q-value sweep (05_qvalue_sweep.sh). Quote the values: YAML would turn
 # 0.0001 into a float and Python would print it as 1e-04.
@@ -32,3 +32,10 @@ locus:
   chrom: "chr8"
   start: 127300000
   end: 127800000
+
+# TT-seq over enhancers (09_ttseq_enhancers.R). Files are in data/geo.
+ttseq:
+  bigwig: "geo/TTseq_HCT116_{rep}_{strand}.bw"
+  enhancers: "geo/TTseq_HCT116_enhancers.gtf.gz"
+  reps: ["1", "2"]
+  strands: ["plus", "minus"]

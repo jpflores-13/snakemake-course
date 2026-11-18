@@ -1,6 +1,6 @@
 #!/bin/bash
 # Whole HCT116 analysis, start to finish. Run from an empty folder:
-#   mkdir -p ~/hct116-legacy && cd ~/hct116-legacy
+#   mkdir -p ~/snakemakeify/legacy && cd ~/snakemakeify/legacy
 #   bash ~/snakemake-course/snakemakeify/run_all.sh 2>&1 | tee run_all.log
 # Each step skips samples it has already done, so it is safe to re-run.
 
@@ -14,5 +14,6 @@ echo "== 05 sweep";    bash $SCRIPTS/05_qvalue_sweep.sh
 echo "== 06 qc";       python3 $SCRIPTS/06_qc_summary.py
 echo "== 07 overlap";  bash $SCRIPTS/07_overlap.sh
 echo "== 08 plot";     Rscript $SCRIPTS/08_locus_plot.R
+echo "== 09 ttseq";    Rscript $SCRIPTS/09_ttseq_enhancers.R
 
 echo "all done"
