@@ -1,0 +1,304 @@
+# Exercise 9 solution: run_all.sh as one Snakefile.
+# Run from your working folder (the one with the data/ link in it):
+#   snakemake -s path/to/answers/snakemakeify/Snakefile -c 4
+import pandas as pd
+
+
+configfile: f"{workflow.basedir}/config.yaml"
+
+DATA = config["data"]
+
+sheet = pd.read_csv(f"{DATA}/samplesheet.txt", sep="\t", dtype=str,
+                    keep_default_na=False)
+sheet["sample"] = sheet[config["fileNamesFrom"]].agg("_".join, axis=1)
+sheet = sheet.set_index("sample", drop=False)
+
+SAMPLES = sheet.index.tolist()
+CONTROLS = sorted(set(sheet["Control"]) - {"NA"})
+PEAK_SAMPLES = [s for s in SAMPLES if s not in CONTROLS]
+TARGETS = sorted(set(sheet.loc[PEAK_SAMPLES, "Target"]))
+
+
+def reps_of(target):
+    """Peak-calling samples of one target, in samplesheet order."""
+    return [s for s in PEAK_SAMPLES if sheet.loc[s, "Target"] == target]
+
+
+wildcard_constraints:
+    sample="|".join(SAMPLES),
+    target="|".join(TARGETS),
+    q=r"[0-9.]+",
+
+
+rule all:
+    input:
+        expand("results/fastqc/{sample}_fastqc.html", sample=SAMPLES),
+        expand("results/tracks/{sample}.bw", sample=SAMPLES),
+        "results/qc/qc_summary.tsv",
+        "results/sweep/sweep_counts.tsv",
+        "results/overlap/counts.txt",
+        "results/figures/MYC_locus.pdf",
+
+
+# ---- 01_fastqc.sh ------------------------------------------------
+rule fastqc:
+    input:
+        f"{DATA}/fastq/{{sample}}.fastq.gz",
+    output:
+        html="results/fastqc/{sample}_fastqc.html",
+        zip="results/fastqc/{sample}_fastqc.zip",
+    log:
+        "results/logs/fastqc/{sample}.log",
+    shell:
+        "fastqc --quiet --outdir results/fastqc {input} > {log} 2>&1"
+
+
+# ---- 02_align.sh -------------------------------------------------
+rule reference:
+    input:
+        f"{DATA}/reference/chr8_course.fa.gz",
+    output:
+        fa="results/index/chr8_course.fa",
+        fai="results/index/chr8_course.fa.fai",
+    shell:
+        "gunzip -c {input} > {output.fa} && samtools faidx {output.fa}"
+
+
+rule bowtie2_index:
+    input:
+        rules.reference.output.fa,
+    output:
+        multiext("results/index/chr8_course",
+                 ".1.bt2", ".2.bt2", ".3.bt2", ".4.bt2", ".rev.1.bt2", ".rev.2.bt2"),
+    params:
+        prefix="results/index/chr8_course",
+    log:
+        "results/logs/bowtie2_index.log",
+    threads: 4
+    shell:
+        "bowtie2-build --threads {threads} {input} {params.prefix} > {log} 2>&1"
+
+
+rule align:
+    input:
+        fq=f"{DATA}/fastq/{{sample}}.fastq.gz",
+        index=rules.bowtie2_index.output,
+    output:
+        bam="results/align/{sample}.bam",
+        bai="results/align/{sample}.bam.bai",
+    params:
+        prefix=rules.bowtie2_index.params.prefix,
+    log:
+        "results/logs/align/{sample}.bowtie2.log",
+    threads: 4
+    shell:
+        "bowtie2 -p {threads} -x {params.prefix} -U {input.fq} 2> {log}"
+        " | samtools sort -@ 2 -o {output.bam} -"
+        " && samtools index {output.bam}"
+
+
+# ---- 03_filter.sh ------------------------------------------------
+rule filter_reads:
+    input:
+        bam="results/align/{sample}.bam",
+        blacklist=f"{DATA}/reference/blacklist.bed.gz",
+    output:
+        temp("results/filter/{sample}.noBL.bam"),
+    params:
+        mapq=config["filter"]["mapq"],
+    shell:
+        "samtools view -b -q {params.mapq} {input.bam}"
+        " | bedtools intersect -v -abam stdin -b {input.blacklist} > {output}"
+
+
+rule markdup:
+    input:
+        "results/filter/{sample}.noBL.bam",
+    output:
+        bam="results/filter/{sample}.filt.bam",
+        bai="results/filter/{sample}.filt.bam.bai",
+    log:
+        "results/logs/markdup/{sample}.log",
+    shell:
+        "samtools markdup -r {input} {output.bam} 2> {log}"
+        " && samtools index {output.bam}"
+
+
+rule flagstat:
+    input:
+        "results/filter/{sample}.filt.bam",
+    output:
+        "results/filter/{sample}.flagstat.txt",
+    shell:
+        "samtools flagstat {input} > {output}"
+
+
+rule bigwig:
+    input:
+        bam="results/filter/{sample}.filt.bam",
+        bai="results/filter/{sample}.filt.bam.bai",
+    output:
+        "results/tracks/{sample}.bw",
+    params:
+        binsize=config["bigwig"]["binsize"],
+        extend=config["bigwig"]["extend"],
+    log:
+        "results/logs/bigwig/{sample}.log",
+    threads: 4
+    shell:
+        "bamCoverage -b {input.bam} -o {output} --normalizeUsing CPM"
+        " --binSize {params.binsize} --extendReads {params.extend} -p {threads} 2> {log}"
+
+
+# ---- 04_call_peaks.sh --------------------------------------------
+def macs3_inputs(wildcards):
+    """Treatment BAM, plus the control BAM named in the samplesheet."""
+    inputs = {"treatment": f"results/filter/{wildcards.sample}.filt.bam"}
+    control = sheet.loc[wildcards.sample, "Control"]
+    if control != "NA":
+        inputs["control"] = f"results/filter/{control}.filt.bam"
+    return inputs
+
+
+def macs3_options(wildcards, input):
+    if "control" in input.keys():
+        return f"-c {input.control} {config['macs3']['with_control']}"
+    return config["macs3"]["no_control"]
+
+
+rule call_peaks:
+    input:
+        unpack(macs3_inputs),
+    output:
+        peaks="results/peaks/{sample}_peaks.narrowPeak",
+        summits="results/peaks/{sample}_summits.bed",
+        xls="results/peaks/{sample}_peaks.xls",
+    params:
+        gsize=config["macs3"]["gsize"],
+        qvalue=config["macs3"]["qvalue"],
+        options=macs3_options,
+    log:
+        "results/logs/macs3/{sample}.log",
+    shell:
+        "macs3 callpeak -t {input.treatment} {params.options} -f BAM"
+        " -g {params.gsize} -q {params.qvalue}"
+        " -n {wildcards.sample} --outdir results/peaks 2> {log}"
+
+
+# ---- 05_qvalue_sweep.sh ------------------------------------------
+SWEEP_SAMPLES = reps_of(config["sweep"]["target"])
+QVALUES = config["sweep"]["qvalues"]
+
+
+rule sweep_call:
+    input:
+        treatment="results/filter/{sample}.filt.bam",
+        control=lambda wc: f"results/filter/{sheet.loc[wc.sample, 'Control']}.filt.bam",
+    output:
+        "results/sweep/{sample}_q{q}_peaks.narrowPeak",
+    params:
+        gsize=config["macs3"]["gsize"],
+    log:
+        "results/logs/sweep/{sample}_q{q}.log",
+    shell:
+        "macs3 callpeak -t {input.treatment} -c {input.control} -f BAM -g {params.gsize}"
+        " -n {wildcards.sample}_q{wildcards.q} --outdir results/sweep -q {wildcards.q} 2> {log}"
+
+
+rule sweep_counts:
+    input:
+        expand("results/sweep/{sample}_q{q}_peaks.narrowPeak",
+               sample=SWEEP_SAMPLES, q=QVALUES),
+    output:
+        "results/sweep/sweep_counts.tsv",
+    run:
+        # expand() loops over q fastest, so this matches the input order
+        labels = [(s, q) for s in SWEEP_SAMPLES for q in QVALUES]
+        with open(output[0], "w") as out:
+            out.write("sample\tqvalue\tn_peaks\n")
+            for (s, q), path in zip(labels, input):
+                with open(path) as fh:
+                    n = sum(1 for _ in fh)
+                out.write(f"{s}\t{q}\t{n}\n")
+
+
+# ---- 06_qc_summary.py --------------------------------------------
+rule qc_summary:
+    input:
+        bams=expand("results/filter/{sample}.filt.bam", sample=SAMPLES),
+        flagstats=expand("results/filter/{sample}.flagstat.txt", sample=SAMPLES),
+        peaks=expand("results/peaks/{sample}_peaks.narrowPeak", sample=PEAK_SAMPLES),
+    output:
+        "results/qc/qc_summary.tsv",
+    params:
+        samples=SAMPLES,
+        peak_samples=PEAK_SAMPLES,
+    script:
+        "scripts/qc_summary.py"
+
+
+# ---- 07_overlap.sh -----------------------------------------------
+rule consensus_peaks:
+    input:
+        lambda wc: expand("results/peaks/{sample}_peaks.narrowPeak",
+                          sample=reps_of(wc.target)),
+    output:
+        "results/overlap/{target}_consensus.bed",
+    params:
+        rep1=lambda wc, input: input[0],
+        others=lambda wc, input: input[1:],
+    shell:
+        # replicate 1 peaks that overlap a peak in any other replicate
+        "bedtools intersect -u -a {params.rep1} -b {params.others} > {output}"
+
+
+rule ctcf_rad21_overlap:
+    input:
+        ctcf="results/overlap/CTCF_consensus.bed",
+        rad21=f"{DATA}/peaks/RAD21_ENCFF391AAM.bed.gz",
+    output:
+        "results/overlap/CTCF_with_RAD21.bed",
+    shell:
+        "bedtools intersect -u -a {input.ctcf} -b {input.rad21} > {output}"
+
+
+rule ctcf_summit_windows:
+    input:
+        summits=lambda wc: f"results/peaks/{reps_of('CTCF')[0]}_summits.bed",
+        fai=rules.reference.output.fai,
+    output:
+        "results/overlap/CTCF_summits_200bp.bed",
+    shell:
+        "bedtools slop -b 100 -g {input.fai} -i {input.summits} > {output}"
+
+
+rule overlap_counts:
+    input:
+        expand("results/overlap/{target}_consensus.bed", target=TARGETS),
+        rules.ctcf_rad21_overlap.output,
+        rules.ctcf_summit_windows.output,
+    output:
+        "results/overlap/counts.txt",
+    shell:
+        "wc -l {input} > {output}"
+
+
+# ---- 08_locus_plot.R ---------------------------------------------
+rule locus_plot:
+    input:
+        bigwigs=expand("results/tracks/{sample}.bw", sample=PEAK_SAMPLES),
+        consensus=expand("results/overlap/{target}_consensus.bed", target=TARGETS),
+        rad21=f"{DATA}/peaks/RAD21_ENCFF391AAM.bed.gz",
+    output:
+        pdf="results/figures/MYC_locus.pdf",
+        tsv="results/figures/MYC_locus_CTCF_peaks.tsv",
+    params:
+        track_names=PEAK_SAMPLES,
+        peak_names=TARGETS,
+        chrom=config["locus"]["chrom"],
+        start=config["locus"]["start"],
+        end=config["locus"]["end"],
+    log:
+        "results/logs/locus_plot.log",
+    script:
+        "scripts/locus_plot.R"
