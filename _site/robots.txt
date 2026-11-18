@@ -1,1 +1,0 @@
-Sitemap: https://jpflores-13.github.io/snakemake-course/sitemap.xml

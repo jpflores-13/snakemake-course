@@ -63,6 +63,7 @@ rule align:
         """
 
 
+## Global Python variables (OUT, MIN_MAPQ, ...) can be used in {braces} in shell commands.
 ## 1. flagstat of everything bowtie2 wrote (unaligned reads included)
 ## 2. keep reads with MAPQ >= MIN_MAPQ and none of EXCLUDE_FLAGS
 ## 3. drop reads in ENCODE blacklist regions
@@ -76,13 +77,10 @@ rule filter:
         bai = OUT + "/{sample}/{sample}_filtered.bam.bai",
         flagstat = OUT + "/{sample}/{sample}_aligned_flagstat.tsv",
         markdup = OUT + "/{sample}/{sample}_markdup.txt",
-    params:
-        mapq = MIN_MAPQ,
-        flags = EXCLUDE_FLAGS,
     shell:
         """
         samtools flagstat -O tsv {input.bam} > {output.flagstat}
-        samtools view -u -q {params.mapq} -F {params.flags} {input.bam} \
+        samtools view -u -q {MIN_MAPQ} -F {EXCLUDE_FLAGS} {input.bam} \
             | bedtools intersect -v -abam stdin -b {input.blacklist} \
             | samtools markdup -r -f {output.markdup} - {output.bam}
         samtools index {output.bam}

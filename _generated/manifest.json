@@ -126,7 +126,7 @@
     "source": "_scripts/generate.py",
     "returncode": 1,
     "files": [],
-    "failed_hash": "c2a7737a41c3759f6e49e4e7c6b537b3aa95cac217d02ab70fe672f8ae0b4b20"
+    "failed_hash": "239fb540640403df1b64d256072978cc331b4fbe24bdeb3d4b5d1bba65f8891e"
   },
   "regpipe-dryrun": {
     "command": "snakemake -n -s workflows/RegPipe.snakefile --cores 1",
@@ -134,7 +134,7 @@
     "source": "_scripts/generate.py",
     "returncode": 1,
     "files": [],
-    "failed_hash": "98b24400a1300031d66ac0cec1c47958c8529ef0ced2563b81f3fbde119d9d46"
+    "failed_hash": "c5fa47fe09c32b9376ed52aee3638a6fa8becb982193a7261d0294d116d96ea2"
   },
   "regpipe-dryrun-p": {
     "command": "snakemake -n -p -s workflows/RegPipe.snakefile --cores 1",
@@ -142,7 +142,7 @@
     "source": "_scripts/generate.py",
     "returncode": 1,
     "files": [],
-    "failed_hash": "9912785051491a043e28e5eaff40a28c93b2c0e769343961f0ce00d3fa25003d"
+    "failed_hash": "3ff62a62c4101e4b4747817b29dbd98cddc44f52aae7ed1aff2e226bcc1de3d9"
   },
   "regpipe-list-rules": {
     "command": "snakemake --list-rules -s workflows/RegPipe.snakefile --cores 1",
@@ -153,7 +153,7 @@
     "files": [
       "regpipe-list-rules.txt"
     ],
-    "hash": "c34edbc27a47d05d65ed3fc99e73946598bfb2676d5d712b89c0c81b406ca14f"
+    "hash": "5fda8a19b1826781623dea8f1e61473752fac7f85bcefa12201e31d9a0c68810"
   },
   "regpipe-rulegraph": {
     "command": "snakemake --rulegraph -s workflows/RegPipe.snakefile --cores 1",
@@ -161,7 +161,7 @@
     "source": "_scripts/generate.py",
     "returncode": 1,
     "files": [],
-    "failed_hash": "971006e901a7a32fdec6c3c5b8496701121db33c447df188feecd26295e4f81d"
+    "failed_hash": "2de56c75a32021071f204cfbfbde38f651316b522e921e9bbc55e7374af388ea"
   },
   "regpipe-summary": {
     "command": "snakemake --summary -s workflows/RegPipe.snakefile --cores 1",
@@ -169,7 +169,7 @@
     "source": "_scripts/generate.py",
     "returncode": 1,
     "files": [],
-    "failed_hash": "0384e9071a5b834eb54a6a8baacfa62793c9dafda738459e2a24a1114fca696d"
+    "failed_hash": "b805e614ed748fa27fdd08e63f5f63bed9a80a19872a7f54b47393374f68344d"
   },
   "ttpipe-dag": {
     "command": "snakemake --dag -s workflows/TTpipe.snakefile --cores 1 --configfile config/TTpipeConfig.yaml tests/dryrun/config.yaml",
